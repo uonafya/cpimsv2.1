@@ -11,7 +11,7 @@ SECRET_KEY = 'z$gki-bd^me9+o699p#+oc-y)a_rps9u#unx8@b8o40-*_3f(5'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -21,6 +21,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'cpovc_auth',
+    'cpovc_registry',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -77,3 +78,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+AUTH_USER_MODEL = 'cpovc_auth.AppUser'
+
+AUTHENTICATION_BACKENDS = ('cpovc_auth.backends.CPOVCAuthenticationBackend',)
+
+ALLOW_NATIONAL_ID_LOGIN = True
