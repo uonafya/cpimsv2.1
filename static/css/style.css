@@ -255,6 +255,7 @@ label {
     -webkit-border-radius: 30px;
     -moz-border-radius: 30px;
     border-radius: 30px;
+    vertical-align: top;
 }
 .navbar-form .form-control:focus {
     width: 300px;
@@ -6149,9 +6150,15 @@ body.flat-black {
     font-weight: normal;
 }
 #footer {
-    position: fixed; 
+    /*position: fixed; */
     bottom: 0;
     left: 0;
     right: 0;
     height: 50px;
+}
+.checkbox label input {
+    vertical-align: middle;
+}
+.checkbox label span {
+    vertical-align: middle;
 }

@@ -14,26 +14,11 @@
         </div>
     </div>
     <!-- end brand -->
-    {% if msg %}
-        <div class="errors-login">
-            {{ msg }}
-            {% if form.username.errors %}
-                {{ form.username.errors }}
-            {% endif %}
-            {% if form.password.errors %}
-                {{ form.password.errors }}
-            {% endif %}
-        </div>
-    {% endif %}
     <div class="login-content">
+        {{ msg }}
         <form action="/login/" method="POST" class="margin-bottom-0">
             {% csrf_token %}
-            <div class="form-group m-b-20">
-                {{ form.username }}
-            </div>
-            <div class="form-group m-b-20">
-                {{ form.password }}
-            </div>
+            {{ form.as_table }}
             <div class="login-buttons">
                 <button type="submit" class="btn btn-success btn-block btn-lg">Log in</button>
             </div>

@@ -1,3 +1,5 @@
+{% load staticfiles %}
+
 <!DOCTYPE html>
 <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
 <!--[if !IE]><!-->
@@ -10,16 +12,16 @@
 	<meta content="" name="description" />
 	<meta content="" name="author" />
 	<!-- ================== BEGIN BASE CSS STYLE ================== -->
-	<link href="/static/plugins/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
-	<link href="/static/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-	<link href="/static/plugins/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-	<link href="/static/css/style.css" rel="stylesheet" />
-	<link href="/static/css/style-responsive.min.css" rel="stylesheet" />
-	<link href="/static/css/theme/default.css" rel="stylesheet" id="theme" />
+	<link href="{% static 'plugins/jquery-ui/themes/base/minified/jquery-ui.min.css' %}" rel="stylesheet" />
+	<link href="{% static 'plugins/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+	<link href="{% static 'plugins/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" />
+	<link href="{% static 'css/style.css' %}" rel="stylesheet" />
+	<link href="{% static 'css/style-responsive.min.css' %}" rel="stylesheet" />
+	<link href="{% static 'css/theme/default.css' %}" rel="stylesheet" id="theme" />
 	{% block style_code %}{% endblock %}
 	<!-- ================== END BASE CSS STYLE ================== -->
 	<!-- ================== BEGIN BASE JS ================== -->
-	<script src="/static/plugins/pace/pace.min.js"></script>
+	<script src="{% static 'plugins/pace/pace.min.js' %}"></script>
 	{% block javascript_code %}{% endblock %}
 	<!-- ================== END BASE JS ================== -->
 </head>
@@ -47,18 +49,10 @@
 				
 				<!-- begin header navigation right -->
 				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<form class="navbar-form full-width">
-							<div class="form-group">
-								<input type="text" class="form-control" placeholder="Enter keyword" />
-								<button type="submit" class="btn btn-search"><i class="fa fa-search"></i></button>
-							</div>
-						</form>
-					</li>
 					{% if user.is_authenticated %}
 					<li class="dropdown navbar-user">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-							<img src="/media/images/user-2.jpg" alt="" /> 
+							<img src="/static/img/user-2.jpg" alt="" /> 
 							<span class="hidden-xs">CPMIS Administrator</span> <b class="caret"></b>
 						</a>
 						<ul class="dropdown-menu animated fadeInLeft">
@@ -74,7 +68,7 @@
 					{% else %}
 					<li class="dropdown navbar-user">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-							<img src="/media/images/user-2.jpg" alt="" /> 
+							<img src="/static/img/user-2.jpg" alt="" /> 
 							<span class="hidden-xs">CPMIS Guest</span> <b class="caret"></b>
 						</a>
 						<ul class="dropdown-menu animated fadeInLeft">
@@ -113,7 +107,7 @@
 						    <span>Registry</span> 
 						</a>
 						<ul class="sub-menu">
-							<li><a href="#">Organizational Units</a></li>
+							<li><a href="{% url 'registry' %}">Organizational Units</a></li>
 							<li><a href="#">Workforce Members</a></li>
 							<li><a href="#">Parent Units</a></li>
 							<li><a href="#">Geographical Locations</a></li>
@@ -225,18 +219,18 @@
 	<!-- end page container -->
 	
 	<!-- ================== BEGIN LAZY BASE JS ================== -->
-	<script src="/static/plugins/jquery/jquery-1.9.1.min.js"></script>
-	<script src="/static/plugins/jquery/jquery-migrate-1.1.0.min.js"></script>
-	<script src="/static/plugins/jquery-ui/ui/minified/jquery-ui.min.js"></script>
-	<script src="/static/plugins/bootstrap/js/bootstrap.min.js"></script>
+	<script src="{% static 'plugins/jquery/jquery-1.9.1.min.js' %}"></script>
+	<script src="{% static 'plugins/jquery/jquery-migrate-1.1.0.min.js' %}"></script>
+	<script src="{% static 'plugins/jquery-ui/ui/minified/jquery-ui.min.js' %}"></script>
+	<script src="{% static 'plugins/bootstrap/js/bootstrap.min.js' %}"></script>
 	<!--[if lt IE 9]>
-		<script src="/static/xbrowserjs/html5shiv.js"></script>
-		<script src="/static/xbrowserjs/respond.min.js"></script>
-		<script src="/static/xbrowserjs/excanvas.min.js"></script>
+		<script src="{% static 'xbrowserjs/html5shiv.js' %}"></script>
+		<script src="{% static 'xbrowserjs/respond.min.js' %}"></script>
+		<script src="{% static 'xbrowserjs/excanvas.min.js' %}"></script>
 	<![endif]-->
-	<script src="/static/plugins/slimscroll/jquery.slimscroll.min.js"></script>
-	<script src="/static/plugins/jquery-cookie/jquery.cookie.js"></script>
-	<script src="/static/plugins/sparkline/jquery.sparkline.js"></script>
+	<script src="{% static 'plugins/slimscroll/jquery.slimscroll.min.js' %}"></script>
+	<script src="{% static 'plugins/jquery-cookie/jquery.cookie.js' %}"></script>
+	<script src="{% static 'plugins/sparkline/jquery.sparkline.js' %}"></script>
 	<!-- ================== END LAZY BASE JS ================== -->
 	
 	<!-- ================== BEGIN LAZY PAGE LEVEL JS ================== -->

@@ -1,6 +1,5 @@
 from datetime import datetime
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from cpovc_auth.models import AppUser
 
@@ -239,33 +238,3 @@ class RegPersonsAuditTrail(models.Model):
     class Meta:
         db_table = 'reg_persons_audit_trail'
         app_label = 'cpovc_registry'
-
-
-class SetupGeorgraphy(models.Model):
-    area_id = models.IntegerField()
-    area_type_id = models.CharField(max_length=50)
-    area_name = models.CharField(max_length=100)
-    parent_area_id = models.IntegerField(null=True)
-    area_name_abbr = models.CharField(max_length=5, null=True)
-    timestamp_created = models.DateTimeField(default=timezone.now)
-    timestamp_updated = models.DateTimeField(default=timezone.now)
-    is_void = models.BooleanField(default=False)
-
-    class Meta:
-        db_table = 'list_geo'
-
-
-class SetupList(models.Model):
-    item_id = models.CharField(max_length=4)
-    item_description = models.CharField(max_length=255)
-    item_description_short = models.CharField(max_length=26, null=True)
-    item_category = models.CharField(max_length=255, null=True, blank=True)
-    the_order = models.IntegerField(null=True)
-    user_configurable = models.BooleanField(default=False)
-    sms_keyword = models.BooleanField(default=False)
-    is_void = models.BooleanField(default=False)
-    field_name = models.CharField(max_length=200, null=True, blank=True)
-    timestamp_modified = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        db_table = 'list_general'

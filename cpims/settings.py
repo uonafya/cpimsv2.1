@@ -20,8 +20,11 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'cpovc_auth',
     'cpovc_registry',
+    'cpovc_main',
+    'crispy_forms',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -77,10 +80,14 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"), )
 
 AUTH_USER_MODEL = 'cpovc_auth.AppUser'
 
 AUTHENTICATION_BACKENDS = ('cpovc_auth.backends.CPOVCAuthenticationBackend',)
 
 ALLOW_NATIONAL_ID_LOGIN = True
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

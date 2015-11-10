@@ -45,6 +45,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     password_changed_timestamp = models.DateTimeField(null=True)
 
     objects = CPOVCUserManager()
+
     USERNAME_FIELD = 'workforce_id'
     REQUIRED_FIELDS = []
 

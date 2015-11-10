@@ -820,7 +820,11 @@ var handleMobileSidebar = function() {
     });
 };
 
-
+var handleDatepicker = function() {
+    $('#datepicker').datepicker({
+        dateFormat: 'yy-mm-dd'
+    });
+};
 /* Application Controller
 ------------------------------------------------ */
 var App = function () {
@@ -860,6 +864,8 @@ var App = function () {
 			
 			// unlimited nav tabs
 			handleUnlimitedTabsRender();
+
+            handleDatepicker();
 		}
   };
 }();
