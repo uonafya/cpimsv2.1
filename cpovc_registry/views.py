@@ -389,6 +389,7 @@ def new_person(request):
 
             if not msg:
                 person_name = first_name + ' ' + surname
+                print 'person_name %s' %person_name
                 msg = 'Person (%s) save success.' % (person_name)
 
             # Capture msg & op status
