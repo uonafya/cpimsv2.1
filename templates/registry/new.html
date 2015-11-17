@@ -7,7 +7,8 @@
 {% block style_code %}
 <link href="{% static 'plugins/parsley/src/parsley.css' %}" rel="stylesheet" />
 <link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
-<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" type="text/css">
+<link href="{% static 'plugins/bootstrap-wizard/css/bwizard.min.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
 
 {% endblock %}
 
@@ -28,155 +29,166 @@
 </div>
 <!-- begin row -->
 <div class="row">
-    <!-- Start content area -->
-    	<!-- begin row -->
-		<div class="row">
-            <!-- begin col-6 -->
-		    <div class="col-12">
-		        <!-- begin panel -->
-		        <form class="form-horizontal form-bordered" data-parsley-validate="true" name="demo-form" id="new_org_unit" method="post">
-		        {% csrf_token %}
-                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>
-                        <h4 class="panel-title">About the Organisation</h4>
-                    </div>
-                    <div class="panel-body panel-form">
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="org_unit_name">Name of Organisation Unit * :</label>
-							<div class="col-md-6 col-sm-6">
-									{{ form.org_unit_name }}
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="date_reg">Date when the organisation Unit was set up or became operational * :</label>
-							<div class="col-md-6 col-sm-6">
-                                {{ form.reg_date }}
-							</div>
-						</div>
-                    </div>
+    <!-- begin col-12 -->
+    <div class="col-md-12">
+        <!-- begin panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
                 </div>
-                <!-- end panel -->
-                <!-- begin panel -->
-                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>
-                        <h4 class="panel-title">Organisation Type</h4>
-                    </div>
-                    <div class="panel-body panel-form">
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="org_unit_type">Type of organisation Unit :</label>
-							<div class="col-md-6 col-sm-6">
-								{{ form.org_unit_type }}
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="legal_reg_type">Legal Registration type :</label>
-							<div class="col-md-6 col-sm-6">
-								{{ form.org_reg_type }}
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="legal_reg_number">Legal Registration Number :</label>
-							<div class="col-md-6 col-sm-6">
-								<input class="form-control" type="text" id="legal_reg_number" name="legal_reg_number" data-parsley-isngo="#id_org_unit_type" data-parsley-validate-if-empty="true" placeholder="Registration Number" />
-							</div>
-						</div>
-                    
-                    </div>
-                </div>
-                <!-- end panel -->
-                <!-- begin panel -->
-                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>
-                        <h4 class="panel-title">Where located / Providing services</h4>
-                    </div>
-                    <div class="panel-body panel-form">
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="sub_county">Sub County :</label>
-							<div class="col-md-6 col-sm-6">
-								{{ form.sub_county }}
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="wards">Wards :</label>
-							<div class="col-md-6 col-sm-6">
-								{{ form.ward }}
-							</div>
-						</div>
-                    </div>
-                </div>
-                <!-- end panel -->
-                <!-- begin panel -->
-                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>
-                        <h4 class="panel-title">Primary Parent Organization unit</h4>
-                    </div>
-                    <div class="panel-body panel-form">
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="parent_unit">Parent Unit :</label>
-							<div class="col-md-6 col-sm-6">
-								{{ form.parent_org_unit }}
-							</div>
-						</div>
-                    </div>
-                </div>
-                <!-- end panel -->
-                <!-- begin panel -->
-                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>
-                        <h4 class="panel-title">Organisation Unit contact details</h4>
-                    </div>
-	                <div class="panel-body panel-form">
-	                    {% crispy cform %}
-	                </div>
-	            </div>
-	            <!-- end panel -->
-                <!-- begin panel -->
-                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-                    <div class="panel-body panel-form">
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4"></label>
-							<div class="col-md-6 col-sm-6">
-							    <p></p>
-								<button type="submit" class="btn btn-primary">Submit</button>
-								<button type="submit" class="btn btn-default">Cancel</button>
-								<p></p>
-							</div>
-						</div>
-                    </div>
-                </div>
-                </form>
+                <h4 class="panel-title">Organization Unit details</h4>
             </div>
-            <!-- end col-6 -->
+            <div class="panel-body">
+                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="form-wizard" id="new_org_unit">
+					<div id="wizard">
+						<ol>
+							<li>
+							    About the Organisation 
+							    <small>Name and registration date.</small>
+							</li>
+							<li>
+							    Organisation Type
+							    <small>Organisation type and registration details.</small>
+							</li>
+							<li>
+							    Location
+							    <small>Where located / Providing services.</small>
+							</li>
+							<li>
+							    Contact
+							    <small>Organisation Unit contact details.</small>
+							</li>
+						</ol>
+						<!-- begin wizard step-1 -->
+						<div class="wizard-step-1">
+                            <fieldset>
+                                <legend class="pull-left width-full">About the Organisation</legend>
+                                <!-- begin row -->
+                                <div class="row">
+                                    <div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="org_unit_name">Name of Organisation Unit * :</label>
+										<div class="col-md-6 col-sm-6">
+												{{ form.org_unit_name }}
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="date_reg">Date when the organisation Unit was set up or became operational * :</label>
+										<div class="col-md-6 col-sm-6">
+			                                {{ form.reg_date }}
+										</div>
+									</div>
+                                </div>
+                                <!-- end row -->
+							</fieldset>
+						</div>
+						<!-- end wizard step-1 -->
+						<!-- begin wizard step-2 -->
+						<div class="wizard-step-2">
+							<fieldset>
+								<legend class="pull-left width-full">Organisation Type</legend>
+                                <!-- begin row -->
+                                <div class="row">
+                                    <!-- begin col-6 -->
+                                    <div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="org_unit_type">Type of organisation Unit :</label>
+										<div class="col-md-6 col-sm-6">
+											{{ form.org_unit_type }}
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="legal_reg_type">Legal Registration type :</label>
+										<div class="col-md-6 col-sm-6">
+											{{ form.org_reg_type }}
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="legal_reg_number">Legal Registration Number :</label>
+										<div class="col-md-6 col-sm-6">
+											{{ form.legal_reg_number }}
+										</div>
+									</div>
+			                        <div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="parent_unit">Parent Unit :</label>
+										<div class="col-md-6 col-sm-6">
+											{{ form.parent_org_unit }}
+										</div>
+									</div>
+                                    <!-- end col-6 -->
+                                </div>
+                                <!-- end row -->
+							</fieldset>
+						</div>
+						<!-- end wizard step-2 -->
+						<!-- begin wizard step-3 -->
+						<div class="wizard-step-3">
+							<fieldset>
+								<legend class="pull-left width-full">Location</legend>
+                                <!-- begin row -->
+                                <div class="row">
+                                    <!-- begin col-4 -->
+                                    <div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="sub_county">Sub County :</label>
+										<div class="col-md-6 col-sm-6">
+											{{ form.sub_county }}
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="wards">Wards :</label>
+										<div class="col-md-6 col-sm-6">
+											{{ form.ward }}
+										</div>
+									</div>
+			                        <!-- end col-6 -->
+                                </div>
+                                <!-- end row -->
+                            </fieldset>
+						</div>
+						<!-- end wizard step-3 -->
+						<!-- begin wizard step-4 -->
+					    <div class="wizard-step-4">
+						    <fieldset>
+								<legend class="pull-left width-full">Contacts</legend>
+                                <!-- begin row -->
+                                <div class="row">
+	                                    {% crispy cform %}
+                                </div>
+                                <!-- end row -->
+                            </fieldset>
+                        </div>
+						<!-- end wizard step-4 -->
+					</div>
+					<!-- begin panel -->
+	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
+	                    <div class="panel-body panel-form">
+							<div class="form-group">
+								<label class="control-label col-md-4 col-sm-4"></label>
+								<div class="col-md-6 col-sm-6">
+								    <p></p>
+									<button type="submit" class="btn btn-primary">Submit</button>
+									<button type="submit" class="btn btn-default">Cancel</button>
+									<p></p>
+								</div>
+							</div>
+	                    </div>
+	                </div>
+				</form>
+            </div>
         </div>
-    
-	<!-- End content area -->
+        <!-- end panel -->
+    </div>
+    <!-- end col-12 -->
 </div>
 <!-- end row -->
+<!-- End content area -->
 {% endblock %}
 
 {% block lazy_javascript_code %}
 	<script src="{% static 'js/apps.js' %}"></script>
 	<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
+	<script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
+	<script src="{% static 'js/form-wizards.js' %}"></script>
 	<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
 	<script type="text/javascript">
 		window.Parsley
@@ -225,16 +237,19 @@
 		jQuery(document).ready(function() {
 			$('html,body').scrollTop(0);
 			App.init();
+			FormWizardValidation.init();
 			$('#id_sub_county').multiselect({
 				enableFiltering: true,
 				filterBehavior: 'both',
 				numberDisplayed: 0,
+				maxHeight: 200,
 				enableCaseInsensitiveFiltering: true
 			});
 			$('#id_ward').multiselect({
 				enableFiltering: true,
 				filterBehavior: 'both',
 				numberDisplayed: 0,
+				maxHeight: 200,
 				enableCaseInsensitiveFiltering: true
 			});
 			
@@ -249,8 +264,11 @@
 		    $('.invalid-form-message')
 		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
 		      .toggleClass('filled', !ok);
-		    if (!ok)
+		    if (!ok){
 		      formInstance.validationResult = false;
+		    }else{
+		    	$(".alert").hide();
+		    }
 		  });
 		});
 	</script>

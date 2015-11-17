@@ -4,39 +4,48 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Group, Permission)
+from datetime import datetime
 
 
 class CPOVCUserManager(BaseUserManager):
 
-    def _create_user(self, workforce_id, password,
-                     is_staff, is_superuser, **extra_fields):
-        now = timezone.now()
-        if not workforce_id:
-            raise ValueError('The given workforce ID must be set')
+    def create_user(self, username, reg_person, password=None):
 
-        user = self.model(workforce_id=workforce_id,
-                          is_staff=is_staff, is_active=True,
-                          is_superuser=is_superuser, last_login=now,
-                          date_joined=now, **extra_fields)
+        from cpovc_registry.models import RegPerson
+        if not username:
+            raise ValueError('The given username must be set')
+
+        now = datetime.now()
+        user = self.model(username=username,
+                          reg_person=RegPerson.objects.get(pk=int(reg_person)),
+                          password=password,
+                          is_staff=False,
+                          is_active=True,
+                          is_superuser=False,
+                          role='Public',
+                          date_joined=now,
+                          timestamp_created=now,
+                          timestamp_updated=now,
+                          )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, workforce_id, password=None, **extra_fields):
-        return self._create_user(workforce_id, password, False, False,
-                                 **extra_fields)
-
-    def create_superuser(self, workforce_id, password, **extra_fields):
-        return self._create_user(workforce_id, password, True, True,
-                                 **extra_fields)
+    def create_superuser(self, username, reg_person, password=None):
+        user = self.create_user(username=username,
+                                reg_person=reg_person,
+                                password=password
+                                )
+        user.is_admin = True
+        user.save(using=self._db)
+        return user
 
 
 class AppUser(AbstractBaseUser, PermissionsMixin):
-    reg_person = models.ForeignKey('cpovc_registry.RegPerson', null=True)
-    workforce_id = models.CharField(max_length=20, unique=True)
-    national_id = models.CharField(max_length=15, null=True, blank=True)
-    designated_phone_number = models.CharField(max_length=50, blank=True)
+    reg_person = models.OneToOneField('cpovc_registry.RegPerson', null=False)
+    role = models.CharField(max_length=20, unique=False, default='Public')
+    username = models.CharField(max_length=20, unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -45,36 +54,37 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     password_changed_timestamp = models.DateTimeField(null=True)
 
     objects = CPOVCUserManager()
-
-    USERNAME_FIELD = 'workforce_id'
-    REQUIRED_FIELDS = []
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['reg_person']
 
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
         db_table = 'auth_user'
 
+    def _get_users_data(self):
+        _reg_users_data = AppUser.objects.all()
+        return _reg_users_data
+
     def get_full_name(self):
         """
         TO DO - Get this from persons table but for now just use
         Workforce ID
         """
-        return self.workforce_id
+        return self.username
 
     def get_short_name(self):
         """
         Return Workforce ID if exists or not
         """
-        return self.workforce_id
+        return self.username
 
     def get_username(self):
         """
         Return National ID if exists else Workforce ID
         """
-        if self.national_id:
-            return self.national_id
-        elif self.workforce_id:
-            return self.workforce_id
+        if self.username:
+            return self.username
         else:
             return None
 
@@ -113,11 +123,11 @@ class CPOVCRole(Group):
 
 class CPOVCUserRoleGeoOrg(models.Model):
     # Put here to avoid cyclic imports because of User model
-    from cpovc_registry.models import RegPersonsGeo, RegOrgUnit
+    #from cpovc_registry.models import RegPersonsGeo, RegOrgUnit
     user = models.ForeignKey(AppUser)
     group = models.ForeignKey(CPOVCRole)
-    org_unit = models.ForeignKey(RegOrgUnit, null=True)
-    area = models.ForeignKey(RegPersonsGeo, null=True)
+    org_unit = models.ForeignKey('cpovc_registry.RegOrgUnit', null=True)
+    area = models.ForeignKey('cpovc_registry.RegPersonsGeo', null=True)
     timestamp_modified = models.DateTimeField(default=timezone.now)
     void = models.BooleanField(default=False)
 

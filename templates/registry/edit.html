@@ -7,7 +7,7 @@
 {% block style_code %}
 <link href="{% static 'plugins/parsley/src/parsley.css' %}" rel="stylesheet" />
 <link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
-<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" type="text/css">
+<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
 
 {% endblock %}
 
@@ -34,8 +34,11 @@
             <!-- begin col-6 -->
 		    <div class="col-12">
 		        <!-- begin panel -->
-		        <form class="form-horizontal form-bordered" data-parsley-validate="true" name="demo-form" id="new_org_unit" method="post">
+		        <form class="form-horizontal form-bordered" data-parsley-validate="true" name="demo-form" id="edit_org_unit" method="post">
 		        {% csrf_token %}
+		        <input type='radio' class="edit_org" name='edit_org' value="1" checked="checked"> Update Organization Unit registration details
+		        <div class="separator"></div>
+		        <div id="edit_part">
                 <div class="panel panel-inverse" data-sortable-id="form-validation-1">
                     <div class="panel-heading">
                         <div class="panel-heading-btn">
@@ -85,10 +88,15 @@
 						<div class="form-group">
 							<label class="control-label col-md-4 col-sm-4" for="legal_reg_number">Legal Registration Number :</label>
 							<div class="col-md-6 col-sm-6">
-								<input class="form-control" type="text" id="legal_reg_number" name="legal_reg_number" data-parsley-isngo="#id_org_unit_type" data-parsley-validate-if-empty="true" placeholder="Registration Number" />
+								{{ form.legal_reg_number }}
 							</div>
 						</div>
-                    
+                        <div class="form-group">
+							<label class="control-label col-md-4 col-sm-4" for="parent_unit">Parent Unit :</label>
+							<div class="col-md-6 col-sm-6">
+								{{ form.parent_org_unit }}
+							</div>
+						</div>
                     </div>
                 </div>
                 <!-- end panel -->
@@ -124,32 +132,28 @@
                             <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                             <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
                         </div>
-                        <h4 class="panel-title">Primary Parent Organization unit</h4>
-                    </div>
-                    <div class="panel-body panel-form">
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4" for="parent_unit">Parent Unit :</label>
-							<div class="col-md-6 col-sm-6">
-								{{ form.parent_org_unit }}
-							</div>
-						</div>
-                    </div>
-                </div>
-                <!-- end panel -->
-                <!-- begin panel -->
-                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>
                         <h4 class="panel-title">Organisation Unit contact details</h4>
                     </div>
 	                <div class="panel-body panel-form">
 	                    {% crispy cform %}
 	                </div>
 	            </div>
+	            </div><!-- end view part -->
 	            <!-- end panel -->
+	            <input type='radio' class="edit_org" name='edit_org' value="2"> Organization Unit closed / No longer functional.
+	            <!-- begin panel -->
+                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
+                    <div class="panel-body panel-form">
+						<div class="form-group">
+							<label class="control-label col-md-4 col-sm-4" for="parent_unit">Date closed :</label>
+							<div class="col-md-6 col-sm-6">
+								{{ form.close_date }}
+							</div>
+						</div>
+                    </div>
+                </div>
+                <!-- end panel -->
+	            <input type='radio' class="edit_org" name='edit_org' value="3"> Organization Unit never existed. (Registration mistake or duplicate.)
                 <!-- begin panel -->
                 <div class="panel panel-inverse" data-sortable-id="form-validation-1">
                     <div class="panel-body panel-form">
@@ -186,11 +190,9 @@
 		      var refs = $(requirement).val();
 		      var reff = $(requirement);
 		      var vals = ["TNND", "TNNM", "TNNH"];
-		      //var result = $.inArray(refs, vals)
 		      if (reff.length){
-                //var val = $refs.val();
                 if($.inArray(refs, vals) > -1){
-                	if value != '') return true else return true;
+                	if (value != '') return true; else return false;
                 }else{
                 	return true;
                 }
@@ -202,6 +204,26 @@
 		      en: 'Registration details should be provided for this unit.'
 		    }
 		  });
+		window.Parsley
+		    .addValidator('ishq', {
+		    requirementType: 'string',
+		    validateString: function(value, requirement) {
+		      var refs = $(requirement).val();
+		      var reff = $(requirement);
+		      if (reff.length){
+                if(refs != 'TNGN'){
+                	if (value != '') return true; else return false;
+                }else{
+                	return true;
+                }
+		      }else{
+		      	return false;
+		      }
+		    },
+		    messages: {
+		      en: 'Parent organization unit must be provided.'
+		    }
+		  });
 		</script>
 	<script>
 		jQuery(document).ready(function() {
@@ -211,28 +233,45 @@
 				enableFiltering: true,
 				filterBehavior: 'both',
 				numberDisplayed: 0,
+				maxHeight: 200,
 				enableCaseInsensitiveFiltering: true
 			});
 			$('#id_ward').multiselect({
 				enableFiltering: true,
 				filterBehavior: 'both',
 				numberDisplayed: 0,
+				maxHeight: 200,
 				enableCaseInsensitiveFiltering: true
 			});
-			
+			$(".edit_org").click(function(e) {
+				var res = $('input[name=edit_org]:checked', '#edit_org_unit').val();
+				if (res == '2'){
+			       $("#edit_part").hide();
+			       $("#editdate").prop("readonly", false);
+			    }else if (res == '1'){
+			       $("#edit_part").show();
+			       $("#editdate").prop("readonly", true);
+			    }else if (res == '3'){
+			       $("#edit_part").hide();
+			       $("#editdate").prop("readonly", true);
+			   }
+		    });
 		});
 	</script>
 
     <script type="text/javascript">
 		$(function () {
-		  $('#new_org_unit').parsley().on('form:validate', function (formInstance) {
+		  $('#edit_org_unit').parsley().on('form:validate', function (formInstance) {
 		    var ok = formInstance.isValid('primary', true);
 		    $(".alert").show();
 		    $('.invalid-form-message')
 		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
 		      .toggleClass('filled', !ok);
-		    if (!ok)
+		    if (!ok){
 		      formInstance.validationResult = false;
+		    }else{
+		    	$(".alert").hide();
+		    }
 		  });
 		});
 	</script>

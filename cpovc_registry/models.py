@@ -1,6 +1,5 @@
 from datetime import datetime
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 from cpovc_auth.models import AppUser
 
 
@@ -71,18 +70,24 @@ class RegOrgUnitGeography(models.Model):
 
 
 class RegPerson(models.Model):
-    beneficiary_id = models.CharField(max_length=10, null=True, blank=True)
-    workforce_id = models.CharField(max_length=8, null=True, blank=True)
-    birth_reg_id = models.CharField(max_length=15, null=True, blank=True)
-    national_id = models.CharField(max_length=15, null=True, blank=True)
+    #beneficiary_id = models.CharField(max_length=10, null=True, blank=True, default=None)
+    #workforce_id = models.CharField(max_length=8, null=True, blank=True, default=None)
+    #birth_reg_id = models.CharField(max_length=15, null=True, blank=True, default=None)
+    #national_id = models.CharField(max_length=15, null=True, blank=True, default=None)
+    #staff_id = models.CharField(max_length=15, null=True, blank=True, default=None)
     first_name = models.CharField(max_length=255)
-    other_names = models.CharField(max_length=255, null=True, blank=True)
+    other_names = models.CharField(max_length=255, null=True, blank=True, default=None)
     surname = models.CharField(max_length=255)
-    email = models.EmailField(_('email address'), blank=True)
+    email = models.EmailField(blank=True, default=None)
+    des_phone_number = models.IntegerField(null=True, default=None)
     date_of_birth = models.DateField()
-    date_of_death = models.DateField(null=True, blank=True)
+    date_of_death = models.DateField(null=True, blank=True, default=None)
     sex_id = models.CharField(max_length=4)
     is_void = models.BooleanField(default=False)
+
+    def _get_persons_data(self):
+        _reg_persons_data = RegPerson.objects.all().order_by('-id')
+        return _reg_persons_data
 
     def _get_full_name(self):
         return '%s %s %s' % (self.first_name, self.other_names, self.surname)
@@ -104,11 +109,17 @@ class RegPerson(models.Model):
 
 class RegPersonsGuardians(models.Model):
     child_person = models.ForeignKey(RegPerson)
-    guardian_person_id = models.IntegerField()
-    relationship_notes = models.CharField(max_length=255)
+    guardian_person_id = models.CharField(max_length=255)
+    relationship = models.CharField(max_length=255)
     date_linked = models.DateField(null=True)
     date_delinked = models.DateField(null=True)
     is_void = models.BooleanField(default=False)
+
+    def make_void(self, date_delinked=None):
+        self.is_void = True
+        if date_delinked:
+            self.date_delinked = date_delinked
+        super(RegPersonsGuardians, self).save()
 
     class Meta:
         db_table = 'reg_persons_guardians'
@@ -118,7 +129,7 @@ class RegPersonsTypes(models.Model):
     person = models.ForeignKey(RegPerson)
     person_type_id = models.CharField(max_length=4)
     date_began = models.DateField(null=True)
-    date_ended = models.DateField(null=True)
+    date_ended = models.DateField(null=True, default=None)
     is_void = models.BooleanField(default=False)
 
     def make_void(self, person_type_change_date=None):
@@ -178,17 +189,10 @@ class RegPersonsContact(models.Model):
 
 class RegPersonsOrgUnits(models.Model):
     person = models.ForeignKey(RegPerson)
-    parent_org_unit = models.ForeignKey(RegOrgUnit)
-    primary = models.BooleanField(default=False)
+    org_unit_id = models.ForeignKey(RegOrgUnit)
     date_linked = models.DateField(null=True)
     date_delinked = models.DateField(null=True)
     is_void = models.BooleanField(default=False)
-
-    def make_void(self, parent_org_change_date=None):
-        self.is_void = True
-        if parent_org_change_date:
-            self.date_delinked = parent_org_change_date
-        super(RegPersonsOrgUnits, self).save()
 
     class Meta:
         db_table = 'reg_persons_org_units'

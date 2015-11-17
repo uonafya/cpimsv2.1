@@ -36,6 +36,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'cpovc_main.middleware.SqlPrintingMiddleware',
 )
 
 ROOT_URLCONF = 'cpims.urls'
@@ -63,7 +64,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'cpims',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '5432', }
 }
@@ -91,3 +92,8 @@ AUTHENTICATION_BACKENDS = ('cpovc_auth.backends.CPOVCAuthenticationBackend',)
 ALLOW_NATIONAL_ID_LOGIN = True
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+#to find out what this does
+IS_CAPTURE_SITE = False
+if IS_CAPTURE_SITE:
+    import capture_settings

@@ -1,0 +1,179 @@
+
+{% extends 'base.html' %}
+{% block page_title %} {{block.super}} Register {% endblock page_title%}
+
+{% load staticfiles %}
+
+{% block extra_styling%}
+<!--
+<link href="{% static 'plugins/DataTables/css/data-table.css' %}" rel="stylesheet" />
+-->
+<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
+{% endblock extra_styling%}
+
+{% block extra_javascript%}
+{% endblock extra_javascript%}
+
+
+{% block content%}
+<h1 class="page-header">Workforce Registry</h1>
+{% if messages %}
+<div id="messages" class="alert alert-success fade in">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-check fa-2x pull-left"></i>
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.info %} class="{{ message.info }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+<p></p>
+
+<!-- begin row -->
+<!-- begin row -->
+<div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+                <!-- begin panel -->
+                <div class="panel panel-inverse">
+                    <div class="panel-heading">
+                        <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        </div>                          
+                        <h4 class="panel-title">Search Workforce</h4>
+                    </div>
+                    <div class="panel-body">
+                    <form class="form-inline" action="{% url 'workforce_search' %}" method="POST" data-parsley-validate="true">
+                       {% csrf_token %}
+                       <div class="form-group m-r-10">
+                            {{ form.user_name }}
+                        </div>
+                        <div class="checkbox m-r-10">
+                            <label>
+                                {{ form.user_void }} <span>Include Voided</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-default">Search</button>
+                    </form>     
+                    </div>
+                </div>
+        </div>
+</div>
+
+<div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+                <!-- begin panel -->
+                <div class="panel panel-inverse">
+                    <div class="panel-heading"> 
+                        <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        </div>                           
+                        <h4 class="panel-title">Workforce List</h4>
+                    </div>
+
+                    {% if results|length %}
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table id="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Firstname</th>
+                                        <th>Lastname</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in results %}
+                                    <tr>
+                                        <td>{{ user.id }}</td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.first_name }}</td>  
+                                        <td>{{ user.last_name }}                                      
+                                        <td><button type="submit" class="btn  btn-sm btn-primary m-r-5">Edit</button></td>
+                                    </tr>                       
+                                    {% endfor %}
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- end panel -->  
+                    {% else %}
+                        <div class="norecords" align="center"><b>No records found.</b></div>
+                    {% endif %}            
+
+            </div>
+            <!-- end col-12 -->
+        </div>
+        <!-- end row -->
+
+{% endblock content%}
+
+{% block lazy_javascript_code %}
+    <script src="/static/plugins/parsley/dist/parsley.js"></script>
+    <script>
+        $(document).ready(function() {
+            App.init();
+        });
+    </script>
+    <script src="{% static 'js/custom_js.js' %}"></script>
+    <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>    
+    <script>
+    </script>
+    <script>
+        $(document).ready(function() 
+        {
+            $('#data-table').bootstrapTable(
+            { 
+                toggle: 'table', 
+                search: 'true',
+                locale: 'en-US',
+                pagination: 'true',
+                pageNumber: 1,
+                pageSize: 10,
+                //showRefresh: true,
+                showToggle: true,
+                //showColumns: true,
+                singleSelect: true,
+                clickToSelect:true,
+                maintainSelected: true,
+
+
+                
+                onClickRow: function (row, $element)
+                {
+                    // row: the record corresponding to the clicked row, 
+                    // $element: the tr element
+                    //return location.href='{% url 'new_user' %}';
+                    
+                    //return location.href='{% url 'new_user' %}?person_id='+ person_id;
+                    
+                    //person_id = row[0];
+                    //localStorage.setItem("person_id",person_id);
+                    //console.log(person_id);
+                }
+                
+            });
+        });
+    </script>
+    
+    <!--
+    <script src="{% static 'plugins/DataTables/js/jquery.dataTables.js' %}"></script>
+    <script src="{% static 'js/table-manage-default.demo.min.js' %}"></script>
+    
+    <script>
+        $(document).ready(function() {
+            TableManageDefault.init();
+        });
+    </script>
+    -->
+    <script src="{% static 'js/apps.js' %}"></script>
+
+{% endblock lazy_javascript_code%}

@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
-{% block page_title %} Dashboard {% endblock %}
+{% block page_title %} Organization Unit Search {% endblock %}
+
+{% load app_filters %}
 
 {% block style_code %}
     <link href="{% static 'plugins/parsley/src/parsley.css' %}" rel="stylesheet" />
@@ -93,8 +95,8 @@
                     <tr class="{% cycle 'even' 'odd' %}">
                         <td><a href="/registry/{{ result.pk }}">{{ result.org_unit_id_vis }}</a></td>
                         <td>{{ result.org_unit_name }}</td>
-                        <td>{{ result.org_unit_type_id }}</td>
-                        <td>-</td>
+                        <td>{{ result.org_unit_type_id|gen_value:vals }}</td>
+                        <td>{{ result.parent_org_unit_id }}</td>
                         <td>-</td>
                         <td><a href="/registry/edit/{{ result.pk }}">Edit</a></td>
                     </tr>
@@ -110,36 +112,7 @@
 {% endif %}
  
 <!-- End content area -->
-{%if sql_queries %}<div class="footNav">
-  <h2>Queries</h2>
-  <p>
-    {{ sql_queries|length }} Quer{{ sql_queries|pluralize:"y,ies" }}, {{sql_time_sum}} Time
-    {% ifnotequal sql_queries|length 0 %}
-    (<span style="cursor: pointer;" onclick="var s=document.getElementById('debugQueryTable').style;s.disp\
-lay=s.display=='none'?'':'none';this.innerHTML=this.innerHTML=='Show'?'Hide':'Show';">Show</span>)
-    {% endifnotequal %}
-  </p>
-  <table id="debugQueryTable" style="display: none;">
-    <col width="1"></col>
-    <col></col>
-    <col width="1"></col>
-    <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">SQL</th>
-      <th scope="col">Time</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for query in sql_queries %}<tr class="{% cycle odd,even %}">
-      <td>{{ forloop.counter }}</td>
-      <td>{{ query.sql|escape }}</td>
-      <td>{{ query.time }}</td>
-    </tr>{% endfor %}
-    </tbody>
-  </table>
 
-</div>{%endif %}
 </div>
 <!-- end row -->
 {% endblock %}

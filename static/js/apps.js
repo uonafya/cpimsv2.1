@@ -821,7 +821,7 @@ var handleMobileSidebar = function() {
 };
 
 var handleDatepicker = function() {
-    $('#datepicker').datepicker({
+    $('#datepicker, #editdate').datepicker({
         dateFormat: 'yy-mm-dd'
     });
 };

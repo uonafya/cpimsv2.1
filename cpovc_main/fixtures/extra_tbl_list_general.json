@@ -1,0 +1,34 @@
+[
+{
+    "pk": 2,
+    "model": "cpovc_main.SetupList",
+    "fields": {
+        "item_category": "Person ID type - external",
+        "user_configurable": "False",
+        "sms_keyword": "True",
+        "item_sub_category": "",
+        "is_void": "False",
+        "item_id": "IWKF",
+        "item_description_short": "WID",
+        "field_name": "identifier_type_id",
+        "item_description": "Workforce ID",
+        "the_order": 11
+    }
+},
+{
+    "pk": 4,
+    "model": "cpovc_main.SetupList",
+    "fields": {
+        "item_category": "Person ID type - external",
+        "user_configurable": "False",
+        "sms_keyword": "True",
+        "item_sub_category": "",
+        "is_void": "False",
+        "item_id": "INTL",
+        "item_description_short": "NID",
+        "field_name": "identifier_type_id",
+        "item_description": "National ID",
+        "the_order": 11
+    }
+}
+]
