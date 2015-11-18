@@ -12,5 +12,7 @@ urlpatterns = patterns('cpovc_registry.views',
                            name='workforce_search'),
                        url(r'^new_user/$', 'new_user', name='new_user'),
                        url(r'^new_person/$', 'new_person', name='new_person'),
-                       url(r'^edit_person/(?P<id>\d+)/$', 'edit_person', name='edit_person'),
+                       url(r'^edit_person/(?P<id>\d+)/$', 'edit_person',
+                           name='edit_person'),
+                       url(r'^lookup/$', 'registry_look', name='reg_lookup'),
                        )

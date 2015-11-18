@@ -13,8 +13,8 @@ workforce_id_prefix = 'W'
 def get_all_geo_list():
     try:
         geo_lists = SetupGeography.objects.all().values(
-            'area_id', 'area_type_id', 'area_name').exclude(
-            area_type_id='GPRV')
+            'area_id', 'area_type_id', 'area_name', 'parent_area_id')
+        # .exclude(area_type_id='GPRV')
     except Exception, e:
         raise e
     else:

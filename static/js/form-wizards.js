@@ -1,28 +1,30 @@
 var handleBootstrapWizardsValidation = function() {
-	"use strict";
-	$("#wizard").bwizard({ validating: function (e, ui) { 
-	        if (ui.index == 0) {
-	            // step-1 validation
-                if (false === $('form[name="form-wizard"]').parsley().validate('wizard-step-1')) {
+    "use strict";
+    $("#mysubmit").removeClass( "btn-primary" ).attr("disabled", "disabled");
+    $("#wizard").bwizard({ validating: function (e, ui) { 
+            if (ui.index == 0) {
+                // step-1 validation
+                if (false === $('form[name="form-wizard"]').parsley().validate('primary')) {
                     return false;
                 }
-	        } else if (ui.index == 1) {
-	            // step-2 validation
-                if (false === $('form[name="form-wizard"]').parsley().validate('wizard-step-2')) {
+            } else if (ui.index == 1) {
+                // step-2 validation
+                  if (false === $('form[name="form-wizard"]').parsley().validate('primary1')) {
                     return false;
                 }
-	        } else if (ui.index == 2) {
-	            // step-3 validation
-                if (false === $('form[name="form-wizard"]').parsley().validate('wizard-step-3')) {
+            } else if (ui.index == 2) {
+                // step-3 validation
+                $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
+                if (false === $('form[name="form-wizard"]').parsley().validate('primary2')) {
                     return false;
                 }
-	        }
-	    } 
-	});
+            }
+        } 
+    });
 };
 
 var FormWizardValidation = function () {
-	"use strict";
+    "use strict";
     return {
         //main function
         init: function () {

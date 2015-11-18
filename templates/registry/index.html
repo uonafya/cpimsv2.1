@@ -96,7 +96,7 @@
                         <td><a href="/registry/{{ result.pk }}">{{ result.org_unit_id_vis }}</a></td>
                         <td>{{ result.org_unit_name }}</td>
                         <td>{{ result.org_unit_type_id|gen_value:vals }}</td>
-                        <td>{{ result.parent_org_unit_id }}</td>
+                        <td>{{ result.parent_org_unit_id|gen_value:vals }}</td>
                         <td>-</td>
                         <td><a href="/registry/edit/{{ result.pk }}">Edit</a></td>
                     </tr>

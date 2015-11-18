@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
-{% block page_title %} Dashboard {% endblock %}
+{% block page_title %} Organisation units {% endblock %}
 
 {% load crispy_forms_tags %}
 
@@ -20,7 +20,7 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h1 class="page-header">Registry <small>Register Organisational Unit</small></h1>
+<h1 class="page-header">Registry <small>Update Organisational Unit</small></h1>
 <!-- end page-header -->
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
@@ -41,7 +41,11 @@
                 <h4 class="panel-title">Organization Unit details</h4>
             </div>
             <div class="panel-body">
-                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="form-wizard" id="new_org_unit">
+                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="form-wizard" id="edit_org_unit">
+                {% csrf_token %}
+		        <input type='radio' class="edit_org" name='edit_org' value="1" checked="checked"> Update Organization Unit registration details
+		        <div class="separator"></div>
+		        <div id="edit_part">
 					<div id="wizard">
 						<ol>
 							<li>
@@ -161,20 +165,38 @@
                         </div>
 						<!-- end wizard step-4 -->
 					</div>
-					<!-- begin panel -->
+					
+	                </div><!-- end view part -->
+		            <!-- end panel -->
+		            <input type='radio' class="edit_org" name='edit_org' value="2"> Organization Unit closed / No longer functional.
+		            <!-- begin panel -->
+	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
+	                    <div class="panel-body panel-form">
+							<div class="form-group">
+								<label class="control-label col-md-4 col-sm-4" for="parent_unit">Date closed :</label>
+								<div class="col-md-6 col-sm-6">
+									{{ form.close_date }}
+								</div>
+							</div>
+	                    </div>
+	                </div>
+	                <!-- end panel -->
+		            <input type='radio' class="edit_org" name='edit_org' value="3"> Organization Unit never existed. (Registration mistake or duplicate.)
+		            <!-- begin panel -->
 	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
 	                    <div class="panel-body panel-form">
 							<div class="form-group">
 								<label class="control-label col-md-4 col-sm-4"></label>
 								<div class="col-md-6 col-sm-6">
 								    <p></p>
-									<button id="mysubmit" type="submit" class="btn btn-primary">Submit</button>
+									<button type="submit" class="btn btn-primary">Submit</button>
 									<button type="submit" class="btn btn-default">Cancel</button>
 									<p></p>
 								</div>
 							</div>
 	                    </div>
 	                </div>
+	                <!-- end panel -->
 				</form>
             </div>
         </div>
@@ -247,41 +269,26 @@
 				maxHeight: 200,
 				enableCaseInsensitiveFiltering: true
 			});
-			$("#id_sub_county").change(function(e) {
-				var sub_county = $("#id_sub_county").val();
-		        var csrftoken = $.cookie('csrftoken');
-                var values = {'sub_county': sub_county, 'action': 1,
-                             'csrfmiddlewaretoken': csrftoken };
-                $('#id_ward').empty();
-				$.ajax({
-					type: "POST",
-					data: values,
-					dataType: "json",
-					url: "/registry/lookup/",
-					success: function(data){
-						var wards = data.wards;
-						$('#id_ward').html("<option value=''>Select One</option>");			
-						$.each(wards, function(i, record) {
-							var ward_attribs = wards[i].split(",");
-                            $('#id_ward')
-			            		.append($("<option></option>")
-			            		.attr("value", ward_attribs[0])
-			            		.text(ward_attribs[1]));
-                         });
-						$('#id_ward').multiselect('rebuild');
-					},
-			        error: function(){
-			        	$('#messages').html("Error")
-			        }
-		        });
-            });
+			$(".edit_org").click(function(e) {
+				var res = $('input[name=edit_org]:checked', '#edit_org_unit').val();
+				if (res == '2'){
+			       $("#edit_part").hide();
+			       $("#editdate").prop("readonly", false);
+			    }else if (res == '1'){
+			       $("#edit_part").show();
+			       $("#editdate").prop("readonly", true);
+			    }else if (res == '3'){
+			       $("#edit_part").hide();
+			       $("#editdate").prop("readonly", true);
+			   }
+		    });
 		});
 	</script>
 
     <script type="text/javascript">
 		$(function () {
 		  $('#new_org_unit').parsley().on('form:validate', function (formInstance) {
-		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true);
+		    var ok = formInstance.isValid('primary', true);
 		    $(".alert").show();
 		    $('.invalid-form-message')
 		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')

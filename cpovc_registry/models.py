@@ -70,13 +70,9 @@ class RegOrgUnitGeography(models.Model):
 
 
 class RegPerson(models.Model):
-    #beneficiary_id = models.CharField(max_length=10, null=True, blank=True, default=None)
-    #workforce_id = models.CharField(max_length=8, null=True, blank=True, default=None)
-    #birth_reg_id = models.CharField(max_length=15, null=True, blank=True, default=None)
-    #national_id = models.CharField(max_length=15, null=True, blank=True, default=None)
-    #staff_id = models.CharField(max_length=15, null=True, blank=True, default=None)
     first_name = models.CharField(max_length=255)
-    other_names = models.CharField(max_length=255, null=True, blank=True, default=None)
+    other_names = models.CharField(max_length=255, null=True,
+                                   blank=True, default=None)
     surname = models.CharField(max_length=255)
     email = models.EmailField(blank=True, default=None)
     des_phone_number = models.IntegerField(null=True, default=None)

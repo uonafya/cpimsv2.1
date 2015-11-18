@@ -9,7 +9,7 @@ class CPOVCAuthenticationBackend(ModelBackend):
     def authenticate(self, username=None, password=None):
         """ Authenticate a user based on workforce_id / national_id. """
         try:
-            user = AppUser.objects.get(workforce_id=username)
+            user = AppUser.objects.get(username=username)
             if settings.ALLOW_NATIONAL_ID_LOGIN:
                 if not user:
                     user = AppUser.objects.get(national_id=username)

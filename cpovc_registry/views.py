@@ -1,23 +1,25 @@
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
-from django.db.models import Q
-import operator
-from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.conf import settings
 from django.contrib import messages
-import json
-from cpovc_main.functions import get_list_of_org_units, get_dict, get_list_of_persons, get_persons_list, get_description_for_item_id
-from .forms import FormRegistry, FormRegistryNew, FormContact 
+from cpovc_main.functions import (
+    get_list_of_org_units, get_dict, get_persons_list)
+from .forms import FormRegistry, FormRegistryNew, FormContact
+from .models import RegOrgUnitGeography
 from .functions import (
     org_id_generator, save_contacts, save_external_ids, close_org_unit,
-    save_geo_location, get_external_ids, get_geo_location, get_contacts)
+    save_geo_location, get_external_ids, get_geo_location, get_contacts,
+    get_all_geo_list)
 from cpovc_auth.models import AppUser
-from cpovc_registry.models import RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits, RegPersonsTypes, RegPersonsGuardians, RegPersonsGeo, RegPersonsExternalIds
-from cpovc_registry.forms import RegistrationForm, RegistrationSearchForm, NewUser, UserSearchForm
-from cpovc_main.functions import workforce_id_generator, beneficiary_id_generator
+from cpovc_registry.models import (
+    RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
+    RegPersonsTypes, RegPersonsGuardians, RegPersonsGeo, RegPersonsExternalIds)
+from cpovc_registry.forms import (
+    RegistrationForm, RegistrationSearchForm, NewUser, UserSearchForm)
+from cpovc_main.functions import (
+    workforce_id_generator, beneficiary_id_generator, get_org_units_dict)
+from cpovc_main.models import SetupGeography
 
 
 def home(request):
@@ -38,10 +40,16 @@ def home(request):
                                                 include_closed=closed_org,
                                                 in_org_unit_types=unit_type,
                                                 number_of_results=50)
-                message = "Search for %s returned %d results" % (search_string,
-                                                                 len(results))
+                items = 'result' if len(results) == 1 else 'results'
+                message = "Search for %s returned %d %s" % (search_string,
+                                                            len(results),
+                                                            items)
                 check_fields = ['org_unit_type_id']
-                vals = get_dict(field_name=check_fields)
+                val = get_dict(field_name=check_fields)
+                # All existing org units
+                org_units_list = get_org_units_dict()
+                vals = val.copy()
+                vals.update(org_units_list)
                 return render(request,
                               'registry/index.html', {'form': form,
                                                       'results': results,
@@ -139,6 +147,11 @@ def register_edit(request, org_id):
                 units.date_operational = reg_date
                 units.parent_org_unit_id = parent_org_unit
                 units.save(update_fields=["org_unit_name"])
+                # Update registration details
+                org_reg_type = request.POST.get('org_reg_type')
+                reg_number = request.POST.get('legal_reg_number')
+                if org_reg_type:
+                    save_external_ids(org_reg_type, reg_number, org_id)
                 # Update Geo locations
                 geo_locs = ward + sub_county
                 save_geo_location(geo_locs, org_id, area_list)
@@ -191,8 +204,9 @@ def register_edit(request, org_id):
         contacts = get_contacts(org_id)
         print contacts
         cform = FormContact(contacts)
-        return render(request, 'registry/edit.html', {'form': form,
-                                                      'cform': cform})
+        return render(request,
+                      'registry/org_units_edit.html', {'form': form,
+                                                       'cform': cform})
     except RegOrgUnit.DoesNotExist:
         form = FormRegistry()
         msg = 'Organisation Unit does not exist'
@@ -213,11 +227,39 @@ def register_details(request, org_id):
     '''
     try:
         # All my filters
-        check_fields = ['contact_detail_type_id', 'org_unit_type_id']
-        vals = get_dict(field_name=check_fields)
+        check_fields = ['contact_detail_type_id', 'org_unit_type_id',
+                        'identifier_type_id']
+        val = get_dict(field_name=check_fields)
+        # All existing org units
+        org_units_list = get_org_units_dict()
+        vals = val.copy()
+        vals.update(org_units_list)
         org_unit = RegOrgUnit.objects.get(pk=org_id)
         org_contact = RegOrgUnitContact.objects.filter(org_unit_id=org_id)
         org_unit.contacts = org_contact
+        # Geo details
+        inner_qs = RegOrgUnitGeography.objects.filter(
+            org_unit_id=org_id).values('area_id')
+        entries = SetupGeography.objects.filter(area_id__in=inner_qs)
+        wards, sub_counties = [], []
+        for inner_q in entries:
+            area_type = inner_q.area_type_id
+            area_name = inner_q.area_name
+            if area_type == 'GDIS':
+                sub_counties.append(area_name)
+            if area_type == 'GWRD':
+                wards.append(area_name)
+        show_wards = ' ,'.join(wards)
+        show_county = ' ,'.join(sub_counties)
+        # External ids
+        ext_ids = get_external_ids(org_id)
+        if ext_ids:
+            reg_type = ext_ids[0]['identifier_type_id']
+            reg_number = ext_ids[0]['identifier_value']
+            org_unit.registration_type = reg_type
+            org_unit.registration_number = reg_number
+        org_unit.sub_county = show_county
+        org_unit.wards = show_wards
         return render(request, 'registry/details.html',
                       {'org_details': org_unit, 'vals': vals})
     except Exception, e:
@@ -256,8 +298,6 @@ def new_person(request):
             caregiver_id = request.POST.get('caregiver_id')
             relationships = request.POST.getlist('relationship_type_id')
             date_of_birth = request.POST.get('date_of_birth')
-            date_of_death = request.POST.get('date_of_death')
-
             # Capture RegPerson Model
             try:
                 person = RegPerson(
@@ -274,24 +314,24 @@ def new_person(request):
 
                 person.save()
             except Exception, e:
-                msg = 'An error occured when saving to RegPerson Model -  %s' % (
-                    str(e))
+                msg = ('An error occured when saving to RegPerson '
+                       'Model -  %s' % (str(e)))
 
             reg_person_pk = int(person.pk)
 
-            #Capture RegPersonsExternalIds Model
+            # Capture RegPersonsExternalIds Model
             identifier = None
-            identifier_type_id = None
             wfc_list = []
             workforce_id = None
             beneficiary_id = None
             identifier_types = []
 
-            #****Generate workforce_id/beneficiary_id****
+            # ****Generate workforce_id/beneficiary_id****
             if person_type:
                 wfc_list = person_type
-                print 'wfc_list %s' %wfc_list
-                if any(['TWGE' in wfc_list ,'TWNE' in wfc_list ,'TWVL' in wfc_list]):
+                print 'wfc_list %s' % wfc_list
+                if any(['TWGE' in wfc_list, 'TWNE' in wfc_list,
+                        'TWVL' in wfc_list]):
                     workforce_id = workforce_id_generator(reg_person_pk)
                 if ('TBGR' in wfc_list):
                     beneficiary_id = beneficiary_id_generator(reg_person_pk)
@@ -306,7 +346,7 @@ def new_person(request):
             if birth_reg_id:
                 identifier_types.append('ISOV')
 
-            for i, identifier_type in enumerate(identifier_types):                
+            for i, identifier_type in enumerate(identifier_types):
                 if identifier_type == 'INTL':
                     identifier = national_id
                 if identifier_type == 'IMAN':
@@ -320,18 +360,17 @@ def new_person(request):
 
                 exid = RegPersonsExternalIds(
                     person=RegPerson.objects.get(pk=int(reg_person_pk)),
-                    identifier_type_id = identifier_type,
-                    identifier = identifier,
-                    is_void = False)
+                    identifier_type_id=identifier_type,
+                    identifier=identifier,
+                    is_void=False)
                 exid.save()
 
-
             # update workforce_id,beneficiary_id with luhn_check
-            #workforce_id = workforce_id_generator(reg_person_pk)
-            #beneficiary_id = beneficiary_id_generator(reg_person_pk)
-            #person.workforce_id = workforce_id
-            #person.beneficiary_id = beneficiary_id
-            #person.save(update_fields=['workforce_id', 'beneficiary_id'])
+            # workforce_id = workforce_id_generator(reg_person_pk)
+            # beneficiary_id = beneficiary_id_generator(reg_person_pk)
+            # person.workforce_id = workforce_id
+            # person.beneficiary_id = beneficiary_id
+            # person.save(update_fields=['workforce_id', 'beneficiary_id'])
 
             # Capture RegPersonTypes Model
             print 'Attach person_types to Person PK=. . ' + str(reg_person_pk)
@@ -345,7 +384,8 @@ def new_person(request):
                         date_ended=None,
                         is_void=False).save()
                 else:
-                    msg = 'An error occured when saving to RegPersonTypes Model\n'
+                    msg = ('An error occured when saving to '
+                           'RegPersonTypes Model\n')
 
             # Capture RegPersonsOrgUnits Model
             print 'Attach org_units to Person PK=. . ' + str(reg_person_pk)
@@ -371,25 +411,26 @@ def new_person(request):
                         date_delinked=None,
                         is_void=False).save()
                 else:
-                    msg += 'An error occured when saving to RegPersonsGuardians Model\n'
+                    msg += ('An error occured when saving to '
+                            'RegPersonsGuardians Model\n')
 
             # Capture RegPersonsGeo Model
             print 'Attach reg_person to geo area_id ....'
             area_id = living_in
-            objRegPersonsGeo = RegPersonsGeo(
+            obj_reg_persons_geo = RegPersonsGeo(
                 person=RegPerson.objects.get(
                     pk=int(reg_person_pk)),
                 area_id=area_id,
                 date_linked=now,
                 date_delinked=None,
                 is_void=False)
-            objRegPersonsGeo.save()
-            if not objRegPersonsGeo:
+            obj_reg_persons_geo.save()
+            if not obj_reg_persons_geo:
                 msg += 'An error occured when saving to RegPersonsGeo Model\n'
 
             if not msg:
                 person_name = first_name + ' ' + surname
-                print 'person_name %s' %person_name
+                print 'person_name %s' % person_name
                 msg = 'Person (%s) save success.' % (person_name)
 
             # Capture msg & op status
@@ -398,6 +439,7 @@ def new_person(request):
 
         except Exception, e:
             error = 'An error occured when saving data -  %s' % (str(e))
+            print error
             messages.add_message(request, messages.INFO, msg)
             return HttpResponseRedirect('/registry/persons_search/')
 
@@ -412,7 +454,6 @@ def persons_search(request):
     '''
     Some default page for the home page / Dashboard
     '''
-    res=None
     results = None
     wfc_type = None
 
@@ -422,15 +463,18 @@ def persons_search(request):
             if form.is_valid():
                 person_type = form.cleaned_data['person_type']
                 search_string = form.cleaned_data['search_name']
+                '''
                 person_deceased = form.cleaned_data['person_deceased']
-
                 deceased_person = True if person_deceased == 'True' else False
                 type_of_person = [person_type] if person_type else []
-
+                '''
                 if person_type:
                     wfc_type = person_type
 
-                resultset = get_persons_list(user=request.user, tokens=search_string, wfc_type=wfc_type)
+                resultset = get_persons_list(
+                    user=request.user,
+                    tokens=search_string,
+                    wfc_type=wfc_type)
 
                 """
                 for result in resultset:
@@ -494,14 +538,16 @@ def new_user(request):
             else:
                 error_msg = 'Passwords do not match!'
                 form = NewUser(data=request.POST)
-                return render(request, 'registry/new_user.html', {'form': form, 'error_msg': error_msg},)
+                return render(request, 'registry/new_user.html',
+                              {'form': form, 'error_msg': error_msg},)
 
             # validate username if__exists
             username_exists = AppUser.objects.filter(username=username)
             if username_exists:
                 error_msg = 'The username "%s " is taken' % username
                 form = NewUser(data=request.POST)
-                return render(request, 'registry/new_user.html', {'form': form, 'error_msg': error_msg},)
+                return render(request, 'registry/new_user.html',
+                              {'form': form, 'error_msg': error_msg},)
             else:
                 # Create User
                 user = AppUser.objects.create_user(username=username,
@@ -515,17 +561,19 @@ def new_user(request):
 
                         user_results = AppUser.objects.select_related().filter(
                             reg_person=person_id)
-                        person_results = RegPerson.objects.select_related().filter(
+                        person_queryset = RegPerson.objects.select_related()
+                        person_results = person_queryset.filter(
                             pk=int(person_id))
 
-                        from django.db import connection
-                        print connection.queries
-
                         form = UserSearchForm(data=request.POST)
-                        return render(request, 'registry/workforce_search.html', {'form': form, 'user_results': user_results, 'person_results': person_results})
+                        return render(request,
+                                      'registry/workforce_search.html',
+                                      {'form': form,
+                                       'user_results': user_results,
+                                       'person_results': person_results})
                 else:
-                    msg = 'User (%s) save error.An account already exists for this user.' % (
-                        username)
+                    msg = ('User (%s) save error.An account already '
+                           'exists for this user.' % (username))
                     # Capture msg & op status
                     messages.add_message(request, messages.ERROR, msg)
                     return HttpResponseRedirect('/registry/persons_search/')
@@ -539,13 +587,12 @@ def new_user(request):
         form = NewUser()
         return render(request, 'registry/new_user.html', {'form': form},)
 
+
 def edit_person(request, id):
     '''
     Some default page for the home page / Dashboard
     '''
-
     return HttpResponseRedirect('/registry/persons_search/')
-
 
 
 def workforce_search(request):
@@ -555,7 +602,36 @@ def workforce_search(request):
 
     form = UserSearchForm(data=request.POST)
 
-    ObjUsers = AppUser()
-    model_data = AppUser._get_users_data(ObjUsers)
+    obj_users = AppUser()
+    model_data = AppUser._get_users_data(obj_users)
     return render(request, 'registry/workforce_search.html',
                   {'model_data': model_data, 'form': form})
+
+
+def registry_look(request):
+    '''
+    Json lookup stuff
+    '''
+    wards = []
+    try:
+        all_list = get_all_geo_list()
+        msg = 'Test'
+        results = {'message': msg}
+        if request.method == 'POST':
+            sub_county = request.POST.getlist('sub_county[]')
+            # action = request.POST.get('action')
+            results['wards'] = sub_county
+            area_ids = map(int, sub_county)
+            # compare
+            for geo_list in all_list:
+                parent_area_id = geo_list['parent_area_id']
+                area_id = geo_list['area_id']
+                area_name = geo_list['area_name']
+                if parent_area_id in area_ids:
+                    final_list = '%s,%s' % (area_id, area_name)
+                    wards.append(final_list)
+            results['wards'] = wards
+        return JsonResponse(results, content_type='application/json',
+                            safe=False)
+    except Exception, e:
+        raise e

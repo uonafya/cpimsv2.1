@@ -216,6 +216,25 @@ def get_org_units_list(default_txt=False):
         return all_list.items
 
 
+def get_org_units_dict(default_txt=False):
+    '''
+     Get all org_unit_name + org_unit__id
+    '''
+    all_list = {}
+    try:
+        my_list = RegOrgUnit.objects.filter(
+            is_void=False).order_by('org_unit_name')
+        for a_list in my_list:
+            org_name = '%s %s' % (a_list.org_unit_id_vis, a_list.org_unit_name)
+            all_list[a_list.id] = org_name
+    except Exception, e:
+        error = 'Error getting list - %s' % (str(e))
+        print error
+        return ()
+    else:
+        return all_list
+
+
 def get_dict(field_name=[], default_txt=False):
     '''
     Push the item_id and item_description into a tuple

@@ -62,9 +62,9 @@ WSGI_APPLICATION = 'cpims.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'cpims',
+        'NAME': 'cpmis',
         'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432', }
 }
@@ -93,7 +93,7 @@ ALLOW_NATIONAL_ID_LOGIN = True
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-#to find out what this does
+# to find out what this does
 IS_CAPTURE_SITE = False
 if IS_CAPTURE_SITE:
     import capture_settings
