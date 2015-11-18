@@ -539,6 +539,14 @@ def new_user(request):
         form = NewUser()
         return render(request, 'registry/new_user.html', {'form': form},)
 
+def edit_person(request, id):
+    '''
+    Some default page for the home page / Dashboard
+    '''
+
+    return HttpResponseRedirect('/registry/persons_search/')
+
+
 
 def workforce_search(request):
     '''

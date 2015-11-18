@@ -16,17 +16,20 @@ external_id_list  = get_list('identifier_type_id', 'All Types')
 
 
 class RegistrationSearchForm(forms.Form):
-
     person_type = forms.ChoiceField(choices=person_type_list,
-                                    initial='0',
-                                    widget=forms.Select(
-                                        attrs={'class': 'form-control',
-                                                'id':'person_type'})
-                                    )
+                                 initial='0',
+                                 required=False,
+                                 widget=forms.Select(
+                                     attrs={'class': 'form-control',
+                                     'id':'person_type'})
+                                 )
+   
     search_name = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': _('Type Name'),
-               'class': 'form-control',
+        attrs={'placeholder': _('Type . . .'), 'class': 'form-control',
+               'autofocus': 'true', 'data-parsley-required': "true",
+               'data-parsley-group': 'primary',
                'id':'search_name'}))
+
     person_deceased = forms.CharField(widget=forms.CheckboxInput(
         attrs={'class': 'form-control',
          'id':'person_deceased'}))
