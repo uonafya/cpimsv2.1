@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from cpovc_auth.forms import LoginForm
@@ -29,7 +30,7 @@ def log_in(request):
                     if user.is_active:
                         login(request, user)
                         # grps = user.groups.all()
-                        return HttpResponseRedirect('/')
+                        return HttpResponseRedirect(reverse(home))
                     else:
                         msg = "Login Account is currently disabled."
                         return render(request, 'login.html',
@@ -53,7 +54,7 @@ def log_out(request):
     try:
         print "User [%s] successfully logged out." % (request.user.username)
         logout(request)
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect(reverse(home))
     except Exception, e:
         raise e
 

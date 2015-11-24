@@ -2,7 +2,7 @@
 <ul class="nav">
 	<li class="nav-header">Navigation</li>
 	<li class="has-sub {{ request.path|get_class:'/' }}">
-		<a href="/">
+		<a href="{% url 'home' %}">
 		    <i class="fa fa-laptop"></i>
 		    <span>Home</span>
 	    </a>
@@ -80,6 +80,8 @@
 	    </a>
 	</li>
     <!-- begin sidebar minify button -->
-	<li><a href="#" class="sidebar-minify-btn" data-click="sidebar-minify"><i class="fa fa-angle-double-left"></i></a></li>
+	<li><a href="#" class="sidebar-minify-btn" data-click="sidebar-minify">
+	    <i class="fa fa-angle-double-left"></i></a>
+	</li>
     <!-- end sidebar minify button -->
 </ul>

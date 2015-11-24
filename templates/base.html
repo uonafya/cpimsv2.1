@@ -104,10 +104,10 @@
 		
 		<!-- begin #content -->
 		<div id="content" class="content">
-		    {% if is_admin or user.is_staff %}
+		    {% if user.is_authenticated %}
 			    {% block primary %} {% endblock %}
 			{% else %}
-			    {% if request.path == '/login/' %}
+			    {% if request.path == '/login/' or request.path == '/cpims/login/' %}
                     {% block secondary %} {% endblock %}
                 {%else %}
                     {% include "guests.html" %}
