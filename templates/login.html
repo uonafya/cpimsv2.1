@@ -30,13 +30,3 @@
 </div>
 <!-- end login -->
 {% endblock secondary %}
-
-<!-- end page container -->
-{% block lazy_javascript_code %}
-    <script src="{% static 'js/apps.js' %}"></script>
-    <script>
-        $(document).ready(function() {
-            App.init();
-        });
-    </script>
-{% endblock %}

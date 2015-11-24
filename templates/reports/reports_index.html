@@ -5,11 +5,3 @@
 {% include "guests.html" %}
 
 {% endblock %}
-{% block lazy_javascript_code %}
-	<script src="{% static 'js/apps.js' %}"></script>
-	<script>
-		$(document).ready(function() {
-			App.init();
-		});
-	</script>
-{% endblock %}

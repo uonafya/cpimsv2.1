@@ -106,15 +106,3 @@ window.onload = function(e)
 </div>
 
 {% endblock primary%}
-
-
-{% block lazy_javascript_code %} 
-<script src="/static/plugins/parsley/dist/parsley.js"></script>
-
-<script>
-    $(document).ready(function() {
-        App.init();
-    });
-</script>
-<script src="{% static 'js/apps.js' %}"></script>
-{% endblock lazy_javascript_code%}

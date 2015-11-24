@@ -194,8 +194,6 @@
 {% endblock %}
 
 {% block lazy_javascript_code %}
-	<script src="{% static 'js/apps.js' %}"></script>
-	<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
 	<script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
 	<script src="{% static 'js/form-wizards.js' %}"></script>
 	<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
@@ -245,7 +243,6 @@
 	<script>
 		jQuery(document).ready(function() {
 			$('html,body').scrollTop(0);
-			App.init();
 			FormWizardValidation.init();
 			$('#id_county, #id_sub_county, #id_ward').multiselect({
 				enableFiltering: true,

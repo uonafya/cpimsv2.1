@@ -176,12 +176,6 @@
 {% endblock primary %}
 
 {% block lazy_javascript_code %}
-<script src="{% static 'js/apps.js' %}"></script>
-<script>
-    $(document).ready(function() {
-        App.init();
-    });
-</script>
 <script src="{% static 'js/custom_js.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/bootstrap-multiselect.js' %}"></script>
 <script>

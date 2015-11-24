@@ -130,13 +130,10 @@
 {% endblock %}
 
 {% block lazy_javascript_code %}
-	<script src="{% static 'js/apps.js' %}"></script>
-	<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
 	<script src="{% static 'plugins/datatables/js/jquery.dataTables.js' %}"></script>
 	<script src="{% static 'js/table-manage-default.demo.min.js' %}"></script>
 	<script>
 		$(document).ready(function() {
-			App.init();
 			TableManageDefault.init();
 		});
 	</script>

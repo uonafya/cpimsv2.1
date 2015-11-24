@@ -166,14 +166,6 @@ function jsSearch()
 {% endblock primary %}
 
 {% block lazy_javascript_code %}
-    <script src="/static/plugins/parsley/dist/parsley.js"></script>
-    <script>
-        $(document).ready(function() {
-            App.init();
-        });
-    </script>
-    <!--<script src="{% static 'js/custom_js.js' %}"></script>-->
-	
 	<script>
 	function jsCreateUser(person_id,person_name)
 	{

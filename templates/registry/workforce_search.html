@@ -116,12 +116,6 @@
 {% endblock content%}
 
 {% block lazy_javascript_code %}
-    <script src="/static/plugins/parsley/dist/parsley.js"></script>
-    <script>
-        $(document).ready(function() {
-            App.init();
-        });
-    </script>
     <script src="{% static 'js/custom_js.js' %}"></script>
     <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
     <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>    
@@ -163,17 +157,5 @@
             });
         });
     </script>
-    
-    <!--
-    <script src="{% static 'plugins/DataTables/js/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'js/table-manage-default.demo.min.js' %}"></script>
-    
-    <script>
-        $(document).ready(function() {
-            TableManageDefault.init();
-        });
-    </script>
-    -->
-    <script src="{% static 'js/apps.js' %}"></script>
 
 {% endblock lazy_javascript_code%}

@@ -164,6 +164,12 @@
 	
 	<!-- ================== BEGIN LAZY PAGE LEVEL JS ================== -->
 	{% block lazy_javascript_code %}{% endblock %}
+	<script src="{% static 'js/apps.js' %}"></script>
+	<script>
+		$(document).ready(function() {
+			App.init();
+		});
+	</script>
 	<!-- ================== END LAZY PAGE LEVEL JS ================== -->
 </body>
 </html>

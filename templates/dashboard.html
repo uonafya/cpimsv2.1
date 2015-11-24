@@ -103,10 +103,8 @@
 {% block lazy_javascript_code %}
     <script src="{% static 'plugins/flot/jquery.flot.min.js' %}"></script>
     <script src="{% static 'js/dashboard.js' %}"></script>
-	<script src="{% static 'js/apps.js' %}"></script>
 	<script>
 		$(document).ready(function() {
-			App.init();
 			Dashboard.init();
 		});
 	</script>
