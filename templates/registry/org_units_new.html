@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
-{% block page_title %} Organisation units {% endblock %}
+{% block page_title %} Dashboard {% endblock %}
 
 {% load crispy_forms_tags %}
 
@@ -20,7 +20,7 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h1 class="page-header">Registry <small>Update Organisational Unit</small></h1>
+<h1 class="page-header">Registry <small>Register Organisational Unit</small></h1>
 <!-- end page-header -->
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
@@ -41,11 +41,7 @@
                 <h4 class="panel-title">Organization Unit details</h4>
             </div>
             <div class="panel-body">
-                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="form-wizard" id="edit_org_unit">
-                {% csrf_token %}
-		        <input type='radio' class="edit_org" name='edit_org' value="1" checked="checked" id="edit_org_1"> Update Organization Unit registration details
-		        <div class="separator"><p></p></div>
-		        <div id="edit_part">
+                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="form-wizard" id="new_org_unit">
 					<div id="wizard">
 						<ol>
 							<li>
@@ -69,13 +65,13 @@
 						<div class="wizard-step-1">
                             <fieldset>
                                 <legend class="pull-left width-full">About the Organisation</legend>
-                                <!-- begin row -->
                                 <div class="row">
                                     <div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="org_unit_name">Name of Organisation Unit * :</label>
 										<div class="col-md-6 col-sm-6">
 												{{ form.org_unit_name }}
 										</div>
+										<a href="#" data-toggle="tooltip" title="Unit name is mandatory"><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="date_reg">Date when the organisation Unit was set up or became operational * :</label>
@@ -172,38 +168,20 @@
                         </div>
 						<!-- end wizard step-4 -->
 					</div>
-					
-	                </div><!-- end view part -->
-		            <!-- end panel -->
-		            <input type='radio' class="edit_org" name='edit_org' value="2"> Organization Unit closed / No longer functional.
-		            <!-- begin panel -->
-	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-	                    <div id="cdate" class="panel-body panel-form">
-							<div class="form-group">
-								<label class="control-label col-md-4 col-sm-4" for="parent_unit">Date closed :</label>
-								<div class="col-md-6 col-sm-6">
-									{{ form.close_date }}
-								</div>
-							</div>
-	                    </div>
-	                </div>
-	                <!-- end panel -->
-		            <input type='radio' class="edit_org" name='edit_org' value="3"> Organization Unit never existed. (Registration mistake or duplicate.)
-		            <!-- begin panel -->
+					<!-- begin panel -->
 	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
 	                    <div class="panel-body panel-form">
 							<div class="form-group">
 								<label class="control-label col-md-4 col-sm-4"></label>
 								<div class="col-md-6 col-sm-6">
 								    <p></p>
-									<button type="submit" class="btn btn-primary">Update</button>
+									<button id="mysubmit" type="submit" class="btn btn-primary">Submit</button>
 									<button type="submit" class="btn btn-default">Cancel</button>
 									<p></p>
 								</div>
 							</div>
 	                    </div>
 	                </div>
-	                <!-- end panel -->
 				</form>
             </div>
         </div>
@@ -274,33 +252,87 @@
 				filterBehavior: 'both',
 				numberDisplayed: 0,
 				maxHeight: 200,
+				buttonWidth: '75%',
 				enableCaseInsensitiveFiltering: true
 			});
-			$("#cdate").hide();
-			$("#edit_org_1").prop("checked", true);
-			$(".edit_org").click(function(e) {
-				var res = $('input[name=edit_org]:checked', '#edit_org_unit').val();
-				if (res == '2'){
-			       $("#edit_part").hide();
-			       $("#cdate").show();
-			       $("#editdate").prop("readonly", false);
-			    }else if (res == '1'){
-			       $("#edit_part").show();
-			       $("#cdate").hide();
-			       $("#editdate").prop("readonly", true);
-			    }else{
-			       $("#edit_part").hide();
-			       $("#cdate").hide();
-			       $("#editdate").prop("readonly", true);
-			   }
-		    });
+			$("#id_sub_county").change(function(e) {
+				var county = $("#id_county").val();
+				var sub_county = $("#id_sub_county").val();
+				var ward = $("#id_ward").val();
+		        var csrftoken = $.cookie('csrftoken');
+                var values = {'sub_county': sub_county,
+                              'county': county,
+                              'ward': ward, 'action': 1,
+                              'csrfmiddlewaretoken': csrftoken };
+                $('#id_ward').empty();
+				$.ajax({
+					type: "POST",
+					data: values,
+					dataType: "json",
+					url: "/registry/lookup/",
+					success: function(data){
+						var wards = data.wards;
+						//$('#id_ward').html("<option value=''>Select One</option>");			
+						$.each(wards, function(i, record) {
+							var ward_attribs = wards[i].split(",");
+                            $('#id_ward')
+			            		.append($("<option></option>")
+			            		.attr("value", ward_attribs[0])
+			            		.text(ward_attribs[1]));
+                         });
+						var selects = data.selects;
+						$.each(selects.split(","), function(i,e){
+						    $("#id_ward option[value='" + e + "']").prop("selected", true);
+						});
+						$('#id_ward').multiselect('rebuild');
+					},
+			        error: function(){
+			        	$('#messages').html("Error")
+			        }
+		        });
+            });
+            $("#id_county").change(function(e) {
+				var county = $("#id_county").val();
+				var sub_county = $("#id_sub_county").val();
+				var ward = $("#id_ward").val();
+		        var csrftoken = $.cookie('csrftoken');
+                var values = {'sub_county': sub_county, 'ward': ward,
+                              'county': county, 'action': 2,
+                              'csrfmiddlewaretoken': csrftoken };
+                $('#id_sub_county').empty();
+				$.ajax({
+					type: "POST",
+					data: values,
+					dataType: "json",
+					url: "/registry/lookup/",
+					success: function(data){
+						var wards = data.wards;
+						//$('#id_sub_county').html("<option value=''>Select One</option>");			
+						$.each(wards, function(i, record) {
+							var ward_attribs = wards[i].split(",");
+                            $('#id_sub_county')
+			            		.append($("<option></option>")
+			            		.attr("value", ward_attribs[0])
+			            		.text(ward_attribs[1]));
+                         });
+						var selects = data.selects;
+						$.each(selects.split(","), function(i,e){
+						    $("#id_sub_county option[value='" + e + "']").prop("selected", true);
+						});
+						$('#id_sub_county').multiselect('rebuild');
+					},
+			        error: function(){
+			        	$('#messages').html("Error")
+			        }
+		        });
+            });
 		});
 	</script>
 
     <script type="text/javascript">
 		$(function () {
 		  $('#new_org_unit').parsley().on('form:validate', function (formInstance) {
-		    var ok = formInstance.isValid('primary', true);
+		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true);
 		    $(".alert").show();
 		    $('.invalid-form-message')
 		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
@@ -312,7 +344,7 @@
 		    }
 		  });
 		});
-		function displayVals(area_value) {
+		function displayVals(area_value="county") {
 		  var area_name = [];
 		  //var multipleValues = $( "#id_sub_county" ).val() || [];
 		  //var multipleValues = $("#id_sub_county option:selected").text() || [];
@@ -327,14 +359,18 @@
 
 		  $( "#sel_"+area_value ).html(area_name.join( ", " ) );
 		}
-		 
+		$('[data-toggle="tooltip"]').tooltip({'placement': 'bottom'});
 		//$( "#id_sub_county" ).change( displayVals );
+		$("#id_county").change(function(event) { 
+			displayVals();
+        });
 		$("#id_sub_county").change(function(event) { 
 			displayVals("sub_county");
         });
         $("#id_ward").change(function(event) { 
 			displayVals("ward");
         });
+        displayVals();
         displayVals("sub_county");
 		displayVals("ward");
 	</script>

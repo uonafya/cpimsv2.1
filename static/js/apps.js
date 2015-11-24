@@ -822,7 +822,8 @@ var handleMobileSidebar = function() {
 
 var handleDatepicker = function() {
     $('#date_of_birth, #date_of_death, #datepicker, #editdate').datepicker({
-        dateFormat: 'yy-mm-dd'
+        dateFormat: 'yy-mm-dd',
+        format: 'yyyy-mm-dd'
     });
 };
 /* Application Controller

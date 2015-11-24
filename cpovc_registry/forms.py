@@ -279,6 +279,12 @@ class FormRegistryNew(forms.Form):
                    'autofocus': 'true',
                    'data-parsley-isngo': "#id_org_unit_type",
                    'data-parsley-validate-if-empty': "true"}))
+    county = forms.MultipleChoiceField(
+        choices=county_list,
+        label=_('Select County'),
+        required=False,
+        widget=forms.SelectMultiple(
+            attrs={'rows': '6', 'data-parsley-multiple': 'multiple'}))
     sub_county = forms.MultipleChoiceField(
         choices=sub_county_list,
         label=_('Select sub-county'),

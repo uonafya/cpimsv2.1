@@ -94,90 +94,7 @@
 			<!-- begin sidebar scrollbar -->
 			<div data-scrollbar="true" data-height="100%">
 				<!-- begin sidebar nav -->
-				<ul class="nav">
-					<li class="nav-header">Navigation</li>
-					<li class="has-sub active">
-						<a href="/">
-						    <i class="fa fa-laptop"></i>
-						    <span>Home</span>
-					    </a>
-					</li>
-					
-					<li class="has-sub">
-						<a href="javascript:;">
-						    <b class="caret pull-right"></b>
-						    <i class="fa fa-suitcase"></i>
-						    <span>Registry</span> 
-						</a>
-						<ul class="sub-menu">
-							<li><a href="{% url 'registry' %}">Organizational Units</a></li>
-							<li><a href="{% url 'search_persons' %}">Persons Registry</a></li>
-						</ul>
-					</li>
-					<li class="has-sub">
-						<a href="javascript:;">
-						    <b class="caret pull-right"></b>
-						    <i class="fa fa-file-o"></i>
-						    <span>Forms</span> 
-						</a>
-						<ul class="sub-menu">
-							<li><a href="#">Case Record Scheet</a></li>
-							<li><a href="#">Case record register</a></li>
-							<li><a href="#">Admission Report</a></li>
-							<li><a href="#">Case Referral </a></li>
-							<li><a href="#">Individual Treatment Plan </a></li>
-							<li><a href="#">More ++</a></li>
-						</ul>
-					</li>					
-					
-					<li class="has-sub">
-					    <a href="javascript:;">
-						    <b class="caret pull-right"></b>
-					        <i class="fa fa-area-chart"></i>
-						    <span>Reports</span>
-						</a>
-						<ul class="sub-menu">
-						    <li><a href="#">KNBS Report</a></li>
-						    <li><a href="#">NCCS Report</a></li>
-						    <li><a href="#">SI and CCI Population Returns Report </a></li>
-						    <li><a href="#">Health Report </a></li>
-						    <li><a href="#">Ad Hoc Report </a></li>
-						</ul>
-					</li>
-					
-					<li class="has-sub">
-					    <a href="javascript:;">
-					        <b class="caret pull-right"></b>
-					        <i class="fa fa-map-marker"></i>
-					        <span>GIS Module</span>
-					    </a>
-						<ul class="sub-menu">
-							<li><a href="#ajax/map_vector.html" >Vector Map</a></li>
-							<li><a href="#ajax/map_google.html" >Google Map</a></li>
-						</ul>
-					</li>
-					<li class="has-sub">
-					    <a href="javascript:;">
-						    <b class="caret pull-right"></b>
-						    <i class="fa fa-camera"></i>
-						    <span>Gallery</span>
-						</a>
-					    <ul class="sub-menu">
-					        <li><a href="#">Gallery One</a></li>
-					        <li><a href="#">Gallery Two</a></li>
-					    </ul>
-					</li>			
-					
-					<li class="has-sub">
-					    <a href="javascript:;">
-					        <i class="fa fa-medkit"></i>
-					        <span>Help and Documentation</span>
-					    </a>
-					</li>
-			        <!-- begin sidebar minify button -->
-					<li><a href="#" class="sidebar-minify-btn" data-click="sidebar-minify"><i class="fa fa-angle-double-left"></i></a></li>
-			        <!-- end sidebar minify button -->
-				</ul>
+				{% include "menus.html" %}
 				<!-- end sidebar nav -->
 			</div>
 			<!-- end sidebar scrollbar -->
@@ -187,7 +104,15 @@
 		
 		<!-- begin #content -->
 		<div id="content" class="content">
-			{% block primary %} {% endblock %}
+		    {% if is_admin or user.is_staff %}
+			    {% block primary %} {% endblock %}
+			{% else %}
+			    {% if request.path == '/login/' %}
+                    {% block secondary %} {% endblock %}
+                {%else %}
+                    {% include "guests.html" %}
+                {% endif %}
+			{% endif %}
 		</div>
 		<!-- end #content -->
 		<div id="footer" class="footer"> {{ status }} &nbsp; &copy; {% now "Y" %}. All Rights Reserved.

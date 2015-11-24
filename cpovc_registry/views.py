@@ -10,7 +10,7 @@ from .models import RegOrgUnitGeography
 from .functions import (
     org_id_generator, save_contacts, save_external_ids, close_org_unit,
     save_geo_location, get_external_ids, get_geo_location, get_contacts,
-    get_all_geo_list)
+    get_geo_selected)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
@@ -50,15 +50,14 @@ def home(request):
                 org_units_list = get_org_units_dict()
                 vals = val.copy()
                 vals.update(org_units_list)
-                return render(request,
-                              'registry/index.html', {'form': form,
-                                                      'results': results,
-                                                      'message': message,
-                                                      'vals': vals})
+                return render(request, 'registry/org_units_index.html',
+                              {'form': form, 'results': results,
+                               'message': message, 'vals': vals})
             else:
                 print 'Not Good %s' % (form.errors)
         form = FormRegistry()
-        return render(request, 'registry/index.html', {'form': form})
+        return render(request, 'registry/org_units_index.html',
+                      {'form': form})
     except Exception, e:
         raise e
 
@@ -108,8 +107,8 @@ def register_new(request):
             return HttpResponseRedirect(reverse(home))
         form = FormRegistryNew()
         cform = FormContact()
-        return render(request, 'registry/new.html', {'form': form,
-                                                     'cform': cform})
+        return render(request, 'registry/org_units_new.html',
+                      {'form': form, 'cform': cform})
     except Exception, e:
         raise e
 
@@ -211,13 +210,15 @@ def register_edit(request, org_id):
         form = FormRegistry()
         msg = 'Organisation Unit does not exist'
         messages.add_message(request, messages.INFO, msg)
-        return render(request, 'registry/index.html', {'form': form})
+        return render(request, 'registry/org_units_index.html',
+                      {'form': form})
     except Exception, e:
         # raise e
         form = FormRegistry()
         msg = 'Organisation Unit does not exist - %s' % (str(e))
         messages.add_message(request, messages.INFO, msg)
-        return render(request, 'registry/index.html', {'form': form})
+        return render(request, 'registry/org_units_index.html',
+                      {'form': form})
 
 
 def register_details(request, org_id):
@@ -260,7 +261,7 @@ def register_details(request, org_id):
             org_unit.registration_number = reg_number
         org_unit.sub_county = show_county
         org_unit.wards = show_wards
-        return render(request, 'registry/details.html',
+        return render(request, 'registry/org_units_details.html',
                       {'org_details': org_unit, 'vals': vals})
     except Exception, e:
         # raise e
@@ -269,7 +270,8 @@ def register_details(request, org_id):
         form = FormRegistry()
         msg = 'Organisation Unit does not exist - %s' % (str(e))
         messages.add_message(request, messages.INFO, msg)
-        return render(request, 'registry/index.html', {'form': form})
+        return render(request, 'registry/org_units_index.html',
+                      {'form': form})
 
 
 def new_person(request):
@@ -751,25 +753,23 @@ def registry_look(request):
     '''
     Json lookup stuff
     '''
-    wards = []
     try:
-        all_list = get_all_geo_list()
-        msg = 'Test'
+        msg, selects = 'Test', ''
         results = {'message': msg}
         if request.method == 'POST':
+            county = request.POST.getlist('county[]')
             sub_county = request.POST.getlist('sub_county[]')
-            # action = request.POST.get('action')
-            results['wards'] = sub_county
-            area_ids = map(int, sub_county)
-            # compare
-            for geo_list in all_list:
-                parent_area_id = geo_list['parent_area_id']
-                area_id = geo_list['area_id']
-                area_name = geo_list['area_name']
-                if parent_area_id in area_ids:
-                    final_list = '%s,%s' % (area_id, area_name)
-                    wards.append(final_list)
-            results['wards'] = wards
+            ward = request.POST.getlist('ward[]')
+            action = int(request.POST.get('action'))
+            datas = sub_county if action == 1 else county
+            extras = ward if action == 1 else sub_county
+            print action, datas, extras
+            results = get_geo_selected(results, datas, extras)
+            res_extras = map(str, extras)
+            if res_extras:
+                selects = ','.join(res_extras)
+            results['selects'] = selects
+            print results
         return JsonResponse(results, content_type='application/json',
                             safe=False)
     except Exception, e:

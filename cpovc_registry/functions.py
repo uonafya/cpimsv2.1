@@ -10,6 +10,29 @@ benficiary_id_prefix = 'B'
 workforce_id_prefix = 'W'
 
 
+def get_geo_selected(results, datas, extras):
+    wards = []
+    all_list = get_all_geo_list()
+    results['wards'] = datas
+    area_ids = map(int, datas)
+    selected_ids = map(int, extras)
+    # compare
+    for geo_list in all_list:
+        parent_area_id = geo_list['parent_area_id']
+        area_id = geo_list['area_id']
+        area_name = geo_list['area_name']
+        if parent_area_id in area_ids:
+            final_list = '%s,%s' % (area_id, area_name)
+            wards.append(final_list)
+        # attach already selected
+        if area_id in selected_ids:
+            extra_list = '%s,%s' % (area_id, area_name)
+            wards.append(extra_list)
+    unique_wards = list(set(wards))
+    results['wards'] = unique_wards
+    return results
+
+
 def get_all_geo_list():
     try:
         geo_lists = SetupGeography.objects.all().values(
