@@ -24,6 +24,7 @@ def get_all_geo_list():
 def get_geo_list(geo_lists, geo_filter):
     # [{'area_id': 48, 'area_name': u'Changamwe', 'area_type_id': u'GDIS'}
     area_detail, result = {}, ()
+    area_detail[''] = 'Please Select'
     try:
         if geo_lists:
             for i, geo_list in enumerate(geo_lists):

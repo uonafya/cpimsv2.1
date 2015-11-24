@@ -51,7 +51,7 @@
                     <h4 class="panel-title">Organization unit search</h4>
                 </div>
                 <div class="panel-body">
-                    <form class="form-inline" action="/registry/" method="POST" data-parsley-validate="true">
+                    <form class="form-inline" action="{% url 'registry' %}" method="POST" data-parsley-validate="true">
                        {% csrf_token %}
                        <div class="form-group m-r-10">
                             {{ form.org_type }}
@@ -66,7 +66,7 @@
 							</label>
 						</div>
 						<button type="submit" class="btn btn-sm btn-default">Search</button>
-						<a href="/registry/new/">
+						<a href="{% url 'registry/new' %}">
 						<button type="button" class="btn btn-sm btn-primary m-r-5">Register New</button></a>
 					</form>						
                 </div>
@@ -93,12 +93,12 @@
                 <tbody>
                     {% for result in results %}
                     <tr class="{% cycle 'even' 'odd' %}">
-                        <td><a href="/registry/{{ result.pk }}">{{ result.org_unit_id_vis }}</a></td>
+                        <td><a href="{% url 'registry' %}{{ result.pk }}">{{ result.org_unit_id_vis }}</a></td>
                         <td>{{ result.org_unit_name }}</td>
                         <td>{{ result.org_unit_type_id|gen_value:vals }}</td>
                         <td>{{ result.parent_org_unit_id|gen_value:vals }}</td>
                         <td>-</td>
-                        <td><a href="/registry/edit/{{ result.pk }}">Edit</a></td>
+                        <td><a href="{% url 'registry' %}{{ result.pk }}">Edit</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

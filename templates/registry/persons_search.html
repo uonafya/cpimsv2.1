@@ -172,7 +172,16 @@ function jsSearch()
             App.init();
         });
     </script>
-    <script src="{% static 'js/custom_js.js' %}"></script>
+    <!--<script src="{% static 'js/custom_js.js' %}"></script>-->
+	
+	<script>
+	function jsCreateUser(person_id,person_name)
+	{
+		 localStorage.setItem("person_id",person_id);
+		 return location.href='{% url 'new_user' %}';
+		 //console.log()
+	}
+	</script>
     <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
     <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>    
     <script>
@@ -203,11 +212,11 @@ function jsSearch()
                     // $element: the tr element
                    
                     person_id = row[0];
-                    person_name = row[1];
+                    person_fname = row[1];
+                    person_sname = row[2];
                     localStorage.setItem("person_id",person_id);
-                    localStorage.setItem("person_name",person_name);
-                    console.log(person_id);
-                    console.log(person_name);
+                    localStorage.setItem("person_fname",person_fname);
+                    localStorage.setItem("person_sname",person_sname);
                 }
                 
             });

@@ -422,12 +422,12 @@ def new_person(request):
 
             # Capture msg & op status
             messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect('/registry/persons_search/')
+            return HttpResponseRedirect(reverse(persons_search))
 
         except Exception, e:
             error = 'An error occured when saving data -  %s' % (str(e))
             messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect('/registry/persons_search/')
+            return HttpResponseRedirect(reverse(persons_search))
 
         return render(request, 'registry/new_person.html',
                       {'form': form, 'msg': msg},)
@@ -517,7 +517,7 @@ def persons_search(request):
                               {'form': form, 'resultsets': resultsets, 'vals':vals, 'person_type':person_type})
                 else:                    
                     messages.add_message(request, messages.ERROR, 'Person not found!')
-                    return HttpResponseRedirect('/registry/persons_search/')
+                    return HttpResponseRedirect(reverse(persons_search))
             else:
                 print 'Not Good %s' % (form.errors)
         form = RegistrationSearchForm()
@@ -565,7 +565,7 @@ def view_person(request, id):
         form = RegistrationForm()
         msg = 'Person does not exist - %s' % (str(e))
         messages.add_message(request, messages.INFO, msg)
-        return HttpResponseRedirect('/registry/persons_search/')
+        return HttpResponseRedirect(reverse(persons_search))
 
     form = RegistrationForm()
     return render(request, 'registry/view_person.html', {'form': form},)
@@ -603,7 +603,7 @@ def edit_person(request, id):
              'des_phone_number', 'email', 'living_in', 'date_of_birth'])
             msg = 'Update successful!'
             messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect('/registry/persons_search/')
+            return HttpResponseRedirect(reverse(persons_search))
         except Exception, e:            
             error = 'Person update error - %s' % (str(e))
             print error
@@ -677,10 +677,6 @@ def new_user(request):
             if user_exists:
                 msg = 'This person has an existing user account.Please login.'
 
-            print 'Validating password(s) . . %s' % password1
-            print 'Validating username(s) . . %s' % username
-            print 'Validating reg_person_id(s) . . %s' % person_id
-
             if password1 == password2:
                 password = password1
             else:
@@ -712,25 +708,27 @@ def new_user(request):
                         person_queryset = RegPerson.objects.select_related()
                         person_results = person_queryset.filter(
                             pk=int(person_id))
+							
+                        return HttpResponseRedirect(reverse(persons_search))
 
-                        form = UserSearchForm(data=request.POST)
-                        return render(request,
-                                      'registry/workforce_search.html',
-                                      {'form': form,
-                                       'user_results': user_results,
-                                       'person_results': person_results})
+                        #form = UserSearchForm(data=request.POST)
+                        #return render(request,
+                        #             'registry/workforce_search.html',
+                        #             {'form': form,
+                        #              'user_results': user_results,
+                        #              'person_results': person_results})
                 else:
                     msg = ('User (%s) save error.An account already '
                            'exists for this user.' % (username))
                     # Capture msg & op status
                     messages.add_message(request, messages.ERROR, msg)
-                    return HttpResponseRedirect('/registry/persons_search/')
+                    return HttpResponseRedirect(reverse(persons_search))
 
         except Exception, e:
             msg = 'Error - (%s) ' % (str(e))
             # Capture msg & op status
             messages.add_message(request, messages.ERROR, msg)
-            return HttpResponseRedirect('/registry/persons_search/')
+            return HttpResponseRedirect(reverse(persons_search))
     else:
         form = NewUser()
         return render(request, 'registry/new_user.html', {'form': form},)

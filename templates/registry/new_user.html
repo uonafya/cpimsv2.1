@@ -4,25 +4,31 @@
 
 {% load staticfiles %}
 
-{% block extra_styling%}
+{% block style_code%}
 <link href="{% static 'plugins/DataTables/css/data-table.css' %}" rel="stylesheet" />
-{% endblock extra_styling%}
+{% endblock style_code%}
 
 
 
-{% block extra_javascript%}
-<script type="text/javascript" src="{% static 'plugins/bootstrap/js/bootstrap.min.js' %}"></script>
-<script>
+{% block javascript_code%}
+<script type="text/javascript">
 window.onload = function(e)
 { 
     var elem = document.getElementById("person_id");
     elem.value = localStorage.getItem("person_id");
 
-    document.getElementById('person_name').innerHTML = localStorage.getItem("person_name");;
-    //console.log("Setting value of person_id to : " + localStorage.getItem("person_id")); 
+
+    var person_fname = localStorage.getItem("person_fname");
+    var person_sname = localStorage.getItem("person_sname");
+    var person_name = person_fname.concat(' ').concat(person_sname);
+    var person_uname = person_fname.concat(person_sname);
+    var tempusername = person_uname.substring(0, 1).concat(person_sname);
+    console.log(tempusername);
+    document.getElementById('person_name').innerHTML = person_name;
+    document.getElementById('username').innerHTML = tempusername;
 }
 </script>
-{% endblock extra_javascript%}
+{% endblock javascript_code%}
 
 {% block primary%}
 <h1 class="page-header">Workforce Registry</h1>
@@ -90,7 +96,7 @@ window.onload = function(e)
                                     </p>
                                     {% endif %}
 
-                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                    <button type="submit" class="btn btn-primary btn-block">Submit</button>
                                 </div>
                             </div>
                         </form>

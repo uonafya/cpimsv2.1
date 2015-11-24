@@ -217,6 +217,9 @@ $(document).ready(function()
 
             $('#relationship_type_id_div').show() 
             $('#relationship_type_id_div').parsley('addConstraint', { required: true });
+			
+			$('#cadre_type_div').hide(); 
+            $('#cadre_type').parsley('addConstraint', { required: false });
         }
         else{
             $('#birth_reg_id_div').hide(); 
