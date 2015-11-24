@@ -1359,5 +1359,245 @@
             "item_description": "Area advisory council",
             "the_order": 15
         }
+    },
+    {
+        "pk": 1017,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "SUBO",
+            "item_description_short": "SUB OFF",
+            "field_name": "cadre_type_id",
+            "item_description": "Subordinate Officer",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1018,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "VCO",
+            "item_description_short": "VCO",
+            "field_name": "cadre_type_id",
+            "item_description": "Volunteer Children Officer",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1019,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "CLO",
+            "item_description_short": "CLOF",
+            "field_name": "cadre_type_id",
+            "item_description": "Clerical Officer",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1020,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "CDO1",
+            "item_description_short": "CHDOF1",
+            "field_name": "cadre_type_id",
+            "item_description": "Children Officer I",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1021,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "CDO2",
+            "item_description_short": "CHDOF2",
+            "field_name": "cadre_type_id",
+            "item_description": "Children Officer II",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1022,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "SCHD",
+            "item_description_short": "SENCHDOF",
+            "field_name": "cadre_type_id",
+            "item_description": "Senior Children Officer",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1023,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "CCHD",
+            "item_description_short": "CCHDOF",
+            "field_name": "cadre_type_id",
+            "item_description": "Chief Children Officer",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1024,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "PCHD",
+            "item_description_short": "PCHDOF",
+            "field_name": "cadre_type_id",
+            "item_description": "Principal Children Officer",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1025,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "ASD",
+            "item_description_short": "ASSDIR",
+            "field_name": "cadre_type_id",
+            "item_description": "Assistant Director",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1026,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "SASD",
+            "item_description_short": "SASSDIR",
+            "field_name": "cadre_type_id",
+            "item_description": "Senior Assistant Director",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1027,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "DCHD",
+            "item_description_short": "DIRCHDS",
+            "field_name": "cadre_type_id",
+            "item_description": "Director of Children Services",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1028,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Employee Designation",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "ITO",
+            "item_description_short": "ITOF",
+            "field_name": "cadre_type_id",
+            "item_description": "IT Officer",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1029,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Person Search Criteria",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "NAME",
+            "item_description_short": "NAME",
+            "field_name": "psearch_criteria_type_id",
+            "item_description": "Names",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1031,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Person Search Criteria",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "ORG",
+            "item_description_short": "ORGU",
+            "field_name": "psearch_criteria_type_id",
+            "item_description": "OrgUnit",
+            "the_order": 15
+        }
+    },
+    {
+        "pk": 1032,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Person Search Criteria",
+            "user_configurable": "False",
+            "sms_keyword": "False",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "RES",
+            "item_description_short": "RESIDE",
+            "field_name": "psearch_criteria_type_id",
+            "item_description": "Residence",
+            "the_order": 15
+        }
     }
 ]

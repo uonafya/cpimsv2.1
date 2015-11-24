@@ -155,6 +155,50 @@ def get_geo_list(default_txt=False):
     else:
         return all_list.items
 
+def get_vgeo_dict(area_id, default_txt=False):
+    initial_list = {'': default_txt} if default_txt else {}
+    all_list = collections.OrderedDict(initial_list)
+    try:
+        my_list = SetupGeography.objects.filter(area_id=area_id,
+            is_void=False).order_by('area_name')
+        for a_list in my_list:
+            all_list[a_list.area_id] = a_list.area_name
+    except Exception, e:
+        error = 'Error getting list - %s' % (str(e))
+        print error
+        return ()
+    else:
+        return all_list.items
+
+def get_vgeo_list(area_id):
+    '''
+    Get list general filtered by field_name
+    '''
+    try:
+        queryset = SetupGeography.objects.filter(area_id=area_id, is_void=False).order_by('area_id')
+        
+    except Exception, e:
+        error = 'Error getting whole list - %s' % (str(e))
+        print error
+        return None
+    else:
+        return queryset
+
+def get_vorg_list(org_unit_id):
+    '''
+    Get list general filtered by field_name
+    '''
+    try:
+        queryset = RegOrgUnit.objects.filter(id=org_unit_id, is_void=False).order_by('org_unit_name')
+        #print 'OrgUnit Name: %s' %queryset.org_unit_name
+        
+    except Exception, e:
+        error = 'Error getting whole list - %s' % (str(e))
+        print error
+        return None
+    else:
+        return queryset
+
 
 def get_general_list(field_names=[]):
     '''

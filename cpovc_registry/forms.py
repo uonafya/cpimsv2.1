@@ -11,68 +11,76 @@ geo_list = get_geo_list(get_all_geo_list(), 'GDIS')
 person_type_list = get_list('person_type_id', 'All Types')
 org_unit_type_list = get_list('org_unit_type_id', 'All Types')
 relationship_type_list = get_list('relationship_type_id', 'All Types')
-external_id_list = get_list('identifier_type_id', 'All Types')
-# org_unit_id_list = get_org_units_list()
-
+external_id_list  = get_list('identifier_type_id', 'All Types')
+cadre_type_list  = get_list('cadre_type_id', 'All Types')
+sex_id_list = get_list('sex_id', 'Select Gender')
+psearch_criteria_list = get_list('psearch_criteria_type_id','Select Criteria')
+org_units_list = get_org_units_list(True)
 
 class RegistrationSearchForm(forms.Form):
-    person_type = forms.ChoiceField(
-        choices=person_type_list,
-        initial='0',
-        required=False,
-        widget=forms.Select(
-            attrs={'class': 'form-control', 'id': 'person_type'}))
-
+    person_type = forms.ChoiceField(choices=person_type_list,
+                                 initial='0',
+                                 required=True,
+                                 widget=forms.Select(
+                                     attrs={'class': 'form-control',
+                                     'id':'person_type',
+                                     'data-parsley-required': 'true'})
+                                 )
+   
     search_name = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': _('Type . . .'), 'class': 'form-control',
-               'autofocus': 'true', 'data-parsley-required': "true",
+        attrs={'placeholder': _('Search . . .'), 
+               'class': 'form-control',
+               'id':'search_name',
                'data-parsley-group': 'primary',
-               'id': 'search_name'}))
+               'data-parsley-required': 'true'}))
 
-    person_deceased = forms.CharField(widget=forms.CheckboxInput(
+    search_criteria = forms.ChoiceField(choices=psearch_criteria_list,
+                                 initial='0',
+                                 required=True,
+                                 widget=forms.Select(
+                                     attrs={'class': 'form-control',
+                                     'id':'search_criteria',
+                                     'data-parsley-required': 'true'})
+                                 )
+    person_deceased = forms.CharField(required=False,
+     widget=forms.CheckboxInput(
         attrs={'class': 'form-control',
-               'id': 'person_deceased'}))
+         'id':'person_deceased'}))
 
 
 class RegistrationForm(forms.Form):
-
-    # SEX_ID_LIST
-    sex_id_list = get_list('sex_id', 'Select Gender')
-
-    # Org_units_list
-    org_units_list = get_org_units_list(True)
-
     person_type = forms.ChoiceField(choices=person_type_list,
                                     initial='0',
                                     widget=forms.Select(
                                         attrs={'class': 'form-control',
                                                'id': 'person_type',
-                                               'multiple': 'multiple',
-                                               'autofocus': 'true'}))
+                                               'data-parsley-required': 'true'}))
+    cadre_type = forms.ChoiceField(choices=cadre_type_list,
+                                    initial='0',
+                                    widget=forms.Select(
+                                        attrs={'class': 'form-control',
+                                               'id': 'cadre_type',
+                                               'data-parsley-required': 'true'}))
     first_name = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('First Name'),
                'class': 'form-control',
                'id': 'first_name',
-               'autofocus': 'true',
                'data-parsley-required': "true"}))
     other_names = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Other Names'),
                'class': 'form-control',
-               'id': 'other_names',
-               'autofocus': 'true',
-               'data-parsley-required': "true"}))
+               'id': 'other_names'}))
     surname = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Surname'),
                'class': 'form-control',
                'id': 'surname',
-               'autofocus': 'true'}))
+               'data-parsley-required': "true"}))
     sex_id = forms.ChoiceField(choices=sex_id_list,
                                initial='ALL',
                                widget=forms.Select(
                                    attrs={'placeholder': _('Sex'),
                                           'class': 'form-control',
                                           'id': 'sex_id',
-                                          'autofocus': 'true',
                                           'data-parsley-required': "true"})
                                )
     des_phone_number = forms.CharField(widget=forms.TextInput(
@@ -85,21 +93,20 @@ class RegistrationForm(forms.Form):
                'class': 'form-control',
                'id': 'email',
                'data-parsley-type': 'email'}))
-    living_in = forms.ChoiceField(
-        choices=geo_list,
-        initial='0',
-        widget=forms.Select(
-            attrs={'class': 'form-control',
-                   'id': 'living_in',
-                   'autofocus': 'true',
-                   'data-parsley-required': "true"}))
-    org_unit_id = forms.ChoiceField(
-        choices=org_units_list,
-        initial='0',
-        widget=forms.Select(
-            attrs={'class': 'form-control',
-                   'id': 'org_unit_id',
-                   'multiple': 'multiple'}))
+    living_in = forms.ChoiceField(choices=geo_list,
+                                    initial='0',
+                                    widget=forms.Select(
+                                        attrs={'class': 'form-control',
+                                               'id': 'living_in',
+                                               #'multiple': 'multiple',
+                                               'data-parsley-required': 'true'}))
+    org_unit_id = forms.ChoiceField(choices=org_units_list,
+                                    initial='0',
+                                    widget=forms.Select(
+                                        attrs={'class': 'form-control',
+                                               'id': 'org_unit_id',
+                                               'multiple': 'multiple',
+                                               'data-parsley-required': 'true'}))
     national_id = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('National ID'),
                'class': 'form-control',
@@ -124,21 +131,22 @@ class RegistrationForm(forms.Form):
         attrs={'placeholder': _('Caregiver National ID/Name/CPIMS ID'),
                'class': 'form-control',
                'id': 'caregiver_id'}))
-    relationship_type_id = forms.ChoiceField(
-        choices=relationship_type_list,
-        initial='0',
-        widget=forms.Select(
-            attrs={'class': 'form-control', 'id': 'relationship_type_id',
-                   'multiple': 'multiple'}))
+    relationship_type_id = forms.ChoiceField(choices=relationship_type_list,
+                                    initial='0',
+                                    widget=forms.Select(
+                                        attrs={'class': 'form-control',
+                                               'id': 'relationship_type_id',
+                                               'multiple': 'multiple'}))
     date_of_birth = forms.DateField(widget=forms.TextInput(
         attrs={'placeholder': _('Date Of Birth'),
                'class': 'form-control',
-               'id': 'date_of_birth'}))
+               'id': 'date_of_birth',
+               'data-parsley-required': 'true'
+               }))
     date_of_death = forms.DateField(widget=forms.TextInput(
         attrs={'placeholder': _('Date Of Death'),
                'class': 'form-control',
                'id': 'date_of_death'}))
-
     class Meta:
         model = RegPerson
 
