@@ -1730,7 +1730,7 @@
 
         // Else for radio / checkboxes, we need a `name` or `data-parsley-multiple` to properly bind it
       } else if (!this.options.multiple) {
-          ParsleyUtils__default.warn('To be bound by Parsley, a radio, a checkbox and a multiple select input must have either a name or a multiple option.', this.$element);
+          //ParsleyUtils__default.warn('To be bound by Parsley, a radio, a checkbox and a multiple select input must have either a name or a multiple option.', this.$element);
           return this;
         }
 

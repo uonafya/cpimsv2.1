@@ -123,7 +123,7 @@ class CPOVCRole(Group):
 
 class CPOVCUserRoleGeoOrg(models.Model):
     # Put here to avoid cyclic imports because of User model
-    #from cpovc_registry.models import RegPersonsGeo, RegOrgUnit
+    # from cpovc_registry.models import RegPersonsGeo, RegOrgUnit
     user = models.ForeignKey(AppUser)
     group = models.ForeignKey(CPOVCRole)
     org_unit = models.ForeignKey('cpovc_registry.RegOrgUnit', null=True)

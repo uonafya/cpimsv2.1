@@ -100,7 +100,7 @@ class RegistrationForm(forms.Form):
                                                'id': 'living_in',
                                                #'multiple': 'multiple',
                                                'data-parsley-required': 'true'}))
-    org_unit_id = forms.ChoiceField(choices=org_units_list,
+    org_unit_id = forms.ChoiceField(choices=get_org_units,
                                     initial='0',
                                     widget=forms.Select(
                                         attrs={'class': 'form-control',
@@ -284,13 +284,17 @@ class FormRegistryNew(forms.Form):
         label=_('Select County'),
         required=False,
         widget=forms.SelectMultiple(
-            attrs={'rows': '6', 'data-parsley-multiple': 'multiple'}))
+            attrs={'rows': '6',
+                   'data-parsley-multiple': 'multiple'}))
     sub_county = forms.MultipleChoiceField(
         choices=sub_county_list,
         label=_('Select sub-county'),
         required=False,
         widget=forms.SelectMultiple(
-            attrs={'rows': '6', 'data-parsley-multiple': 'multiple'}))
+            attrs={'rows': '6',
+                   'data-parsley-chkcounty': '#id_org_unit_type',
+                   'data-parsley-validate-if-empty': "true",
+                   'data-parsley-multiple': 'multiple'}))
     ward = forms.MultipleChoiceField(
         choices=ward_list, label=_('Select ward'),
         required=False, widget=forms.SelectMultiple(
@@ -325,6 +329,7 @@ class FormContact(forms.Form):
         # data-parsley-type="email"
         # data-parsley-type="number"
         txt_box = ['CPOA', 'CPHA']
+        attrs = {'class': 'form-control'}
         super(FormContact, self).__init__(*args, **kwargs)
         for i, contact in enumerate(self.contacts):
             contact_key = contact[0]
@@ -334,14 +339,20 @@ class FormContact(forms.Form):
                 v_name, v_check = 'data-parsley-type', "number"
             if 'email' in contact_name.lower():
                 v_name, v_check = 'data-parsley-type', "email"
+            # validations params
+            attrs[v_name] = v_check
+            is_designate = 'designated' in contact_name.lower()
+            is_postal = 'postal' in contact_name.lower()
+            if is_designate or is_postal:
+                attrs['data-parsley-required'] = "true"
+                del(attrs['data-parsley-type'])
             form_char = forms.CharField(label=contact_name, required=False,
                                         widget=forms.TextInput(
-                                            attrs={'class': 'form-control',
-                                                   v_name: v_check}))
+                                            attrs=attrs))
+            attrs['rows'] = '3'
             form_text = forms.CharField(label=contact_name, required=False,
                                         widget=forms.Textarea(
-                                            attrs={'class': 'form-control',
-                                                   'rows': 3}))
+                                            attrs=attrs))
             form_type = form_text if str(contact_key) in txt_box else form_char
             self.fields['contact_%s' % contact_key] = form_type
 

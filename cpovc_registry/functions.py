@@ -75,9 +75,9 @@ def get_all_org_units():
         return org_units
 
 
-def get_org_units():
+def get_org_units(initial="Select unit"):
     try:
-        unit_detail = {}
+        unit_detail = {'': initial} if initial else {}
         org_units = get_all_org_units()
         for unit in org_units:
             unit_vis = unit['org_unit_id_vis']

@@ -6173,3 +6173,12 @@ body.flat-black {
 .checkbox label span {
     vertical-align: middle;
 }
+.form-group a{
+    vertical-align: middle;
+    padding: 50px 15px 5px 0px;
+}
+.pager .next > a {
+    background: #2A72B5 none repeat scroll 0% 0%;
+    border-color: #2A72B5;
+    color: #fff;
+}

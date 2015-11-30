@@ -774,3 +774,49 @@ def registry_look(request):
                             safe=False)
     except Exception, e:
         raise e
+
+
+def roles_home(request):
+    '''
+    Default page for Roles home
+    '''
+    try:
+        if request.method == 'POST':
+            print 'is POST'
+        form = FormRegistry()
+        return render(request, 'registry/roles.html',
+                      {'form': form})
+    except Exception, e:
+        raise e
+
+
+def roles_edit(request, user_id):
+    '''
+    Create / Edit page for the roles
+    '''
+    try:
+        vals = {'SMAL': 'Male', 'SFEM': 'Female'}
+        person = RegPerson.objects.get(pk=user_id)
+        person_extids = RegPersonsExternalIds.objects.filter(person=user_id)
+        # Get org units
+        person_orgs = RegPersonsOrgUnits.objects.select_related('org_unit_id')
+        person_orgs.filter(person=user_id)
+        person.org_units = person_orgs
+        # Get geo locations
+        person_geos = RegPersonsGeo.objects.select_related('person')
+        person_geos.filter(person=user_id)
+        person.geos = person_geos
+        for row in person_extids:
+            id_type = row.identifier_type_id
+            if id_type == "INTL":
+                person.national_id = row.identifier
+            if id_type == "IWKF":
+                person.workforce_id = row.identifier
+
+        if request.method == 'POST':
+            print 'is POST'
+        form = FormRegistry()
+        return render(request, 'registry/roles.html',
+                      {'form': form, 'person': person, 'vals': vals})
+    except Exception, e:
+        raise e
