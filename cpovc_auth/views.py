@@ -3,9 +3,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from cpovc_auth.forms import LoginForm
+from cpims.views import home
 
-
-def home(request):
+def auth_home(request):
     '''
     Some default page for the home page / Dashboard
     '''
@@ -16,12 +16,9 @@ def home(request):
 
 
 def log_in(request):
-    '''
-    Method to handle log in to system
-    '''
-    try:
-        if request.method == 'POST':
-            form = LoginForm(data=request.POST)
+    if request.method == 'POST':
+        form = LoginForm(data=request.POST)
+        try:
             if form.is_valid():
                 username = form.data['username'].strip()
                 password = form.data['password'].strip()
@@ -29,22 +26,23 @@ def log_in(request):
                 if user is not None:
                     if user.is_active:
                         login(request, user)
-                        # grps = user.groups.all()
                         return HttpResponseRedirect(reverse(home))
                     else:
                         msg = "Login Account is currently disabled."
+                        messages.add_message(request, messages.INFO, msg)
                         return render(request, 'login.html',
-                                      {'form': form, 'msg': msg})
+                                      {'form': form})
                 else:
                     msg = "Incorrect username and / or password."
-                    return render(request, 'login.html', {'form': form,
-                                  'msg': msg})
-        else:
-            form = LoginForm()
-            logout(request)
-        return render(request, 'login.html', {'form': form, 'status': 200})
-    except Exception, e:
-        raise e
+                    messages.add_message(request, messages.INFO, msg)
+                    return render(request, 'login.html', {'form': form})
+        except Exception, e:
+            msg = 'Login error - %s' % (str(e))
+            messages.add_message(request, messages.INFO, msg)
+        return render(request, 'login.html', {'form': form,})
+    else:
+        form = LoginForm()
+        return render(request, 'login.html', {'form': form,})
 
 
 def log_out(request):

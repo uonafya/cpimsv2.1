@@ -15,16 +15,39 @@
     </div>
     <!-- end brand -->
     <div class="login-content">
-        {{ msg }}
+
+        {% if messages %}
+        <div id="messages" class="alert alert-danger fade in">
+            <span class="close" data-dismiss="alert">×</span>
+            <i class="fa fa-check fa-2x pull-left"></i>
+            <ul class="messages">
+                {% for message in messages %}
+                <li{% if message.info %} class="{{ message.info }}"{% endif %}><b>{{ message }}</b></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
         <form action="/login/" method="POST" class="margin-bottom-0">
             {% csrf_token %}
+
             {{ form.as_table }}
+            <br>
             <div class="login-buttons">
                 <button type="submit" class="btn btn-success btn-block btn-lg">Log in</button>
+
+                <div align="center" class="m-t-20 m-b-40 p-b-40">
+                    <a href="{% url 'new_person' %}" class="btn btn-inverse m-r-5 m-b-5">
+                        Register
+                    </a>
+                    <a href="#" class="btn btn-inverse m-r-5 m-b-5">
+                        Forgot password?
+                    </a>
+                </div>
+
             </div>
-            <div class="m-t-20 m-b-40 p-b-40">
-                    Not registered? Click <a href="{% url 'register' %}">here</a> to register.
-            </div>
+            <br>
+            
         </form>
     </div>
 </div>

@@ -3,7 +3,7 @@
 function jsCreateUser(person_id,person_name)
 {
   	 localStorage.setItem("person_id",person_id);
-	 return location.href='{% url 'new_user' %}';
+	 //return location.href='{% url 'new_user' %}';
      //console.log()
 }
 

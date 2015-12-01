@@ -8,12 +8,12 @@ from .models import RegPerson
 
 
 geo_list = get_geo_list(get_all_geo_list(), 'GDIS')
-person_type_list = get_list('person_type_id', 'All Types')
-org_unit_type_list = get_list('org_unit_type_id', 'All Types')
-relationship_type_list = get_list('relationship_type_id', 'All Types')
-external_id_list  = get_list('identifier_type_id', 'All Types')
-cadre_type_list  = get_list('cadre_type_id', 'All Types')
-sex_id_list = get_list('sex_id', 'Select Gender')
+person_type_list = get_list('person_type_id', 'Please Select')
+org_unit_type_list = get_list('org_unit_type_id', 'Please Select')
+relationship_type_list = get_list('relationship_type_id', 'Please Select')
+external_id_list  = get_list('identifier_type_id', 'Please Select')
+cadre_type_list  = get_list('cadre_type_id', 'Please Select')
+sex_id_list = get_list('sex_id', 'Please Select')
 psearch_criteria_list = get_list('psearch_criteria_type_id','Select Criteria')
 org_units_list = get_org_units_list(True)
 
@@ -59,8 +59,7 @@ class RegistrationForm(forms.Form):
                                     initial='0',
                                     widget=forms.Select(
                                         attrs={'class': 'form-control',
-                                               'id': 'cadre_type',
-                                               'data-parsley-required': 'true'}))
+                                               'id': 'cadre_type'}))
     first_name = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('First Name'),
                'class': 'form-control',
@@ -87,26 +86,24 @@ class RegistrationForm(forms.Form):
         attrs={'placeholder': _('Phone Number'),
                'class': 'form-control',
                'id': 'des_phone_number',
-               'data-parsley-type': 'digits'}))
+               'data-parsley-pattern': '/^[0-9\+]{1,}[0-9\-]{3,15}$/'}))
     email = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Email Address'),
                'class': 'form-control',
                'id': 'email',
                'data-parsley-type': 'email'}))
     living_in = forms.ChoiceField(choices=geo_list,
-                                    initial='0',
                                     widget=forms.Select(
                                         attrs={'class': 'form-control',
                                                'id': 'living_in',
                                                #'multiple': 'multiple',
                                                'data-parsley-required': 'true'}))
-    org_unit_id = forms.ChoiceField(choices=get_org_units,
+    org_unit_id = forms.ChoiceField(choices=org_units_list,
                                     initial='0',
                                     widget=forms.Select(
                                         attrs={'class': 'form-control',
                                                'id': 'org_unit_id',
-                                               'multiple': 'multiple',
-                                               'data-parsley-required': 'true'}))
+                                               'multiple': 'multiple',}))
     national_id = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('National ID'),
                'class': 'form-control',
@@ -136,7 +133,8 @@ class RegistrationForm(forms.Form):
                                     widget=forms.Select(
                                         attrs={'class': 'form-control',
                                                'id': 'relationship_type_id',
-                                               'multiple': 'multiple'}))
+                                               #'multiple': 'multiple'
+                                               }))
     date_of_birth = forms.DateField(widget=forms.TextInput(
         attrs={'placeholder': _('Date Of Birth'),
                'class': 'form-control',
@@ -177,10 +175,6 @@ class LoginForm(forms.Form):
 
 
 class NewUser(forms.Form):
-
-    # load org_unit_type_list
-    org_unit_type_list = get_list('org_unit_type_id', True)
-
     person_id = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Person ID'),
                'class': 'form-control',
@@ -196,26 +190,46 @@ class NewUser(forms.Form):
                'autofocus': 'true',
                'data-parsley-required': "true"}))
     password1 = forms.CharField(widget=forms.PasswordInput(
-        attrs={'placeholder': _('Password 1'),
+        attrs={'placeholder': _('Password'),
                'class': 'form-control',
                'id': 'password1',
-               'autofocus': 'true',
                'data-parsley-required': "true"}))
     password2 = forms.CharField(widget=forms.PasswordInput(
-        attrs={'placeholder': _('Password 2'),
+        attrs={'placeholder': _('Password(Again)'),
                'class': 'form-control',
                'id': 'password2',
-               'autofocus': 'true'}))
+               'data-parsley-required': "true"}))
 
 
 class UserSearchForm(forms.Form):
-    user_name = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': _('Type Name'),
+    person_type = forms.ChoiceField(choices=person_type_list,
+                                 initial='0',
+                                 required=True,
+                                 widget=forms.Select(
+                                     attrs={'class': 'form-control',
+                                     'id':'person_type',
+                                     'data-parsley-required': 'true'})
+                                 )
+   
+    search_name = forms.CharField(widget=forms.TextInput(
+        attrs={'placeholder': _('Search . . .'), 
                'class': 'form-control',
-               'autofocus': 'true',
-               'data-parsley-group': 'primary'}))
-    user_void = forms.CharField(required=False, widget=forms.CheckboxInput(
-        attrs={'class': 'form-control', 'autofocus': 'true'}))
+               'id':'search_name',
+               'data-parsley-group': 'primary',
+               'data-parsley-required': 'true'}))
+
+    search_criteria = forms.ChoiceField(choices=psearch_criteria_list,
+                                 initial='0',
+                                 required=True,
+                                 widget=forms.Select(
+                                     attrs={'class': 'form-control',
+                                     'id':'search_criteria',
+                                     'data-parsley-required': 'true'})
+                                 )
+    person_deceased = forms.CharField(required=False,
+     widget=forms.CheckboxInput(
+        attrs={'class': 'form-control',
+         'id':'person_deceased'}))
 
 
 class FormRegistry(forms.Form):

@@ -168,17 +168,31 @@ $(document).ready(function()
     window.onload = function(e)
     { 
         //Hide these <divs> on page_load()
-        $('#national_id_div').hide()
-        $('#staff_id_div').hide()
-        $('#birth_reg_id_div').hide() 
-        $('#caregiver_id_div').hide()
-        $('#relationship_type_id_div').hide() 
-        $('#org_unit_id_div').hide()
-        $('#date_of_death_div').hide() 
-        $('#cadre_type_div').hide() 
+        $('#national_id_div').hide();
+        $('#national_id').attr('data-parsley-required', 'false');
 
-        $("#living_in option:selected").removeAttr("selected");   
+        $('#staff_id_div').hide();
+        $('#staff_id').attr('data-parsley-required', 'false');
+
+        $('#birth_reg_id_div').hide(); 
+        $('#birth_reg_id').attr('data-parsley-required', 'false');
+
+        $('#caregiver_id_div').hide();
+        $('#caregiver_id').attr('data-parsley-required', 'false');
+
+        $('#relationship_type_id_div').hide(); 
+        $('#relationship_type_id').attr('data-parsley-required', 'false');
+
+        $('#org_unit_id_div').hide();
+        $('#org_unit_id').attr('data-parsley-required', 'false');
+
+        $('#date_of_death_div').hide();
+        $('#date_of_death').attr('data-parsley-required', 'false'); 
+
+        $('#cadre_type_div').hide(); 
+        $('#cadre_type').attr('data-parsley-required', 'false'); 
     }
+
     $('#org_unit_id').multiselect({
             selectAllValue: 'multiselect-all',
             includeSelectAllOption: true,
@@ -202,82 +216,143 @@ $(document).ready(function()
         }
 
         //Child
-        if ( $.inArray('TBVC', selected) > -1 ) {
-            $('#birth_reg_id_div').show(); 
-            $('#birth_reg_id').parsley('addConstraint', { required: false }); 
-
-            $('#caregiver_id_div').show() 
-            $('#caregiver_id_div').parsley('addConstraint', { required: true });
-
-            $('#relationship_type_id_div').show() 
-            $('#relationship_type_id_div').parsley('addConstraint', { required: true });
-			
-			$('#cadre_type_div').hide(); 
-            $('#cadre_type').parsley('addConstraint', { required: false });
-        }
-        else{
-            $('#birth_reg_id_div').hide(); 
-            $('#birth_reg_id').parsley('addConstraint', { required: false });
-
-            $('#caregiver_id_div').hide(); 
-            $('#caregiver_id_div').parsley('addConstraint', { required: false });
-
-            $('#relationship_type_id_div').hide() 
-            $('#relationship_type_id_div').parsley('addConstraint', { required: false });
-        }
-
-        //Caregiver,Volunteer, Government Employee, NGO/private sector employee [COMMON BEHAVIUOUR]
-        if (( $.inArray('TBGR', selected) > -1 ) || 
-            ( $.inArray('TWVL', selected) > -1 ) ||
-            ( $.inArray('TWGE', selected) > -1 ) ||
-            ( $.inArray('TWNE', selected) > -1 ))
+        if ( $.inArray('TBVC', selected) > -1 )
         {
-            $('#national_id_div').show();
-            $('#org_unit_id_div').show();
-            $('#national_id_div').parsley('addConstraint', { required: true }); 
-            $('#org_unit_id_div').parsley('addConstraint', { required: true });
-        }
-        else{
-           $('#national_id_div').hide();
-           $('#org_unit_id_div').hide(); 
+            $('#national_id_div').hide();
+            $('#national_id').attr('data-parsley-required', 'false');
 
-           $('#national_id_div').parsley('addConstraint', { required: false });
-           $('#org_unit_id_div').parsley('addConstraint', { required: false });
+            $('#staff_id_div').hide();
+            $('#staff_id').attr('data-parsley-required', 'false');
+
+            $('#birth_reg_id_div').show(); 
+            $('#birth_reg_id').attr('data-parsley-required', 'false');
+
+            $('#caregiver_id_div').hide();
+            $('#caregiver_id').attr('data-parsley-required', 'false');
+
+            $('#relationship_type_id_div').show(); 
+            $('#relationship_type_id').attr('data-parsley-required', 'true');
+
+            $('#org_unit_id_div').show();
+            $('#org_unit_id').attr('data-parsley-required', 'true');
+
+            $('#date_of_death_div').hide();
+            $('#date_of_death').attr('data-parsley-required', 'false'); 
+
+            $('#cadre_type_div').hide(); 
+            $('#cadre_type').attr('data-parsley-required', 'false');
         }
 
         //Caregiver
-        if ( $.inArray('TBGR', selected) > -1 || $.inArray('TBVC', selected) > -1) {
-            //$('#relationship_type_id_div').show() 
-            //$('#relationship_type_id_div').parsley('addConstraint', { required: true });
+        if ( $.inArray('TBGR', selected) > -1 )
+        {
+            //Hide these <divs> on page_load()
+            $('#national_id_div').show();
+            $('#national_id').attr('data-parsley-required', 'true');
+
+            $('#staff_id_div').hide();
+            $('#staff_id').attr('data-parsley-required', 'false');
+
+            $('#birth_reg_id_div').hide(); 
+            $('#birth_reg_id').attr('data-parsley-required', 'false');
+
+            $('#caregiver_id_div').hide();
+            $('#caregiver_id').attr('data-parsley-required', 'false');
+
+            $('#relationship_type_id_div').hide(); 
+            $('#relationship_type_id').attr('data-parsley-required', 'false');
+
+            $('#org_unit_id_div').hide();
+            $('#org_unit_id').attr('data-parsley-required', 'false');
+
+            $('#date_of_death_div').hide();
+            $('#date_of_death').attr('data-parsley-required', 'false'); 
 
             $('#cadre_type_div').hide(); 
-            $('#cadre_type').parsley('addConstraint', { required: false });
-
-            $('#caregiver_id_div').show(); 
-            $('#caregiver_id_div').parsley('addConstraint', { required: true });
+            $('#cadre_type').attr('data-parsley-required', 'false'); 
         }
-        else{
-            //$('#relationship_type_id_div').hide() 
-            //$('#relationship_type_id_div').parsley('addConstraint', { required: false });
+
+        //Volunteer
+        if ( $.inArray('TWVL', selected) > -1 ) {
+            //Hide these <divs> on page_load()
+            $('#national_id_div').show();
+            $('#national_id').attr('data-parsley-required', 'true');
+
+            $('#staff_id_div').show();
+            $('#staff_id').attr('data-parsley-required', 'true');
+
+            $('#birth_reg_id_div').hide(); 
+            $('#birth_reg_id').attr('data-parsley-required', 'false');
+
+            $('#caregiver_id_div').hide();
+            $('#caregiver_id').attr('data-parsley-required', 'false');
+
+            $('#relationship_type_id_div').hide(); 
+            $('#relationship_type_id').attr('data-parsley-required', 'false');
+
+            $('#org_unit_id_div').show();
+            $('#org_unit_id').attr('data-parsley-required', 'true');
+
+            $('#date_of_death_div').hide();
+            $('#date_of_death').attr('data-parsley-required', 'false'); 
 
             $('#cadre_type_div').show(); 
-            $('#cadre_type').parsley('addConstraint', { required: true });
-
-            $('#caregiver_id_div').hide(); 
-            $('#caregiver_id_div').parsley('addConstraint', { required: false });
+            $('#cadre_type').attr('data-parsley-required', 'false'); 
         }
 
-        //Government
+        //Government Employee
         if ( $.inArray('TWGE', selected) > -1 ) {
-            $('#staff_id_div').show() 
-            $('#staff_id_div').parsley('addConstraint', { required: true });
-        }
-        else{
-            $('#staff_id_div').hide() 
-            $('#staff_id_div').parsley('addConstraint', { required: false });
+            $('#national_id_div').show();
+            $('#national_id').attr('data-parsley-required', 'true');
+
+            $('#staff_id_div').show();
+            $('#staff_id').attr('data-parsley-required', 'true');
+
+            $('#birth_reg_id_div').hide(); 
+            $('#birth_reg_id').attr('data-parsley-required', 'false');
+
+            $('#caregiver_id_div').hide();
+            $('#caregiver_id').attr('data-parsley-required', 'false');
+
+            $('#relationship_type_id_div').hide(); 
+            $('#relationship_type_id').attr('data-parsley-required', 'false');
+
+            $('#org_unit_id_div').show();
+            $('#org_unit_id').attr('data-parsley-required', 'true');
+
+            $('#date_of_death_div').hide();
+            $('#date_of_death').attr('data-parsley-required', 'false'); 
+
+            $('#cadre_type_div').show(); 
+            $('#cadre_type').attr('data-parsley-required', 'true'); 
         }
 
-        $('#date_of_death_div').parsley('addConstraint', { required: false });
+        //NGO/private sector employee
+        if ( $.inArray('TWNE', selected) > -1 ) {
+            $('#national_id_div').show();
+            $('#national_id').attr('data-parsley-required', 'true');
+
+            $('#staff_id_div').show();
+            $('#staff_id').attr('data-parsley-required', 'true');
+
+            $('#birth_reg_id_div').hide(); 
+            $('#birth_reg_id').attr('data-parsley-required', 'false');
+
+            $('#caregiver_id_div').hide();
+            $('#caregiver_id').attr('data-parsley-required', 'false');
+
+            $('#relationship_type_id_div').hide(); 
+            $('#relationship_type_id').attr('data-parsley-required', 'false');
+
+            $('#org_unit_id_div').show();
+            $('#org_unit_id').attr('data-parsley-required', 'true');
+
+            $('#date_of_death_div').hide();
+            $('#date_of_death').attr('data-parsley-required', 'false'); 
+
+            $('#cadre_type_div').show(); 
+            $('#cadre_type').attr('data-parsley-required', 'true'); 
+        }
     });
 
     $('#relationship_type_id').multiselect({
@@ -286,6 +361,8 @@ $(document).ready(function()
             enableCaseInsensitiveFiltering: true,
             numberDisplayed: 0,
             maxHeight: 300,
+            checked: false,
+            deselectAll: true,
             buttonWidth: '100%'
       });
 

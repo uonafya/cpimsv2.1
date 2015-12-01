@@ -273,12 +273,12 @@ def register_details(request, org_id):
         return render(request, 'registry/org_units_index.html',
                       {'form': form})
 
-
 def new_person(request):
-    msg = ''
+    operation_msg = None
 
     if request.method == 'POST':
         form = RegistrationForm(data=request.POST)
+
         try:
             designation = request.POST.get('cadre_type')
             person_type = request.POST.getlist('person_type')
@@ -289,37 +289,81 @@ def new_person(request):
             des_phone_number = request.POST.get('des_phone_number')
             email = request.POST.get('email')
             living_in = request.POST.get('living_in')
-            org_units = request.POST.getlist('org_unit_id')
+            org_units = request.POST.getlist('org_unit_id')            
+            relationships = request.POST.getlist('relationship_type_id')
+
             national_id = request.POST.get('national_id')
             staff_id = request.POST.get('staff_id')
-            # workforce_id = request.POST.get('workforce_id')
-            # beneficiary_id = request.POST.get('beneficiary_id')
             birth_reg_id = request.POST.get('birth_reg_id')
             caregiver_id = request.POST.get('caregiver_id')
-            relationships = request.POST.getlist('relationship_type_id')
+
             date_of_birth = request.POST.get('date_of_birth')
             date_of_death = request.POST.get('date_of_death')
 
-            # Capture RegPerson Model 
-            try:
-                person = RegPerson(
-                    designation=designation.upper(),
-                    first_name=first_name.upper(),
-                    other_names=other_names.upper(),
-                    surname=surname.upper(),
-                    sex_id=sex_id,
-                    des_phone_number=des_phone_number,
-                    email=email,
-                    date_of_birth=date_of_birth,
-                    date_of_death=None,
-                    is_void=False)
+            #Capture RegPerson Model
+            person = RegPerson(
+                designation=designation.upper(),
+                first_name=first_name.upper(),
+                other_names=other_names.upper(),
+                surname=surname.upper(),
+                sex_id=sex_id,
+                des_phone_number=des_phone_number,
+                email=email,
+                date_of_birth=date_of_birth,
+                date_of_death=None,
+                is_void=False)
 
-                person.save()
-            except Exception, e:
-                msg = 'An error occured when saving to RegPerson Model -  %s' % (
-                    str(e))
+            person.save()
 
             reg_person_pk = int(person.pk)
+
+
+            # Capture RegPersonTypes Model
+            if person_type:
+                now = timezone.now()
+                for i, _person_type in enumerate(person_type):
+                        RegPersonsTypes(
+                            person=RegPerson.objects.get(pk=int(reg_person_pk)),
+                            person_type_id=_person_type,
+                            date_began=now,
+                            date_ended=None,
+                            is_void=False).save()
+
+
+            # Capture RegPersonsOrgUnits Model
+            if org_units:
+                for i, _org_unit in enumerate(org_units):
+                        RegPersonsOrgUnits(
+                            person=RegPerson.objects.get(pk=int(reg_person_pk)),
+                            org_unit_id=RegOrgUnit.objects.get(pk=int(_org_unit)),
+                            date_linked=now,
+                            date_delinked=None,
+                            is_void=False).save()
+
+
+            # Capture RegPersonsGeo Model
+            if living_in:
+                area_id = living_in
+                RegPersonsGeo(
+                    person=RegPerson.objects.get(
+                        pk=int(reg_person_pk)),
+                    area_id=area_id,
+                    date_linked=now,
+                    date_delinked=None,
+                    is_void=False).save()
+
+
+            # Capture RegPersonsGuardians Model
+            if relationships:
+                for i, _relationship in enumerate(relationships):
+                    RegPersonsGuardians(
+                        child_person=RegPerson.objects.get(
+                            pk=int(reg_person_pk)),
+                        guardian_person_id=caregiver_id,
+                        relationship=_relationship,
+                        date_linked=now,
+                        date_delinked=None,
+                        is_void=False).save()
 
             #Capture RegPersonsExternalIds Model
             identifier = None
@@ -329,111 +373,52 @@ def new_person(request):
             beneficiary_id = None
             identifier_types = []
 
-            #****Generate workforce_id/beneficiary_id****
             if person_type:
                 wfc_list = person_type
                 if any(['TWGE' in wfc_list ,'TWNE' in wfc_list ,'TWVL' in wfc_list]):
                     workforce_id = workforce_id_generator(reg_person_pk)
                 if ('TBGR' in wfc_list):
                     beneficiary_id = beneficiary_id_generator(reg_person_pk)
-            if national_id:
-                identifier_types.append('INTL')
-            if staff_id:
-                identifier_types.append('IMAN')
-            if workforce_id:
-                identifier_types.append('IWKF')
-            if beneficiary_id:
-                identifier_types.append('ISCG')
-            if birth_reg_id:
-                identifier_types.append('ISOV')
+                if national_id:
+                    identifier_types.append('INTL')
+                if staff_id:
+                    identifier_types.append('IMAN')
+                if workforce_id:
+                    identifier_types.append('IWKF')
+                if beneficiary_id:
+                    identifier_types.append('ISCG')
+                if birth_reg_id:
+                    identifier_types.append('ISOV')
 
-            for i, identifier_type in enumerate(identifier_types):                
-                if identifier_type == 'INTL':
-                    identifier = national_id
-                if identifier_type == 'IMAN':
-                    identifier = staff_id
-                if identifier_type == 'IWKF':
-                    identifier = workforce_id
-                if identifier_type == 'ISCG':
-                    identifier = beneficiary_id
-                if identifier_type == 'ISOV':
-                    identifier = birth_reg_id
+                for i, identifier_type in enumerate(identifier_types):                
+                    if identifier_type == 'INTL':
+                        identifier = national_id
+                    if identifier_type == 'IMAN':
+                        identifier = staff_id
+                    if identifier_type == 'IWKF':
+                        identifier = workforce_id
+                    if identifier_type == 'ISCG':
+                        identifier = beneficiary_id
+                    if identifier_type == 'ISOV':
+                        identifier = birth_reg_id
 
-                exid = RegPersonsExternalIds(
-                    person=RegPerson.objects.get(pk=int(reg_person_pk)),
-                    identifier_type_id = identifier_type,
-                    identifier = identifier,
-                    is_void = False)
-                exid.save()
-
-            # Capture RegPersonTypes Model
-            now = timezone.now()
-            for i, _person_type in enumerate(person_type):
-                if _person_type:
-                    RegPersonsTypes(
+                    RegPersonsExternalIds(
                         person=RegPerson.objects.get(pk=int(reg_person_pk)),
-                        person_type_id=_person_type,
-                        date_began=now,
-                        date_ended=None,
-                        is_void=False).save()
-                else:
-                    msg = 'An error occured when saving to RegPersonTypes Model\n'
+                        identifier_type_id = identifier_type,
+                        identifier = identifier,
+                        is_void = False).save()
 
-            # Capture RegPersonsOrgUnits Model
-            for i, _org_unit in enumerate(org_units):
-                if _org_unit:
-                    RegPersonsOrgUnits(
-                        person=RegPerson.objects.get(pk=int(reg_person_pk)),
-                        org_unit_id=RegOrgUnit.objects.get(pk=int(_org_unit)),
-                        date_linked=now,
-                        date_delinked=None,
-                        is_void=False).save()
-
-            # Capture RegPersonsGuardians Model
-            print 'Attach Child reg_person to Guardian ....'
-            for i, _relationship in enumerate(relationships):
-                if _relationship:
-                    RegPersonsGuardians(
-                        child_person=RegPerson.objects.get(
-                            pk=int(reg_person_pk)),
-                        guardian_person_id=caregiver_id,
-                        relationship=_relationship,
-                        date_linked=now,
-                        date_delinked=None,
-                        is_void=False).save()
-                else:
-                    msg += 'An error occured when saving to RegPersonsGuardians Model\n'
-
-            # Capture RegPersonsGeo Model
-            area_id = living_in
-            objRegPersonsGeo = RegPersonsGeo(
-                person=RegPerson.objects.get(
-                    pk=int(reg_person_pk)),
-                area_id=area_id,
-                date_linked=now,
-                date_delinked=None,
-                is_void=False)
-            objRegPersonsGeo.save()
-            if not objRegPersonsGeo:
-                msg += 'An error occured when saving to RegPersonsGeo Model\n'
-
-            if not msg:
-                person_name = first_name + ' ' + surname
-                print 'person_name %s' %person_name
-                msg = 'Person (%s) save success.' % (person_name)
-
-            # Capture msg & op status
-            messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect(reverse(persons_search))
+            
 
         except Exception, e:
-            error = 'An error occured when saving data -  %s' % (str(e))
-            messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect(reverse(persons_search))
+            operation_msg = 'An error occured when saving data -  %s' % (str(e))
+            messages.add_message(request, messages.INFO, operation_msg)
 
-        return render(request, 'registry/new_person.html',
-                      {'form': form, 'msg': msg},)
+        operation_msg = 'Person (%s) save success.' %first_name.upper()
+        messages.add_message(request, messages.INFO, operation_msg)
+        return HttpResponseRedirect(reverse(persons_search))
     else:
+        #Not request.POST
         form = RegistrationForm()
         return render(request, 'registry/new_person.html', {'form': form},)
 
@@ -482,8 +467,6 @@ def persons_search(request):
 
                 check_fields = ['sex_id', 'cadre_type_id', 'person_type_id', 'relationship_type_id', 'identifier_type_id']
                 vals = get_dict(field_name=check_fields)
-                pgeolocs_ = None
-
             
                 result_pk = None
                 pgeolocs_ = None
@@ -492,9 +475,7 @@ def persons_search(request):
                     for resultset in resultsets:
                         if resultset:
                             for result in resultset:
-                                print 'result %s' %result
                                 result_pk = result.pk
-                                print 'result_pk %s' %result_pk
 
 
                                 person_types = RegPersonsTypes.objects.filter(person=result_pk)
@@ -554,7 +535,11 @@ def view_person(request, id):
         for person_geo in person_geos:
             pgeolocs_ = get_vgeo_list(person_geo.area_id)
 
+        for person_org in person_orgs:
+            porgs_ = get_vorg_list(person_org.org_unit_id_id)
+
         person.pgeolocs = pgeolocs_
+        person.porgs = porgs_
 
 
         return render(request, 'registry/view_person.html',
@@ -562,9 +547,6 @@ def view_person(request, id):
                         'vals': vals})
     except Exception, e:
         # raise e
-        error = 'Person view error - %s' % (str(e))
-        print error
-        form = RegistrationForm()
         msg = 'Person does not exist - %s' % (str(e))
         messages.add_message(request, messages.INFO, msg)
         return HttpResponseRedirect(reverse(persons_search))
@@ -577,38 +559,134 @@ def edit_person(request, id):
     Some default page for the home page / Dashboard
     '''
     if request.method == 'POST':
-        form = RegistrationForm(data=request.POST)
-        person_type = request.POST.getlist('person_type')
-        first_name = request.POST.get('first_name')
-        other_names = request.POST.get('other_names')
-        surname = request.POST.get('surname')
-        sex_id = request.POST.get('sex_id')
-        des_phone_number = request.POST.get('des_phone_number')
-        email = request.POST.get('email')
-        living_in = request.POST.get('living_in')        
-        date_of_birth = request.POST.get('date_of_birth')
-
-
-        #Update RegPerson
-        operson = RegPerson.objects.get(pk=id)
-        operson.first_name = first_name
-        operson.other_names = other_names
-        operson.surname = surname
-        operson.sex_id = sex_id
-        operson.des_phone_number = des_phone_number
-        operson.email = email
-        operson.living_in = living_in
-        operson.date_of_birth = date_of_birth
-
         try:
+            form = RegistrationForm(data=request.POST)
+            person_type = request.POST.getlist('person_type')
+            first_name = request.POST.get('first_name')
+            other_names = request.POST.get('other_names')
+            surname = request.POST.get('surname')
+            sex_id = request.POST.get('sex_id')
+            des_phone_number = request.POST.get('des_phone_number')
+            email = request.POST.get('email')
+            living_in = request.POST.get('living_in')
+            date_of_birth = request.POST.get('date_of_birth')
+            org_units = request.POST.getlist('org_unit_id')            
+            relationships = request.POST.getlist('relationship_type_id')
+            national_id = request.POST.get('national_id')
+            staff_id = request.POST.get('staff_id')
+            birth_reg_id = request.POST.get('birth_reg_id')
+            caregiver_id = request.POST.get('caregiver_id')
+            date_of_birth = request.POST.get('date_of_birth')
+            date_of_death = request.POST.get('date_of_death')
+
+            now = timezone.now()
+
+            #Update RegPerson
+            operson = RegPerson.objects.get(pk=id)
+            operson.first_name = first_name
+            operson.other_names = other_names
+            operson.surname = surname
+            operson.sex_id = sex_id
+            operson.des_phone_number = des_phone_number
+            operson.email = email
+            operson.date_of_birth = date_of_birth           
             operson.save(update_fields=['first_name', 'other_names', 'surname', 'sex_id',
-             'des_phone_number', 'email', 'living_in', 'date_of_birth'])
-            msg = 'Update successful!'
+             'des_phone_number', 'email', 'date_of_birth'])
+
+            # Update RegPersonsGeo
+            opersongeos = RegPersonsGeo.objects.filter(pk=id)
+            for opersongeo in opersongeos:
+                opersongeo.is_void = True
+                opersongeo.save(update_fields=['is_void'])
+                RegPersonsGeo(
+                        person=RegPerson.objects.get(
+                            pk=int(id)),
+                        area_id=living_in,
+                        date_linked=now,
+                        date_delinked=None,
+                        is_void=False).save()
+
+            # Update RegPersonsOrgUnits Model
+            if org_units:                    
+                opersonorgus = RegPersonsOrgUnits.objects.filter(person=id)
+                
+                for opersonorgu in opersonorgus:
+                    if not str(opersonorgu.org_unit_id_id) in org_units:                        
+                        opersonorgu.is_void = True
+                        opersonorgu.date_delinked = now
+                        opersonorgu.save(update_fields=['is_void','date_delinked'])
+                for i, _org_unit in enumerate(org_units):
+                    opersonorgu_ = RegPersonsOrgUnits.objects.filter(pk=id, org_unit_id_id=_org_unit)
+                    if not opersonorgu_:
+                        RegPersonsOrgUnits(
+                            person=RegPerson.objects.get(pk=int(id)),
+                            org_unit_id=RegOrgUnit.objects.get(pk=int(_org_unit)),
+                            date_linked=now,
+                            date_delinked=None,
+                            is_void=False).save()
+
+            #Capture RegPersonsExternalIds Model
+            """ To factor external ids update on persontype changed """
+            pk = None
+            identifier = None
+            identifier_type_id = None
+            wfc_list = []
+            workforce_id = None
+            beneficiary_id = None
+            identifier_types = []
+            personids = RegPersonsExternalIds.objects.filter(person=id)
+
+            if national_id:
+                identifier_types.append('INTL')
+            if staff_id:
+                identifier_types.append('IMAN')
+            if workforce_id:
+                identifier_types.append('IWKF')
+            if beneficiary_id:
+                identifier_types.append('ISCG')
+            if birth_reg_id:
+                identifier_types.append('ISOV')
+
+            print identifier_types
+
+            for personid in personids:
+                pk = personid.pk
+                if person_type:
+                    wfc_list = person_type                    
+                if any(['TWGE' in wfc_list ,'TWNE' in wfc_list ,'TWVL' in wfc_list]):
+                    workforce_id = workforce_id_generator(pk)
+                if ('TBGR' in wfc_list):
+                    beneficiary_id = beneficiary_id_generator(pk)                    
+
+                for i, identifier_type in enumerate(identifier_types):                
+                    if identifier_type == 'INTL':
+                        identifier = national_id
+                    if identifier_type == 'IMAN':
+                        identifier = staff_id
+                    if identifier_type == 'IWKF':
+                        identifier = workforce_id
+                    if identifier_type == 'ISCG':
+                        identifier = beneficiary_id
+                    if identifier_type == 'ISOV':
+                        identifier = birth_reg_id
+
+                    personid.identifier_type_id =identifier_type
+                    personid.identifier = identifier
+                    personid.save(update_fields=['identifier_type_id','identifier']) 
+
+                    identifier_types.remove(identifier_type)
+
+                        
+
+            msg = 'Update of Person(%s) successful.' %first_name
             messages.add_message(request, messages.INFO, msg)
             return HttpResponseRedirect(reverse(persons_search))
-        except Exception, e:            
-            error = 'Person update error - %s' % (str(e))
-            print error
+
+        except Exception,e:
+            # raise e
+            msg = 'Person update error - %s' % (str(e))
+            messages.add_message(request, messages.INFO, msg)
+        return HttpResponseRedirect(reverse(persons_search))
     else:
         person = None
         person_type_id =None
@@ -617,41 +695,122 @@ def edit_person(request, id):
             person_types = RegPersonsTypes.objects.filter(person=person)
             person_geos = RegPersonsGeo.objects.filter(person=person)
             person_orgs = RegPersonsOrgUnits.objects.filter(person=person)
-            person_extids = RegPersonsExternalIds.objects.filter(person=person)         
-
-
-
+            person_extids = RegPersonsExternalIds.objects.filter(person=person)       
 
             person.ptypes = person_types
             person.pgeos = person_geos
             person.porgs = person_orgs
             person.pextids = person_extids
-        except Exception, e:
-            # raise e
-            error = 'Person edit error - %s' % (str(e))
-            print error
 
-        for ptype in person.ptypes:
-            person_type_id = ptype.person_type_id
+            for ptype in person.ptypes:
+                person_type_id = ptype.person_type_id
 
-        for pgeo in person.pgeos:
-            living_in = pgeo.area_id
+            for pgeo in person.pgeos:
+                living_in = pgeo.area_id
 
-        form = RegistrationForm(initial={
-            'person_type':person_type_id,
-            'designation':person.designation,
-            'first_name': person.first_name,
-            'other_names':person.other_names,
-            'surname':person.surname,
-            'sex_id':person.sex_id,
-            'des_phone_number':person.des_phone_number,
-            'date_of_birth':person.date_of_birth,
-            'email':person.email,
-            'living_in':living_in
-            })
-        return render(request, 'registry/edit_person.html', {'form': form, 'pk':person.pk})
-    form = RegistrationForm()
-    return render(request, 'registry/edit_person.html', {'form': form})
+            for porg in person.porgs:
+                porgs_ = get_vorg_list(porg.org_unit_id_id)
+
+            #Get extid values
+            national_id_ = ''
+            staff_id_ = ''
+            workforce_id_ = ''
+            caregiver_id_ = ''
+            birth_reg_id_ = ''
+            for pextid in person.pextids:
+                pextid_identifier_type = pextid.identifier_type_id
+                pextid_identifier = pextid.identifier
+
+                if pextid_identifier_type == 'INTL':
+                    national_id_ = pextid_identifier
+                if pextid_identifier_type == 'IMAN':
+                    staff_id_ = pextid_identifier
+                #if pextid_identifier_type == 'IWKF':
+                #    workforce_id_ = pextid_identifier
+                if pextid_identifier_type == 'ISCG':
+                    caregiver_id_ = pextid_identifier
+                if pextid_identifier_type == 'ISOV':
+                    birth_reg_id_ = pextid_identifier
+
+
+            #Get orgunit values
+            org_unit_id_ = None
+            for porg_ in porgs_:
+                unit_id_ = porg_.id
+
+            form = RegistrationForm(initial={
+                'person_type':person_type_id,
+                'cadre_type':person.designation,
+                'first_name': person.first_name,
+                'other_names':person.other_names,
+                'surname':person.surname,
+                'sex_id':person.sex_id,
+                'des_phone_number':person.des_phone_number,
+                'date_of_birth':person.date_of_birth,
+                'email':person.email,
+                'living_in':living_in,
+                'org_unit_id':unit_id_,
+                'national_id':national_id_,
+                'staff_id':staff_id_,
+                'birth_reg_id':birth_reg_id_,
+                'caregiver_id':caregiver_id_
+                })
+            return render(request, 'registry/edit_person.html', {'form': form, 'pk':person.pk, 'person_type':person_type_id})
+        except Exception,e:
+            msg = 'Person does not exist - %s' % (str(e))
+            messages.add_message(request, messages.INFO, msg)
+        return HttpResponseRedirect(reverse(persons_search))
+
+def delete_person(request, id):
+    '''
+    Some default page for the home page / Dashboard
+    '''
+    first_name = None
+    surname = None
+    try:
+        #Delete from RegPerson
+        person = RegPerson.objects.get(pk=id) 
+        person.is_void = True
+        first_name = person.first_name
+        surname = person.surname
+        person.save(update_fields=['is_void'])
+
+        #Delete from RegPersonsTypes
+        persontype = RegPersonsTypes.objects.get(pk=id) 
+        persontype.is_void = True
+        persontype.save(update_fields=['is_void'])
+
+        #Delete from RegPersonsOrgUnits
+        personorgunits = RegPersonsOrgUnits.objects.filter(person=id) 
+        for personorgunit in personorgunits:            
+            personorgunit.is_void = True
+            personorgunit.save(update_fields=['is_void'])
+
+        #Delete from RegPersonsGeo
+        persongeos = RegPersonsGeo.objects.filter(person=id) 
+        for persongeo in persongeos:            
+            persongeo.is_void = True
+            persongeo.save(update_fields=['is_void'])
+
+        #Delete from RegPersonsGuardians
+        personguardians = RegPersonsGuardians.objects.filter(child_person_id=id) 
+        for personguardian in personguardians:            
+            personguardian.is_void = True
+            personguardian.save(update_fields=['is_void'])
+
+        #Delete from RegPersonsExternalIds
+        personextids = RegPersonsExternalIds.objects.filter(person=id) 
+        for personextid in personextids:            
+            personextid.is_void = True
+            personextid.save(update_fields=['is_void'])
+
+
+        msg = 'Delete (%s %s) successful.' %(first_name, surname)
+        messages.add_message(request, messages.INFO, msg)  
+    except Exception,e:
+        msg = 'Delete error - %s' % (str(e))
+        messages.add_message(request, messages.INFO, msg)
+    return HttpResponseRedirect(reverse(persons_search))
 
 # WORKFORCE
 def new_user(request):
@@ -666,65 +825,50 @@ def new_user(request):
         form = NewUser(data=request.POST)
 
         try:
-            print 'Getting post data . . '
             person_id = request.POST.get('person_id')
             username = request.POST.get('username')
             password1 = request.POST.get('password1')
             password2 = request.POST.get('password2')
 
-            print 'The Person PK = %s ' % person_id
+            #Get Name
+            person = RegPerson.objects.get(pk=person_id)
+            personfname = person.first_name
+            personsname = person.surname
 
             # resolve existing account
             user_exists = AppUser.objects.filter(reg_person=person_id)
             if user_exists:
-                msg = 'This person has an existing user account.Please login.'
+                msg = 'Person (%s %s) has an existing user account.' % (personfname, personsname)
+                messages.add_message(request, messages.INFO, msg)
+                return HttpResponseRedirect(reverse(persons_search))
 
             if password1 == password2:
                 password = password1
             else:
-                error_msg = 'Passwords do not match!'
+                msg = 'Passwords do not match!'
+                messages.add_message(request, messages.INFO, msg)
                 form = NewUser(data=request.POST)
                 return render(request, 'registry/new_user.html',
-                              {'form': form, 'error_msg': error_msg},)
+                              {'form': form},)
 
             # validate username if__exists
             username_exists = AppUser.objects.filter(username=username)
             if username_exists:
-                error_msg = 'The username "%s " is taken' % username
+                msg = 'The username (%s) is taken.Pick another one.'  % username
+                messages.add_message(request, messages.INFO, msg)
                 form = NewUser(data=request.POST)
                 return render(request, 'registry/new_user.html',
-                              {'form': form, 'error_msg': error_msg},)
+                              {'form': form},)
             else:
                 # Create User
                 user = AppUser.objects.create_user(username=username,
                                                    reg_person=person_id,
                                                    password=password)
                 if user:
-                    if not msg:
-                        # Capture msg & op status
-                        msg = 'User (%s) save success.' % (username)
-                        messages.add_message(request, messages.INFO, msg)
-
-                        user_results = AppUser.objects.select_related().filter(
-                            reg_person=person_id)
-                        person_queryset = RegPerson.objects.select_related()
-                        person_results = person_queryset.filter(
-                            pk=int(person_id))
-							
-                        return HttpResponseRedirect(reverse(persons_search))
-
-                        #form = UserSearchForm(data=request.POST)
-                        #return render(request,
-                        #             'registry/workforce_search.html',
-                        #             {'form': form,
-                        #              'user_results': user_results,
-                        #              'person_results': person_results})
-                else:
-                    msg = ('User (%s) save error.An account already '
-                           'exists for this user.' % (username))
                     # Capture msg & op status
-                    messages.add_message(request, messages.ERROR, msg)
-                    return HttpResponseRedirect(reverse(persons_search))
+                    msg = 'User (%s) save success.' % (username)
+                    messages.add_message(request, messages.INFO, msg)
+                    return HttpResponseRedirect(reverse(workforce_search))
 
         except Exception, e:
             msg = 'Error - (%s) ' % (str(e))
@@ -736,18 +880,64 @@ def new_user(request):
         return render(request, 'registry/new_user.html', {'form': form},)
 
 
-def workforce_search(request):
-    '''
-    Some default page for the home page / Dashboard
-    '''
+def workforce_search(request):    
+    res=None
+    resultsets = None
+    resultset = None
+    results = None
+    result = None
+    wfc_type = None
+    person_type = None
+    search_location = False
+    search_wfc_by_org_unit = False
 
-    form = UserSearchForm(data=request.POST)
+    if request.method=='POST':
+        form = UserSearchForm(data=request.POST)
+        try:
+            if form.is_valid():
+                person_type = form.cleaned_data['person_type']
+                search_string = form.cleaned_data['search_name']
+                person_deceased = form.cleaned_data['person_deceased']
+                search_criteria = form.cleaned_data['search_criteria']
 
-    obj_users = AppUser()
-    model_data = AppUser._get_users_data(obj_users)
-    return render(request, 'registry/workforce_search.html',
-                  {'model_data': model_data, 'form': form})
+                deceased_person = True if person_deceased == 'True' else False
+                type_of_person = [person_type] if person_type else []
 
+                #Make PersonType selection mandatory
+                if person_type:
+                    wfc_type = person_type
+
+                #Filter Location Searches
+                if search_criteria == 'ORG':
+                    search_wfc_by_org_unit=True
+                if search_criteria == 'RES':
+                    search_location=True
+
+                resultsets = get_persons_list(user=request.user, tokens=search_string, wfc_type=wfc_type, 
+                        search_location = search_location, search_wfc_by_org_unit = search_wfc_by_org_unit)
+
+
+                result_pk = None
+                pgeolocs_ = None
+                porgs_ = None
+                if resultsets:                    
+                    for resultset in resultsets:
+                        if resultset:
+                            for result in resultset:
+                                result_pk = result.pk
+                                users = AppUser.objects.filter(reg_person_id=result_pk)
+                                result.appusers = users
+                return render(request, 'registry/workforce_search.html',
+                      {'resultsets': resultsets, 'form': form})
+        except Exception,e:
+            msg = 'Error - (%s) ' % (str(e))
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse(workforce_search))
+        form = UserSearchForm()
+        return render(request, 'registry/workforce_search.html',{'form': form})
+    else:
+        form = UserSearchForm()
+        return render(request, 'registry/workforce_search.html',{'form': form})
 
 def registry_look(request):
     '''

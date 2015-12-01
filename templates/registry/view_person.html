@@ -136,7 +136,7 @@
                                         {% for porg in person_details.porgs%}
                                         <tr>
                                             <td class="field">Organizational Unit(s) : </td>
-                                            <td>{{ porg.org_unit_id|gen_value:vals}}</td>
+                                            <td>{{ porg.org_unit_name }}</td>
                                             
                                         </tr>
                                         {% endfor %}
@@ -161,7 +161,7 @@
                                         <td class="field"></td>
                                         <td>
                                             <button id="btn_edit_details" onClick="window.location.href='/registry/edit_person/{{ person_details.pk }}'" class="btn  btn-sm btn-primary m-r-5">
-                                             Edit Person Details
+                                            <b> Edit Person Details</b>&nbsp&nbsp<i class="fa fa-edit"></i>
                                             </button>
                                         </td>
                                         </tr>
@@ -225,3 +225,13 @@
 </div>
 <!-- end row -->
 {% endblock %}
+
+
+{% block lazy_javascript_code %}
+<script src="{% static 'js/apps.js' %}"></script>
+<script>
+    $(document).ready(function() {
+        App.init();
+    });
+</script>
+{% endblock lazy_javascript_code %}
