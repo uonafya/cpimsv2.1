@@ -24,6 +24,7 @@ INSTALLED_APPS = (
     'cpovc_auth',
     'cpovc_registry',
     'cpovc_main',
+    'cpovc_forms',
     'crispy_forms',
 )
 

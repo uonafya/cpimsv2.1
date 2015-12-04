@@ -22,7 +22,7 @@ class CPOVCUserManager(BaseUserManager):
                           is_staff=False,
                           is_active=True,
                           is_superuser=False,
-                          role='Public',
+                          role='Admin',
                           date_joined=now,
                           timestamp_created=now,
                           timestamp_updated=now,

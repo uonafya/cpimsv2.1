@@ -120,7 +120,7 @@ function jsSearch()
                                 {% for resultset in resultsets %}
                                     {% for result in resultset %}
                                     <tr>                                        
-                                        <td>{{ result.id }}</a></td>
+                                        <td>{{ result.id }}</td>
                                         <td>{{ result.first_name }}</td>
                                         <td>{{ result.surname }}</td>
                                         <td>{{ result.sex_id|gen_value:vals }}</td>
@@ -195,61 +195,47 @@ function jsSearch()
             App.init();
         });
     </script>
-    <script src="{% static 'js/custom_js.js' %}"></script>
     <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>    
+    <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
     <script>
-    </script>
-    <script>
-        $(document).ready(function() 
-        {
-            $('#data-table').bootstrapTable(
-            { 
-                toggle: 'table', 
-                search: 'true',
-                locale: 'en-US',
-                pagination: 'true',
-                pageNumber: 1,
-                pageSize: 10,
-                //showRefresh: true,
-                showToggle: true,
-                //showColumns: true,
-                singleSelect: true,
-                clickToSelect:true,
-                maintainSelected: true,
+    $(document).ready(function() 
+    {
+        $('#data-table').bootstrapTable(
+        { 
+            toggle: 'table', 
+            search: 'true',
+            locale: 'en-US',
+            pagination: 'true',
+            pageNumber: 1,
+            pageSize: 10,
+            //showRefresh: true,
+            showToggle: true,
+            //showColumns: true,
+            singleSelect: true,
+            clickToSelect:true,
+            maintainSelected: true,
 
 
-                
-                onClickRow: function (row, $element)
-                {
-                    // row: the record corresponding to the clicked row, 
-                    // $element: the tr element
-                   
-                    person_id = row[0];
-                    person_fname = row[1];
-                    person_sname = row[2];
-                    localStorage.setItem("person_id",person_id);
-                    localStorage.setItem("person_fname",person_fname);
-                    localStorage.setItem("person_sname",person_sname);
-                    //console.log(person_id);
-                    //console.log(person_fname);
-                    //console.log(person_sname);
-                }
-                
-            });
+            
+            onClickRow: function (row, $element)
+            {
+                // row: the record corresponding to the clicked row, 
+                // $element: the tr element
+               
+                person_id = row[0];
+                person_fname = row[1];
+                person_sname = row[2];
+                localStorage.setItem("person_id",person_id);
+                localStorage.setItem("person_fname",person_fname);
+                localStorage.setItem("person_sname",person_sname);
+                //console.log(person_id);
+                //console.log(person_fname);
+                //console.log(person_sname);
+            }
+            
         });
-    </script>
-    
-    <!--
-    <script src="{% static 'plugins/DataTables/js/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'js/table-manage-default.demo.min.js' %}"></script>
-    
-    <script>
-        $(document).ready(function() {
-            TableManageDefault.init();
-        });
-    </script>
-    -->
-    <script src="{% static 'js/apps.js' %}"></script>
+    });
+</script>
+<script src="{% static 'js/apps.js' %}"></script>
 
 {% endblock lazy_javascript_code%}

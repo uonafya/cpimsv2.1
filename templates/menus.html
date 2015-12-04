@@ -20,19 +20,11 @@
 		</ul>
 	</li>
 	<li class="has-sub {{ request.path|get_class:'forms' }}">
-		<a href="#">
-		    <b class="caret pull-right"></b>
+		<a href="{% url 'forms' %}">
+		    <!--<b class="caret pull-right"></b>-->
 		    <i class="fa fa-file-o"></i>
 		    <span>Forms</span> 
 		</a>
-		<ul class="sub-menu">
-			<li><a href="{% url 'forms' %}">Case Record Sheet</a></li>
-			<li><a href="{% url 'forms' %}">Case record register</a></li>
-			<li><a href="{% url 'forms' %}">Admission Report</a></li>
-			<li><a href="{% url 'forms' %}">Case Referral </a></li>
-			<li><a href="{% url 'forms' %}">Individual Treatment Plan </a></li>
-			<li><a href="#">More ++</a></li>
-		</ul>
 	</li>					
 	
 	<li class="has-sub {{ request.path|get_class:'reports' }}">

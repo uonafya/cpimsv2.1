@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+{% load app_filters %}
+{% load staticfiles %}
+{% block page_title %} Dashboard {% endblock %}
+{% block style_code %}
+<link href="{% static 'plugins/parsley/src/parsley.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/bootstrap-wizard/css/bwizard.min.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
+<link href="{% static 'css/jquery.tagit.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block primary %}
+<!-- begin breadcrumb -->
+<ol class="breadcrumb pull-right">
+	<li><a href="#">Home</a></li>
+	<li class="active">Forms</li>
+</ol>
+<!-- end breadcrumb -->
+<!-- begin page-header -->
+<h1 class="page-header">Forms <small>Case Record Sheet</small></h1>
+<!-- end page-header -->
+<div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-check fa-2x pull-left"></i>
+    <p class="invalid-form-message"></p>
+</div>
+
+<!-- begin row -->
+<div id='case_details' class="row">
+    <!-- begin col-12 -->
+    <div class="col-md-12">
+        <!-- begin panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-expand"><i class="fa fa-minus"></i></a>
+                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-collapse"><i class="fa fa-times"></i></a>
+                </div>
+                <h4 class="panel-title"><b>Case Details</b></h4>
+            </div>
+            <div class="panel-body">
+                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="form-wizard" id="new_case_record">
+					<div id="wizard">
+						<ol>
+							<li>
+							    About the Child 
+							    <small>Name and additional details.</small>
+
+							</li>
+							<li>
+							    Medical
+							    <small>Medical history and additional details.</small>
+							</li>
+							<li>
+							    School
+							    <small>School name and additional details.</small>
+							</li>
+							<li>
+							    Siblings
+							    <small>Sibling name and additional details.</small>
+							</li>
+							<li>
+							    Caregivers/Parents
+							    <small>Caregiver name and additional details.</small>
+							</li>
+							<li>
+							    Case Data
+							    <small>Case type and additional details.</small>
+							</li>
+						</ol>
+
+						<!-- begin wizard step-1 -->
+						<div class="wizard-step-1">
+                            <fieldset>
+                                <legend class="pull-left width-full">About the Child</legend>
+                                <div class="row">
+                                    <div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="religion_type">Religion * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.religion }}</b>
+										</div>
+										<a href="#" data-toggle="tooltip" title="Religion name is mandatory"><i class="fa fa-info-circle fa-lg"></i></a>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="tribe">Tribe * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.tribe }}</b>
+										</div>
+										<a href="#" data-toggle="tooltip" title="Tribe name is mandatory"><i class="fa fa-info-circle fa-lg"></i></a>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="household_economics">House economic status * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.household_economics }}</b>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="family_status">Family status * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.family_status }}</b>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="tribe">Close Friends * :</label>
+										<div class="col-md-6 col-sm-6">
+											<b>
+											<ul id="friends_list" class="white" placeholder="type">
+	                                        </ul>
+	                                        </b>
+										</div>
+										<a href="#" data-toggle="tooltip" title="Type a name(s) and press enter"><i class="fa fa-info-circle fa-lg"></i></a>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="tribe">Hobbies * :</label>
+										<div class="col-md-6 col-sm-6">
+											<b>
+											<ul id="hobbies_list" class="white" placeholder="type">
+
+	                                        </ul>
+	                                        </b>
+										</div>
+										<a href="#" data-toggle="tooltip" title="Type a hobby and press enter"><i class="fa fa-info-circle fa-lg"></i></a>
+									</div>
+                                </div>
+                                <!-- end row -->
+							</fieldset>
+						</div>
+						<!-- end wizard step-1 -->
+
+						<!-- begin wizard step-2 -->
+						<div class="wizard-step-2">
+							<fieldset>
+                                <legend class="pull-left width-full">Medical</legend>
+                                <div class="row">
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="child_in_school">Mental condition * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.mental_condition }}</b>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="school_category">Physical condition * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.physical_condition }}</b>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="school_category">Other condition * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.other_condition }}</b>
+										</div>
+									</div>
+                                </div>
+							</fieldset>
+						</div>
+						<!-- end wizard step-2 -->
+
+						<!-- begin wizard step-3 -->
+						<div class="wizard-step-3">
+							<fieldset>
+                                <legend class="pull-left width-full">School</legend>
+                                <div class="row">
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="child_in_school">Child in school? * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.child_in_school }}</b>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="school_category">School Name * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.school_name }}</b>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="school_category">School Category * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.school_category }}</b>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-md-4 col-sm-4" for="class_">Class * :</label>
+										<div class="col-md-6 col-sm-6">
+												<b>{{ form.class_ }}</b>
+										</div>
+									</div>
+                                </div>
+                                <!-- end row -->
+							</fieldset>
+						</div>
+						<!-- end wizard step-3 -->
+
+						<!-- begin wizard step-4 -->
+						<div class="wizard-step-4">
+							<fieldset>
+								<legend class="pull-left width-full">Siblings</legend>
+
+								<div style="margin-bottom: 0.2em">
+								<!-- begin row -->
+                                <div class="row">
+                                    <!-- begin col-4 -->
+                                    <div class="col-md-2">
+										<div class="form-group block1">
+											<label>First Name</label>
+											<input type="text" name="firstname" placeholder="John" class="form-control" data-parsley-group="wizard-step-4" required />
+										</div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                    <!-- begin col-4 -->
+                                    <div class="col-md-2">
+										<div class="form-group">
+											<label>Other Names</label>
+											<input type="text" name="middle" placeholder="A" class="form-control"/>
+										</div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                    <!-- begin col-4 -->
+                                    <div class="col-md-2">
+										<div class="form-group">
+											<label>Surname</label>
+											<input type="text" name="lastname" placeholder="Smith" class="form-control" data-parsley-group="wizard-step-4" required />
+										</div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                     <!-- begin col-4 -->
+                                    <div class="col-md-2">
+										<div class="form-group">
+											<label>Date Of Birth</label>
+											<input type="text" name="lastname" placeholder="Smith" class="form-control" data-parsley-group="wizard-step-4" required />
+										</div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                     <!-- begin col-4 -->
+                                    <div class="col-md-2">
+										<div class="form-group">
+											<label>Class</label>
+											<input type="text" name="lastname" placeholder="Smith" class="form-control" data-parsley-group="wizard-step-4" required />
+										</div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                </div>
+                                <!-- end row -->
+
+                                <!-- begin row -->
+                                <div style="margin-top:1em" class="row">
+                                 <!-- begin col-4 -->
+                                    <div class="col-md-10">
+										<div class="form-group">
+											<label>Remarks</label>
+											<input type="text" name="lastname" placeholder="Smith" class="form-control" data-parsley-group="wizard-step-4" required />
+										</div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                </div>
+                                <!-- end row -->
+
+                                <!-- begin row -->
+                                <div style="margin-top:2em" class="row">
+                                	<!-- begin col-4 -->
+                                    <div class="col-md-2">
+										<div class="form-group">                                	
+                                    		<button type="submit" class="btn btn-sm btn-primary  btn-block">
+                                    			<b>Save Sibling</b>
+                                    		</button>
+                                    	</div>
+                                    </div>
+                                </div>
+                                <!-- end row -->
+
+                                <div style="margin-top:3em" class="row col-md-10" >
+                                
+				                        <table id="data-table" class="table table-striped table-bordered">
+				                        	<thead>
+			                                    <tr>
+			                                        <th>ID</th>
+			                                        <th>First Name</th>
+			                                        <th>Surname</th>
+			                                        <th>Sex</th>                        
+			                                        <th>Actions</th>
+			                                    </tr>
+			                                    <tr>                                        
+			                                        <td>1</td>
+			                                        <td>XXX</td>
+			                                        <td>YYY</td>
+			                                        <td>ZZZ</td>  
+
+			                                        <td>                                       
+			                                        <button onClick="#" class="btn  btn-sm btn-primary m-r-5">
+			                                        <b>Edit</b>&nbsp&nbsp<i class="fa fa-edit"></i>
+			                                        </button>
+
+			                                        <a href="#delete-dialog" class="btn btn-sm btn-danger m-r-5" data-toggle="modal">
+			                                        <b>Delete</b>&nbsp&nbsp<i class="fa fa-trash-o"></i></a>
+			                                        </td>
+			                                    </tr>
+			                                </thead>
+			                                <tbody>
+			                                </tbody>
+				                        </table>
+                                </div>
+
+
+                               
+
+							</fieldset>
+						</div>
+						<!-- end wizard step-4 -->
+
+						<!-- begin wizard step-5 -->
+						<div class="wizard-step-5">
+							<fieldset>
+								<legend class="pull-left width-full">Caregivers/Parents</legend>
+                                <!-- begin row -->
+                                <div class="row">
+                                    
+                                </div>
+                                <!-- end row -->
+                            </fieldset>
+						</div>
+						<!-- end wizard step-5 -->
+
+						<!-- begin wizard step-6 -->
+					    <div class="wizard-step-6">
+						    <fieldset>
+                                <!-- end row -->
+								<legend class="pull-left width-full">Case Data</legend>
+                                <!-- begin row -->
+                                <div class="row">
+	                                    
+                                </div>
+                            </fieldset>
+                        </div>
+						<!-- end wizard step-6 -->
+					</div>
+
+					<!-- begin panel -->
+	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
+	                    <div class="panel-body panel-form">
+							<div class="form-group">
+								<label class="control-label col-md-4 col-sm-4"></label>
+								<div class="col-md-6 col-sm-6">
+								    <p></p>
+									<button id="mysubmit" type="submit" class="btn btn-primary">Submit</button>
+									<button type="submit" class="btn btn-default">Cancel</button>
+									<p></p>
+								</div>
+							</div>
+	                    </div>
+	                </div>
+				</form>
+            </div>
+        </div>
+        <!-- end panel -->
+    </div>
+    <!-- end col-12 -->
+</div>
+<!-- end row -->
+<!-- End content area -->
+{% endblock %}
+
+{% block lazy_javascript_code %}
+	<script src="{% static 'js/apps.js' %}"></script>
+	<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
+	<script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
+	<script src="{% static 'js/form-wizards.js' %}"></script>
+	<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
+	<script src="{% static 'js/tag-it.js' %}"></script>
+	<script>
+	jQuery(document).ready(function() 
+	{		
+		$('#friends_list').tagit(
+		{
+			placeholderText:'Type names + ENTER'
+		});
+		$('#hobbies_list').tagit(
+		{
+			placeholderText:'Type hobby + ENTER'
+		});
+		$('html,body').scrollTop(0);
+		App.init();
+		FormWizardValidation.init();
+		FormPlugins.init();
+	});
+	</script>
+{% endblock %}

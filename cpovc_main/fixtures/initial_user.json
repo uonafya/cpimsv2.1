@@ -1,0 +1,18 @@
+[
+    {
+        "pk": 1, 
+        "model": "cpovc_registry.RegPerson", 
+        "fields": {
+            "designation": "ADMIN", 
+            "first_name": "Cpims", 
+            "other_names": "System", 
+            "surname": "Administrator", 
+            "email": "cpims@system.administrator",
+            "des_phone_number": "0700000000",
+            "date_of_birth": "1900-01-01",
+            "date_of_death": "1900-01-01",
+            "sex_id": "M",
+            "is_void": "False"
+        }
+    }
+]
