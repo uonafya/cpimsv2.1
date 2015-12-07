@@ -42,6 +42,9 @@
             </div>
             <div class="panel-body">
                 <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="form-wizard" id="edit_org_unit">
+                <input type='radio' class="edit_org" name='edit_org' value="1" checked="checked" id="edit_org_1"> Update Organization Unit registration details
+		        <div class="separator"><p></p></div>
+		        <div id="edit_part">
 					<div id="wizard">
 						<ol>
 							<li>
@@ -168,6 +171,22 @@
                         </div>
 						<!-- end wizard step-4 -->
 					</div>
+					</div><!-- end view part -->
+		            <!-- end panel -->
+		            <input type='radio' class="edit_org" name='edit_org' value="2"> Organization Unit closed / No longer functional.
+		            <!-- begin panel -->
+	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
+	                    <div id="cdate" class="panel-body panel-form">
+							<div class="form-group">
+								<label class="control-label col-md-4 col-sm-4" for="parent_unit">Date closed :</label>
+								<div class="col-md-6 col-sm-6">
+									{{ form.close_date }}
+								</div>
+							</div>
+	                    </div>
+	                </div>
+	                <!-- end panel -->
+		            <input type='radio' class="edit_org" name='edit_org' value="3"> Organization Unit never existed. (Registration mistake or duplicate.)
 					<!-- begin panel -->
 	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
 	                    <div class="panel-body panel-form">
@@ -363,6 +382,24 @@
 			        }
 		        });
             });
+            $("#cdate").hide();
+			$("#edit_org_1").prop("checked", true);
+			$(".edit_org").click(function(e) {
+				var res = $('input[name=edit_org]:checked', '#edit_org_unit').val();
+				if (res == '2'){
+			       $("#edit_part").hide();
+			       $("#cdate").show();
+			       $("#editdate").prop("readonly", false);
+			    }else if (res == '1'){
+			       $("#edit_part").show();
+			       $("#cdate").hide();
+			       $("#editdate").prop("readonly", true);
+			    }else{
+			       $("#edit_part").hide();
+			       $("#cdate").hide();
+			       $("#editdate").prop("readonly", true);
+			   }
+		    });
 		});
 	</script>
 
