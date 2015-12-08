@@ -383,8 +383,9 @@
 		    }
 		  });
 		});
-		function displayVals(area_value="county") {
+		function displayVals(area_value) {
 		  var area_name = [];
+		  if (typeof area_value === 'undefined') { area_value = 'county'; }
 		  //var multipleValues = $( "#id_sub_county" ).val() || [];
 		  //var multipleValues = $("#id_sub_county option:selected").text() || [];
 		  $("#id_"+area_value+" option:selected").each(function () {
