@@ -78,6 +78,7 @@
 										<div class="col-md-6 col-sm-6">
 			                                {{ form.reg_date }}
 										</div>
+										<a href="#" data-toggle="tooltip" title="This date is not mandatory"><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
                                 </div>
                                 <!-- end row -->
@@ -96,24 +97,28 @@
 										<div class="col-md-6 col-sm-6">
 											{{ form.org_unit_type }}
 										</div>
+										<a href="#" data-toggle="tooltip" title="Type is mandatory"><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="legal_reg_type">Legal Registration type :</label>
 										<div class="col-md-6 col-sm-6">
 											{{ form.org_reg_type }}
 										</div>
+										<a href="#" data-toggle="tooltip" title="This is mandatory for NGO's"><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="legal_reg_number">Legal Registration Number :</label>
 										<div class="col-md-6 col-sm-6">
 											{{ form.legal_reg_number }}
 										</div>
+										<a href="#" data-toggle="tooltip" title="This is mandatory for NGO's"><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
 			                        <div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="parent_unit">Parent Unit :</label>
 										<div class="col-md-6 col-sm-6">
 											{{ form.parent_org_unit }}
 										</div>
+										<a href="#" data-toggle="tooltip" title="This is mandatory except for National level organisations."><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
                                     <!-- end col-6 -->
                                 </div>
@@ -130,24 +135,30 @@
                                     <!-- begin col-4 -->
                                     <div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="sub_county">County :</label>
-										<div class="col-md-6 col-sm-6">
+										<div class="col-md-4 col-sm-4">
 											{{ form.county }}
+											<br>
 											<span id="sel_county" class="showlist"></span>
 										</div>
+										<a href="#" data-toggle="tooltip" title="This is not mandatory and will not be saved. Only used for filtering sub-counties."><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
                                     <div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="sub_county">Sub County :</label>
-										<div class="col-md-6 col-sm-6">
+										<div class="col-md-4 col-sm-4">
 											{{ form.sub_county }}
+											<br>
 											<span id="sel_sub_county" class="showlist"></span>
 										</div>
+										<a href="#" data-toggle="tooltip" title="This is mandatory for some organisational units."><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="wards">Wards :</label>
-										<div class="col-md-6 col-sm-6">
+										<div class="col-md-4 col-sm-4">
 											{{ form.ward }}
+											<br>
 											<span id="sel_ward" class="showlist"></span>
 										</div>
+										<a href="#" data-toggle="tooltip" title="This is mandatory for some organisational units."><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
 			                        <!-- end col-6 -->
                                 </div>
@@ -198,6 +209,7 @@
 	<script src="{% static 'js/form-wizards.js' %}"></script>
 	<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
 	<script type="text/javascript">
+	    var parsleyInstance = $("#id_sub_county").parsley();
 	    window.Parsley
 		  .addValidator('chkcounty', {
 		    requirementType: 'string',
@@ -212,26 +224,37 @@
 		      var cat4 = ["TNNM", "TNCP", "TNGB"];
 		      var cat5 = ["TNNH", "TNCN", "TNGN"];
 
+		      var msg = 'Please select a Sub-county';
+
 		      if (reff.length){
                 if (value){
                 	if($.inArray(refs, vals) > -1){
-	                	var msg = 'Only one Sub-county required.';
+	                	msg = 'Only one Sub-county required.';
+	                	window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
 	                	if (value.length == 1) return true; else return false;
 	                }else if($.inArray(refs, cat4) > -1){
-	                	var msg = 'One or more Sub-county required.';
+	                	msg = 'One or more Sub-county required.';
+	                	window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
 	                	if (value.length >= 1) return true; else return false;
 	                }else if($.inArray(refs, cat5) > -1){
-	                	var msg = 'Sub-county not required';
+	                	msg = 'Sub-county not required';
+	                	window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
 	                	if (value.length == 0) return true; else return false;
 	                }else{
 	                	return true;
 	                }
                 }else{
+                	window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
 		      	    return false;
 		        }
 		      }else{
+		      	window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
 		      	return false;
 		      }
+		      //window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
+		      //window.ParsleyValidator.catalog.en.chkcounty = msg;
+		      //var parsleyInstance = $("#id_sub_county").parsley();
+		      //window.ParsleyUI.updateError(parsleyInstance, 'chkcounty', 'error');
 		    },
 		    messages: {
 		      en: 'One / more or no Sub-County is required.'
@@ -279,9 +302,54 @@
 		    }
 		  });
 
+		  window.Parsley
+		    .addValidator('notfuturedate', {
+		    requirementType: 'string',
+		    validateString: function(fieldValue, fieldFormat) {
+	            try {
+	                var form_date = $.datepicker.parseDate(fieldFormat, fieldValue); 
+	            } catch (e) {
+	                return false;
+	            }
+	            var todate = new Date(); // today
+	            return (form_date <= todate);
+		    },
+		    messages: {
+		      en: 'Please provide a valid date that is not in the future.'
+		    }
+		  });
+
+		  window.Parsley
+		    .addValidator('checkuniq', {
+		    requirementType: 'string',
+		    validateString: function(fieldValue, fieldFormat) {
+		    	var valid = false;
+		        $.ajax({
+		            url: '/registry/lookup/',
+		            data: {'param': fieldValue, 'action': 3},
+		            async: false,
+		            success: function(response) {
+		                if(response.counts > 0) {
+		                    valid = false;
+		                } else {
+		                    valid = true;
+		                }
+		            },
+                        error: function() {
+                            valid = false;
+                        }
+		        });
+		        return valid;
+		    },
+		    messages: {
+		      en: 'Organisation unit with this name already exists.'
+		    }
+		  });
+        
 		</script>
 	<script>
 		jQuery(document).ready(function() {
+			// $("#id_org_unit_name").parsley({ errorMessage: "User name already used" });
 			$('html,body').scrollTop(0);
 			FormWizardValidation.init();
 			$('#id_county, #id_sub_county, #id_ward').multiselect({
@@ -289,7 +357,7 @@
 				filterBehavior: 'both',
 				numberDisplayed: 0,
 				maxHeight: 200,
-				buttonWidth: '75%',
+				buttonWidth: '100%',
 				disableIfEmpty: true,
 				enableClickableOptGroups: true,
 				enableCaseInsensitiveFiltering: true
@@ -365,13 +433,14 @@
 			        }
 		        });
             });
+
 		});
 	</script>
 
     <script type="text/javascript">
 		$(function () {
 		  $('#new_org_unit').parsley().on('form:validate', function (formInstance) {
-		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true);
+		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true) || formInstance.isValid('primary2', true) || formInstance.isValid('primary3', true);
 		    $(".alert").show();
 		    $('.invalid-form-message')
 		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
@@ -385,7 +454,7 @@
 		});
 		function displayVals(area_value) {
 		  var area_name = [];
-		  if (typeof area_value === 'undefined') { area_value = 'county'; }
+		  area_value = (typeof area_value === 'undefined') ? 'county' : area_value;
 		  //var multipleValues = $( "#id_sub_county" ).val() || [];
 		  //var multipleValues = $("#id_sub_county option:selected").text() || [];
 		  $("#id_"+area_value+" option:selected").each(function () {

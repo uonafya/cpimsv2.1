@@ -251,9 +251,7 @@
 		      }else{
 		      	return false;
 		      }
-		    },
-		    messages: {
-		      en: 'One / more or no Sub-County is required.'
+		      window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
 		    }
 		 });
 		window.Parsley
@@ -298,6 +296,22 @@
 		    }
 		  });
 
+		window.Parsley
+		    .addValidator('notfuturedate', {
+		    requirementType: 'string',
+		    validateString: function(fieldValue, fieldFormat) {
+	            try {
+	                var form_date = $.datepicker.parseDate(fieldFormat, fieldValue); 
+	            } catch (e) {
+	                return false;
+	            }
+	            var todate = new Date(); // today
+	            return (form_date <= todate);
+		    },
+		    messages: {
+		      en: 'Please provide a valid date that is not in the future.'
+		    }
+		  });
 		</script>
 	<script>
 		jQuery(document).ready(function() {
@@ -311,6 +325,17 @@
 				buttonWidth: '75%',
 				enableCaseInsensitiveFiltering: true
 			});
+			$("#id_org_unit_type").attr('readonly', 'readonly');
+			$(".edit_org").change(function(e) {
+			var edit_org = $('input[name=edit_org]:checked', '#edit_org_unit').val();
+			if (edit_org == '2'){
+                $("#editdate").attr('data-parsley-required', 'true');
+             } else{
+            	$("#editdate").removeAttr('data-parsley-required');
+            	$("#editdate").removeAttr('data-parsley-notfuturedate');
+            }
+		    });
+
 			$("#id_sub_county").change(function(e) {
 				var county = $("#id_county").val();
 				var sub_county = $("#id_sub_county").val();
@@ -384,20 +409,26 @@
             });
             $("#cdate").hide();
 			$("#edit_org_1").prop("checked", true);
+			$("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
 			$(".edit_org").click(function(e) {
 				var res = $('input[name=edit_org]:checked', '#edit_org_unit').val();
 				if (res == '2'){
 			       $("#edit_part").hide();
 			       $("#cdate").show();
 			       $("#editdate").prop("readonly", false);
+			       $("#editdate").prop("readonly", false);
+			       $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
 			    }else if (res == '1'){
 			       $("#edit_part").show();
 			       $("#cdate").hide();
 			       $("#editdate").prop("readonly", true);
+			       //$("#mysubmit").removeClass( "btn-primary" ).attr("disabled", "disabled");
+			       $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
 			    }else{
 			       $("#edit_part").hide();
 			       $("#cdate").hide();
 			       $("#editdate").prop("readonly", true);
+			       $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
 			   }
 		    });
 		});
@@ -406,7 +437,7 @@
     <script type="text/javascript">
 		$(function () {
 		  $('#edit_org_unit').parsley().on('form:validate', function (formInstance) {
-		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true);
+		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true) || formInstance.isValid('primary2', true) || formInstance.isValid('primary3', true);
 		    $(".alert").show();
 		    $('.invalid-form-message')
 		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
@@ -420,7 +451,7 @@
 		});
 		function displayVals(area_value) {
 		  var area_name = [];
-		  if (typeof area_value === 'undefined') { area_value = 'county'; }
+		  area_value = (typeof area_value === 'undefined') ? 'default' : area_value;
 		  //var multipleValues = $( "#id_sub_county" ).val() || [];
 		  //var multipleValues = $("#id_sub_county option:selected").text() || [];
 		  $("#id_"+area_value+" option:selected").each(function () {
