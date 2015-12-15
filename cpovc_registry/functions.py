@@ -10,6 +10,17 @@ benficiary_id_prefix = 'B'
 workforce_id_prefix = 'W'
 
 
+def get_specific_geos(org_ids):
+    try:
+        result = RegOrgUnitGeography.objects.select_related().filter(
+            org_unit_id__in=org_ids, is_void=False)
+    except Exception, e:
+        error = 'Error getting geos - %s' % (str(e))
+        print error
+    else:
+        return result
+
+
 def get_geo_selected(results, datas, extras):
     wards = []
     all_list = get_all_geo_list()

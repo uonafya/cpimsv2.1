@@ -23,7 +23,6 @@ class Migration(migrations.Migration):
                 ('username', models.CharField(unique=True, max_length=20)),
                 ('is_staff', models.BooleanField(default=False)),
                 ('is_active', models.BooleanField(default=True)),
-                ('date_joined', models.DateTimeField(auto_now_add=True)),
                 ('timestamp_created', models.DateTimeField(auto_now_add=True)),
                 ('timestamp_updated', models.DateTimeField(auto_now=True)),
                 ('password_changed_timestamp', models.DateTimeField(null=True)),
@@ -73,7 +72,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('timestamp_modified', models.DateTimeField(default=django.utils.timezone.now)),
-                ('void', models.BooleanField(default=False)),
+                ('is_void', models.BooleanField(default=False)),
             ],
             options={
                 'db_table': 'auth_user_groups_geo_org',

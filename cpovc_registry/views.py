@@ -4,13 +4,14 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.contrib import messages
 from cpovc_main.functions import (
-    get_list_of_org_units, get_dict, get_vgeo_list, get_vorg_list, get_persons_list)
+    get_list_of_org_units, get_dict, get_vgeo_list, get_vorg_list,
+    get_persons_list)
 from .forms import FormRegistry, FormRegistryNew, FormContact
 from .models import RegOrgUnitGeography
 from .functions import (
     org_id_generator, save_contacts, save_external_ids, close_org_unit,
     save_geo_location, get_external_ids, get_geo_location, get_contacts,
-    get_geo_selected)
+    get_geo_selected, get_specific_geos)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
@@ -20,6 +21,7 @@ from cpovc_registry.forms import (
 from cpovc_main.functions import (
     workforce_id_generator, beneficiary_id_generator, get_org_units_dict)
 from cpovc_main.models import SetupGeography
+from cpovc_auth.decorators import is_allowed_groups
 
 
 def home(request):
@@ -33,7 +35,7 @@ def home(request):
                 search_string = form.cleaned_data['org_unit_name']
                 org_type = form.cleaned_data['org_type']
                 org_closed = form.cleaned_data['org_closed']
-                print org_closed
+
                 closed_org = True if org_closed == 'True' else False
                 unit_type = [org_type] if org_type else []
                 results = get_list_of_org_units(search_string=search_string,
@@ -41,6 +43,28 @@ def home(request):
                                                 in_org_unit_types=unit_type,
                                                 number_of_results=50)
                 items = 'result' if len(results) == 1 else 'results'
+                ids = []
+                for result in results:
+                    ids.append(result.id)
+                geos = get_specific_geos(ids)
+                orgs = {}
+                print geos
+                for geo in geos:
+                    org_id = geo.org_unit_id
+                    area_name = geo.area.area_name
+                    if org_id not in orgs:
+                        orgs[org_id] = [area_name]
+                    else:
+                        orgs[org_id].append(area_name)
+                orgs_name = {}
+                print orgs
+                for geo in ids:
+                    if geo in orgs:
+                        gname = orgs[geo]
+                        orgs_name[geo] = ' ,'.join(gname)
+                    else:
+                        orgs_name[geo] = None
+                print orgs_name
                 message = "Search for %s returned %d %s" % (search_string,
                                                             len(results),
                                                             items)
@@ -52,16 +76,21 @@ def home(request):
                 vals.update(org_units_list)
                 return render(request, 'registry/org_units_index.html',
                               {'form': form, 'results': results,
+                               'geos': orgs_name,
                                'message': message, 'vals': vals})
             else:
                 print 'Not Good %s' % (form.errors)
         form = FormRegistry()
+        # groups = request.user.groups.values_list('', flat=True)
+        # print groups
         return render(request, 'registry/org_units_index.html',
                       {'form': form})
     except Exception, e:
+        print str(e)
         raise e
 
 
+@is_allowed_groups(['RGM'])
 def register_new(request):
     '''
     Create page for New Organisation Unit
@@ -70,12 +99,17 @@ def register_new(request):
         if request.method == 'POST':
             form = FormRegistry(data=request.POST)
             cform = FormContact(data=request.POST)
+            print request.POST
             org_unit_type = request.POST.get('org_unit_type')
             org_unit_name = request.POST.get('org_unit_name')
             reg_date = request.POST.get('reg_date')
+            if not reg_date:
+                reg_date = None
             sub_county = request.POST.getlist('sub_county')
             ward = request.POST.getlist('ward')
             parent_org_unit = request.POST.get('parent_org_unit')
+            if not parent_org_unit:
+                parent_org_unit = None
             org_reg_type = request.POST.get('org_reg_type')
             legal_reg_number = request.POST.get('legal_reg_number')
             org_new = RegOrgUnit(org_unit_id_vis='NXXXXXX',
@@ -113,10 +147,10 @@ def register_new(request):
         raise e
 
 
+@is_allowed_groups(['RGM', 'RGU', 'DSU'])
 def register_edit(request, org_id):
     '''
     Edit page for Organisation Unit with id - org_id
-    TO DO - Handle 404
     '''
     resp = ''
     try:
@@ -184,6 +218,7 @@ def register_edit(request, org_id):
         unit_type = units.org_unit_type_id
         date_op = units.date_operational
         date_closed = units.date_closed
+        parent_unit = units.parent_org_unit_id
         # External ids
         ext_ids = get_external_ids(org_id)
         external = {}
@@ -196,7 +231,8 @@ def register_edit(request, org_id):
         # Final data
         data = {'org_unit_name': name, 'org_unit_type': unit_type,
                 'reg_date': date_op, 'sub_county': area_list,
-                'ward': area_list, 'close_date': date_closed}
+                'ward': area_list, 'close_date': date_closed,
+                'parent_org_unit': parent_unit}
         data_dict.update(data)
         form = FormRegistryNew(data_dict)
         # Get contact details
@@ -272,6 +308,7 @@ def register_details(request, org_id):
         messages.add_message(request, messages.INFO, msg)
         return render(request, 'registry/org_units_index.html',
                       {'form': form})
+
 
 
 def new_person(request):

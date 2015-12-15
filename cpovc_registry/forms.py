@@ -11,8 +11,8 @@ geo_list = get_geo_list(get_all_geo_list(), 'GDIS')
 person_type_list = get_list('person_type_id', 'Please Select')
 org_unit_type_list = get_list('org_unit_type_id', 'Please Select')
 relationship_type_list = get_list('relationship_type_id', 'Please Select')
-external_id_list  = get_list('identifier_type_id', 'Please Select')
-cadre_type_list  = get_list('cadre_type_id', 'Please Select')
+external_id_list = get_list('identifier_type_id', 'Please Select')
+cadre_type_list = get_list('cadre_type_id', 'Please Select')
 sex_id_list = get_list('sex_id', 'Please Select')
 psearch_criteria_list = get_list('psearch_criteria_type_id','Select Criteria')
 org_units_list = get_org_units_list(True)
@@ -242,8 +242,7 @@ class FormRegistry(forms.Form):
             attrs={'class': 'form-control'}))
     org_unit_name = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Organisation unit'), 'class': 'form-control',
-               'autofocus': 'true', 'data-parsley-required': "true",
-               'data-parsley-group': 'primary'}))
+               'autofocus': 'true', 'data-parsley-group': 'primary'}))
     org_closed = forms.CharField(required=False, widget=forms.CheckboxInput(
         attrs={'class': 'form-control', 'autofocus': 'true'}))
 
@@ -269,6 +268,7 @@ class FormRegistryNew(forms.Form):
         widget=forms.Select(
             attrs={'class': 'form-control',
                    'autofocus': 'true',
+                   'data-parsley-group': 'primary1',
                    'data-parsley-isngo': '#id_org_unit_type',
                    'data-parsley-validate-if-empty': 'true'}))
     org_unit_name = forms.CharField(
@@ -276,22 +276,25 @@ class FormRegistryNew(forms.Form):
             attrs={'placeholder': _('Unit name'),
                    'class': 'form-control',
                    'autofocus': 'true',
+                   'data-parsley-checkuniq': "true",
                    'data-parsley-required': "true",
+                   'data-parsley-trigger': 'input',
                    'data-parsley-group': 'primary'}))
     reg_date = forms.CharField(
+        required=False,
         widget=forms.TextInput(
             attrs={'placeholder': _('Select date'),
                    'class': 'form-control',
-                   'autofocus': 'true',
-                   'data-parsley-required': "true",
-                   'data-parsley-group': 'primary',
-                   'id': 'datepicker'}))
+                   'data-parsley-notfuturedate': "yy-mm-dd",
+                   'id': 'datepicker',
+                   'data-parsley-group': 'primary'}))
     legal_reg_number = forms.CharField(
         widget=forms.TextInput(
             attrs={'placeholder': _('Registration No.'),
                    'class': 'form-control',
                    'autofocus': 'true',
                    'data-parsley-isngo': "#id_org_unit_type",
+                   'data-parsley-group': 'primary1',
                    'data-parsley-validate-if-empty': "true"}))
     county = forms.MultipleChoiceField(
         choices=county_list,
@@ -306,6 +309,7 @@ class FormRegistryNew(forms.Form):
         required=False,
         widget=forms.SelectMultiple(
             attrs={'rows': '6',
+                   'data-parsley-group': 'primary2',
                    'data-parsley-chkcounty': '#id_org_unit_type',
                    'data-parsley-validate-if-empty': "true",
                    'data-parsley-multiple': 'multiple'}))
@@ -315,17 +319,18 @@ class FormRegistryNew(forms.Form):
             attrs={'rows': '6', 'data-parsley-multiple': 'multiple'}))
     parent_org_unit = forms.ChoiceField(
         choices=get_org_units,
-        initial='0',
+        initial='',
         widget=forms.Select(
             attrs={'class': 'form-control',
                    'autofocus': 'true',
                    'data-parsley-ishq': '#id_org_unit_type',
+                   'data-parsley-group': 'primary1',
                    'data-parsley-validate-if-empty': 'true'}))
     close_date = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Select date'),
                'class': 'form-control',
                'autofocus': 'true',
-               'data-parsley-withother': "2",
+               'data-parsley-notfuturedate': "yy-mm-dd",
                'id': 'editdate',
                'readonly': 'readonly'}))
 
@@ -358,17 +363,36 @@ class FormContact(forms.Form):
             is_designate = 'designated' in contact_name.lower()
             is_postal = 'postal' in contact_name.lower()
             if is_designate or is_postal:
+                is_required = True
                 attrs['data-parsley-required'] = "true"
+                attrs['data-parsley-group'] = "primary3"
                 del(attrs['data-parsley-type'])
-            form_char = forms.CharField(label=contact_name, required=False,
+            else:
+                is_required = False
+                if 'data-parsley-group' in attrs:
+                    del(attrs['data-parsley-group'])
+                if 'tude'in contact_name.lower():
+                    attrs['data-parsley-type'] = "number"
+            tool_text = self.do_tooltips(contact_name, is_required)
+            cont_name = contact_name + tool_text
+            form_char = forms.CharField(label=cont_name,
+                                        required=is_required,
                                         widget=forms.TextInput(
                                             attrs=attrs))
             attrs['rows'] = '3'
-            form_text = forms.CharField(label=contact_name, required=False,
+            form_text = forms.CharField(label=cont_name,
+                                        required=is_required,
                                         widget=forms.Textarea(
                                             attrs=attrs))
             form_type = form_text if str(contact_key) in txt_box else form_char
             self.fields['contact_%s' % contact_key] = form_type
+
+    def do_tooltips(self, data, is_required):
+        tool_req = '' if is_required else ' not'
+        label = ('<span><a href="#" data-toggle="tooltip" title="%s is%s '
+                 'mandatory."><i class="fa fa-info-circle fa-lg">'
+                 '</i></a></span>') % (data, tool_req)
+        return label
 
     def extra_contacts(self):
         for name, value in self.cleaned_data.items():

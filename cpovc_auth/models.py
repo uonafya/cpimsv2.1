@@ -22,8 +22,7 @@ class CPOVCUserManager(BaseUserManager):
                           is_staff=False,
                           is_active=True,
                           is_superuser=False,
-                          role='Admin',
-                          date_joined=now,
+                          role='Public',
                           timestamp_created=now,
                           timestamp_updated=now,
                           )
@@ -48,10 +47,16 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=20, unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    date_joined = models.DateTimeField(default=timezone.now)
     timestamp_created = models.DateTimeField(auto_now_add=True)
     timestamp_updated = models.DateTimeField(auto_now=True)
     password_changed_timestamp = models.DateTimeField(null=True)
+
+    # For admin so remove if you don't want to use admin
+    email = False
+    first_name = False
+    last_name = False
+    date_joined = False
 
     objects = CPOVCUserManager()
     USERNAME_FIELD = 'username'
@@ -127,9 +132,9 @@ class CPOVCUserRoleGeoOrg(models.Model):
     user = models.ForeignKey(AppUser)
     group = models.ForeignKey(CPOVCRole)
     org_unit = models.ForeignKey('cpovc_registry.RegOrgUnit', null=True)
-    area = models.ForeignKey('cpovc_registry.RegPersonsGeo', null=True)
+    area = models.ForeignKey('cpovc_main.SetupGeography', null=True)
     timestamp_modified = models.DateTimeField(default=timezone.now)
-    void = models.BooleanField(default=False)
+    is_void = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'auth_user_groups_geo_org'

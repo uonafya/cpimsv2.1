@@ -181,8 +181,7 @@ var handleDonutChart = function () {
         var donutData = [{ label: "Chrome",  data: 35, color: purpleDark},
 			{ label: "Firefox",  data: 30, color: purple},
 			{ label: "Safari",  data: 15, color: purpleLight},
-			{ label: "Opera",  data: 10, color: blue},
-			{ label: "IE",  data: 5, color: blueDark}];
+			{ label: "Opera",  data: 15, color: blue}];
 		$.plot('#donut-chart', donutData, {
 			series: {
 				pie: {
@@ -311,6 +310,7 @@ var Dashboard = function () {
             handleDashboardTodolist();
             handleVectorMap();
             handleDashboardDatepicker();
+            handleDonutChart();
         }
     };
 }();

@@ -558,7 +558,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1001,
 	"fields":{
 		"permission_description":"Register organisational unit - related org units"
@@ -568,7 +568,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1002,
 	"fields":{
 		"permission_description":"File update org units - contact fields - related org units"
@@ -578,7 +578,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1003,
 	"fields":{
 		"permission_description":"File update org units - general fields - related org units"
@@ -588,7 +588,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1004,
 	"fields":{
 		"permission_description":"Register workforce members/users - related workforce members/users"
@@ -598,7 +598,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1005,
 	"fields":{
 		"permission_description":"File update workforce members/users - contact fields - related workforce members/users"
@@ -608,7 +608,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1006,
 	"fields":{
 		"permission_description":"File update workforce members/users - general fields - related workforce members/users"
@@ -618,7 +618,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1007,
 	"fields":{
 		"permission_description":"Beneficiary - view file - beneficiaries ever served by org unit"
@@ -628,7 +628,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1008,
 	"fields":{
 		"permission_description":"File update beneficiary - contact fields - beneficiaries ever served by org unit"
@@ -638,7 +638,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1009,
 	"fields":{
 		"permission_description":"File update beneficiary - general fields - beneficiaries ever served by org unit"
@@ -648,7 +648,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1010,
 	"fields":{
 		"permission_description":"Assignment of roles  to workforce members/users - org unit specific roles - related workforce members/users"
@@ -657,7 +657,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1011,
 	"fields":{
 		"permission_description":"Beneficiary lookup  - Perform lookup/searches in beneficiary data using basic biodata and returning beneficiary ID together with basic bio data (but not full file)"
@@ -666,7 +666,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1012,
 	"fields":{
 		"permission_description":"File update org units - contact fields"
@@ -675,7 +675,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1013,
 	"fields":{
 		"permission_description":"File update org units - general fields"
@@ -684,7 +684,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1014,
 	"fields":{
 		"permission_description":"File update org units - special fields"
@@ -693,7 +693,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1015,
 	"fields":{
 		"permission_description":"File update workforce members/users - contact fields"
@@ -702,7 +702,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1016,
 	"fields":{
 		"permission_description":"File update workforce members/users - general fields"
@@ -711,7 +711,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1017,
 	"fields":{
 		"permission_description":"File update workforce members/users - special fields"
@@ -720,7 +720,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1018,
 	"fields":{
 		"permission_description":"Beneficiary - view file"
@@ -729,7 +729,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1019,
 	"fields":{
 		"permission_description":"File update beneficiaries - special fields"
@@ -738,7 +738,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1020,
 	"fields":{
 		"permission_description":"De-duplication/merge tool"
@@ -746,7 +746,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1021,
 	"fields":{
 		"permission_description":"Mass update tool"
@@ -754,7 +754,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1022,
 	"fields":{
 		"permission_description":"Beneficiary - view file - beneficiaries in area"
@@ -764,7 +764,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1023,
 	"fields":{
 		"permission_description":"View form - high sensitivity - related to area"
@@ -774,7 +774,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1024,
 	"fields":{
 		"permission_description":"View form - high sensitivity"
@@ -783,7 +783,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1025,
 	"fields":{
 		"permission_description":"View form - high sensitivity - uploaded by anyone in org unit"
@@ -793,7 +793,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1026,
 	"fields":{
 		"permission_description":"Edit form - low sensitivity - uploaded by anyone in org unit"
@@ -803,7 +803,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1027,
 	"fields":{
 		"permission_description":"Edit form - high sensitivity - uploaded by anyone in org unit"
@@ -813,7 +813,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1028,
 	"fields":{
 		"permission_description":"Run data quality reports - on forms submitted by the organizational unit"
@@ -822,7 +822,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1029,
 	"fields":{
 		"permission_description":"log in to capture site application"
@@ -831,7 +831,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1030,
 	"fields":{
 		"permission_description":"Upload  documents to the document library on behalf of the organisational unit, and remove documents from the document library which were uploaded by this organisational unit"
@@ -841,7 +841,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1031,
 	"fields":{
 		"permission_description":"Assignment of roles  to workforce members/users - org-unit-specific roles"
@@ -849,7 +849,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1032,
 	"fields":{
 		"permission_description":"Assignment of roles  to workforce members/users - non-org-unit-specific roles"
@@ -857,7 +857,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1033,
 	"fields":{
 		"permission_description":"Management of roles and assignment of permissions to roles"
@@ -865,7 +865,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1034,
 	"fields":{
 		"permission_description":"Manage configurable lists"
@@ -873,7 +873,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1035,
 	"fields":{
 		"permission_description":"Manage geographic area lists"
@@ -881,7 +881,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1036,
 	"fields":{
 		"permission_description":"Register beneficiary"
@@ -890,7 +890,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1037,
 	"fields":{
 		"permission_description":"File update workforce member/user - contact fields - own record"
@@ -900,7 +900,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1038,
 	"fields":{
 		"permission_description":"Org unit lookup"
@@ -909,7 +909,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1039,
 	"fields":{
 		"permission_description":"Org unit - view file"
@@ -918,7 +918,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1040,
 	"fields":{
 		"permission_description":"Workforce member/user lookup"
@@ -927,7 +927,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1041,
 	"fields":{
 		"permission_description":"Workforce member/user - view file"
@@ -936,7 +936,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1042,
 	"fields":{
 		"permission_description":"Enter form - high sensitivity - related to self"
@@ -946,7 +946,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1043,
 	"fields":{
 		"permission_description":"Enter form - low sensitivity"
@@ -955,7 +955,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1044,
 	"fields":{
 		"permission_description":"View form - low sensitivity"
@@ -964,7 +964,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1045,
 	"fields":{
 		"permission_description":"View form - high sensitivity - uploaded by self"
@@ -974,7 +974,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1046,
 	"fields":{
 		"permission_description":"Edit form - low sensitivity - uploaded by self"
@@ -984,7 +984,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1047,
 	"fields":{
 		"permission_description":"Edit form - high sensitivity - uploaded by self"
@@ -994,7 +994,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1048,
 	"fields":{
 		"permission_description":"File update beneficiaries - general fields"
@@ -1003,7 +1003,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1049,
 	"fields":{
 		"permission_description":"File update beneficiaries - contact fields"
@@ -1012,7 +1012,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1050,
 	"fields":{
 		"permission_description":"Approve capture sites"
@@ -1020,7 +1020,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1051,
 	"fields":{
 		"permission_description":"Enter form - high sensitivity"
@@ -1029,7 +1029,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1052,
 	"fields":{
 		"permission_description":"log in to web application"
@@ -1037,7 +1037,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1053,
 	"fields":{
 		"permission_description":"Enter form - residential institution, child in conflict with law - as social welfare officer"
@@ -1046,7 +1046,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1054,
 	"fields":{
 		"permission_description":"Delete report sets of org units - created by anyone"
@@ -1055,7 +1055,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1055,
 	"fields":{
 		"permission_description":"Delete report sets of org units - created by self"
@@ -1065,7 +1065,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1056,
 	"fields":{
 		"permission_description":"OVC - view profile - OVC in area"
@@ -1075,7 +1075,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1057,
 	"fields":{
 		"permission_description":"OVC - view profile"
@@ -1084,7 +1084,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1058,
 	"fields":{
 		"permission_description":"Workforce member - view profile - own profile"
@@ -1094,7 +1094,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1059,
 	"fields":{
 		"permission_description":"Workforce member - view profile - ever in org unit"
@@ -1104,7 +1104,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1060,
 	"fields":{
 		"permission_description":"Workforce member - view profile"
@@ -1113,7 +1113,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1061,
 	"fields":{
 		"permission_description":"View unrestricted reports"
@@ -1122,7 +1122,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCPermission",
+	"model":"cpovc_auth.CPOVCPermission",
 	"pk":1062,
 	"fields":{
 		"permission_description":"Edit residential institution forms in a district"
@@ -1304,7 +1304,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":1,
 	"fields":{
 		"group_id":"ACM"
@@ -1313,7 +1313,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":2,
 	"fields":{
 		"group_id":"DEC"
@@ -1323,7 +1323,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":3,
 	"fields":{
 		"group_id":"DSU"
@@ -1333,7 +1333,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":4,
 	"fields":{
 		"group_id":"DUU"
@@ -1343,7 +1343,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":5,
 	"fields":{
 		"group_id":"PUB"
@@ -1353,7 +1353,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":6,
 	"fields":{
 		"group_id":"RGM"
@@ -1362,7 +1362,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":7,
 	"fields":{
 		"group_id":"RGU"
@@ -1372,7 +1372,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":8,
 	"fields":{
 		"group_id":"SCM"
@@ -1381,7 +1381,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":9,
 	"fields":{
 		"group_id":"STD"
@@ -1391,7 +1391,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":10,
 	"fields":{
 		"group_id":"SWA"
@@ -1401,7 +1401,7 @@
 	}
 },
 {
-	"model":"ovc_auth.OVCRole",
+	"model":"cpovc_auth.CPOVCRole",
 	"pk":11,
 	"fields":{
 		"group_id":"SWM"

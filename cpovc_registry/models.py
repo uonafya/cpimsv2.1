@@ -51,8 +51,9 @@ class RegOrgUnitExternalID(models.Model):
 
 
 class RegOrgUnitGeography(models.Model):
+    # from cpovc_main.models import SetupGeography
     org_unit = models.ForeignKey(RegOrgUnit)
-    area_id = models.IntegerField()
+    area = models.ForeignKey('cpovc_main.SetupGeography')
     date_linked = models.DateField(null=True)
     date_delinked = models.DateField(null=True)
     is_void = models.BooleanField(default=False)
@@ -70,12 +71,7 @@ class RegOrgUnitGeography(models.Model):
 
 
 class RegPerson(models.Model):
-    #beneficiary_id = models.CharField(max_length=10, null=True, blank=True, default=None)
-    #workforce_id = models.CharField(max_length=8, null=True, blank=True, default=None)
-    #birth_reg_id = models.CharField(max_length=15, null=True, blank=True, default=None)
-    #national_id = models.CharField(max_length=15, null=True, blank=True, default=None)
-    #staff_id = models.CharField(max_length=15, null=True, blank=True, default=None)
-    designation = models.CharField(max_length=25,default=None)
+    designation = models.CharField(max_length=25, default=None)
     first_name = models.CharField(max_length=255)
     other_names = models.CharField(max_length=255, default=None)
     surname = models.CharField(max_length=255, default=None)
@@ -106,6 +102,9 @@ class RegPerson(models.Model):
 
     class Meta:
         db_table = 'reg_person'
+
+    def __unicode__(self):
+        return '%s %s %s' % (self.first_name, self.other_names, self.surname)
 
 
 class RegPersonsGuardians(models.Model):
@@ -144,8 +143,9 @@ class RegPersonsTypes(models.Model):
 
 
 class RegPersonsGeo(models.Model):
+    from cpovc_main.models import SetupGeography
     person = models.ForeignKey(RegPerson)
-    area_id = models.IntegerField()
+    area = models.ForeignKey(SetupGeography)
     date_linked = models.DateField(null=True)
     date_delinked = models.DateField(null=True)
     is_void = models.BooleanField(default=False)

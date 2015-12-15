@@ -8,7 +8,6 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cpovc_registry', '0001_initial'),
     ]
 
     operations = [
@@ -26,7 +25,6 @@ class Migration(migrations.Migration):
                 ('case_nature', models.CharField(max_length=100)),
                 ('intervention', models.CharField(max_length=50)),
                 ('risk_level', models.CharField(max_length=50)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_case_record',
@@ -41,7 +39,6 @@ class Migration(migrations.Migration):
                 ('child_in_school', models.CharField(max_length=100)),
                 ('family_status_id', models.CharField(max_length=100)),
                 ('household_economic_status', models.CharField(max_length=100)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_secondary_details',
@@ -57,7 +54,6 @@ class Migration(migrations.Migration):
                 ('timestamp_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('timestamp_updated', models.DateTimeField(default=django.utils.timezone.now)),
                 ('is_void', models.BooleanField(default=False)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_friends',
@@ -71,7 +67,6 @@ class Migration(migrations.Migration):
                 ('timestamp_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('timestamp_updated', models.DateTimeField(default=django.utils.timezone.now)),
                 ('is_void', models.BooleanField(default=False)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_hobbies',
@@ -87,7 +82,6 @@ class Migration(migrations.Migration):
                 ('timestamp_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('timestamp_updated', models.DateTimeField(default=django.utils.timezone.now)),
                 ('is_void', models.BooleanField(default=False)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_medical',
@@ -102,7 +96,6 @@ class Migration(migrations.Migration):
                 ('timestamp_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('timestamp_updated', models.DateTimeField(default=django.utils.timezone.now)),
                 ('is_void', models.BooleanField(default=False)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_needs',
@@ -118,7 +111,6 @@ class Migration(migrations.Migration):
                 ('timestamp_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('timestamp_updated', models.DateTimeField(default=django.utils.timezone.now)),
                 ('is_void', models.BooleanField(default=False)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_school',
@@ -138,7 +130,6 @@ class Migration(migrations.Migration):
                 ('timestamp_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('timestamp_updated', models.DateTimeField(default=django.utils.timezone.now)),
                 ('is_void', models.BooleanField(default=False)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'ovc_sibling',

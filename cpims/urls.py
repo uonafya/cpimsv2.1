@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'^login/$', 'cpovc_auth.views.log_in', name='login'),
     url(r'^logout/$', 'cpovc_auth.views.log_out', name='logout'),
     url(r'^register/$', 'cpovc_auth.views.register', name='register'),
-    url(r'^auth/$', include(auth_urls)),
+    url(r'^auth/', include(auth_urls)),
     url(r'^registry/', include(registry_urls)),
     url(r'^forms/', include(forms_urls)),
     url(r'^reports/', include(reports_urls))

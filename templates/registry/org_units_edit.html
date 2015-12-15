@@ -325,7 +325,8 @@
 				buttonWidth: '75%',
 				enableCaseInsensitiveFiltering: true
 			});
-			$("#id_org_unit_type").attr('readonly', 'readonly');
+			$("#id_org_unit_type").attr('disabled', 'disabled');
+			$("#id_parent_org_unit").attr('disabled', 'disabled');
 			$(".edit_org").change(function(e) {
 			var edit_org = $('input[name=edit_org]:checked', '#edit_org_unit').val();
 			if (edit_org == '2'){

@@ -8,7 +8,6 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cpovc_registry', '0001_initial'),
     ]
 
     operations = [
@@ -46,7 +45,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('preference_id', models.CharField(max_length=4)),
-                ('person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'admin_preferences',
@@ -85,7 +83,6 @@ class Migration(migrations.Migration):
                 ('is_void', models.BooleanField(default=False)),
                 ('sms_id', models.IntegerField(null=True)),
                 ('form_id', models.IntegerField(null=True)),
-                ('beneficiary_person', models.ForeignKey(to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'core_adverse_conditions',
@@ -101,8 +98,6 @@ class Migration(migrations.Migration):
                 ('encounter_type_id', models.CharField(max_length=4)),
                 ('sms_id', models.IntegerField(null=True)),
                 ('form_id', models.IntegerField(null=True)),
-                ('beneficiary_person', models.ForeignKey(related_name='encouner_beneficiary', to='cpovc_registry.RegPerson')),
-                ('workforce_person', models.ForeignKey(related_name='encounter_workforce', to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'core_encounters',
@@ -116,9 +111,6 @@ class Migration(migrations.Migration):
                 ('encounter_date', models.DateField()),
                 ('note_type_id', models.CharField(max_length=4)),
                 ('note', models.CharField(max_length=255)),
-                ('beneficiary_person', models.ForeignKey(related_name='encouner_n_beneficiary', to='cpovc_registry.RegPerson')),
-                ('encounter', models.ForeignKey(to='cpovc_main.CoreEncounters')),
-                ('workforce_person', models.ForeignKey(related_name='encounter_n_workforce', to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'form_encounters_notes',
@@ -132,8 +124,6 @@ class Migration(migrations.Migration):
                 ('core_item_id', models.CharField(max_length=4)),
                 ('sms_id', models.IntegerField(null=True)),
                 ('form_id', models.IntegerField(null=True)),
-                ('beneficiary_person', models.ForeignKey(related_name='service_beneficiary', to='cpovc_registry.RegPerson')),
-                ('workforce_person', models.ForeignKey(related_name='service_workforce', to='cpovc_registry.RegPerson')),
             ],
             options={
                 'db_table': 'core_services',
@@ -455,14 +445,5 @@ class Migration(migrations.Migration):
             model_name='formcsi',
             name='form',
             field=models.ForeignKey(to='cpovc_main.Forms'),
-        ),
-        migrations.AddField(
-            model_name='adminuploadforms',
-            name='form',
-            field=models.ForeignKey(to='cpovc_main.Forms'),
-        ),
-        migrations.AlterUniqueTogether(
-            name='reportssetsorgunits',
-            unique_together=set([('set', 'org_unit_id')]),
         ),
     ]

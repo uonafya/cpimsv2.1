@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from cpovc_registry.models import RegPerson
 
+
 # Create your models here.
 class Sibling(models.Model):
     first_name = models.CharField(max_length=50)
@@ -19,10 +20,11 @@ class Sibling(models.Model):
     class Meta:
         db_table = 'ovc_sibling'
 
+
 class School(models.Model):
     school_name = models.CharField(max_length=100)
     class_level = models.CharField(max_length=50, default=None)
-    school_category_id = models.CharField(max_length=50)    
+    school_category_id = models.CharField(max_length=50)
     timestamp_created = models.DateTimeField(default=timezone.now)
     timestamp_updated = models.DateTimeField(default=timezone.now)
     is_void = models.BooleanField(default=False)
@@ -30,6 +32,7 @@ class School(models.Model):
 
     class Meta:
         db_table = 'ovc_school'
+
 
 class OVCDetails(models.Model):
     religion = models.CharField(max_length=100)
@@ -42,6 +45,7 @@ class OVCDetails(models.Model):
     class Meta:
         db_table = 'ovc_secondary_details'
 
+
 class OVCHobbies(models.Model):
     hobby_id = models.CharField(max_length=20)
     timestamp_created = models.DateTimeField(default=timezone.now)
@@ -51,6 +55,7 @@ class OVCHobbies(models.Model):
 
     class Meta:
         db_table = 'ovc_hobbies'
+
 
 class OVCFriends(models.Model):
     friend_firstname = models.CharField(max_length=50)
@@ -64,6 +69,7 @@ class OVCFriends(models.Model):
     class Meta:
         db_table = 'ovc_friends'
 
+
 class OVCMedical(models.Model):
     mental_condition = models.CharField(max_length=50)
     physical_condition = models.CharField(max_length=50)
@@ -75,6 +81,7 @@ class OVCMedical(models.Model):
 
     class Meta:
         db_table = 'ovc_medical'
+
 
 class OVCCaseRecord(models.Model):
     date_of_event = models.CharField(max_length=50)
@@ -93,9 +100,11 @@ class OVCCaseRecord(models.Model):
     class Meta:
         db_table = 'ovc_case_record'
 
+
 class OVCNeeds(models.Model):
     need_description = models.CharField(max_length=250)
-    need_type = models.CharField(max_length=250)#LongTerm/Immediate 
+    need_type = models.CharField(max_length=250)
+    # LongTerm/Immediate
     timestamp_created = models.DateTimeField(default=timezone.now)
     timestamp_updated = models.DateTimeField(default=timezone.now)
     is_void = models.BooleanField(default=False)

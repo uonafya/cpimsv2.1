@@ -24,7 +24,7 @@
 				<div class="stats-icon"><i class="fa fa-desktop"></i></div>
 				<div class="stats-info">
 					<h4>Registered Children</h4>
-					<p>69</p>	
+					<p>79</p>	
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -93,6 +93,20 @@
 				</div>
 			</div>
         </div>
+        <div class="col-md-4">
+	        <div class="panel panel-inverse" data-sortable-id="index-7">
+				<div class="panel-heading">
+					<div class="panel-heading-btn">
+						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+					</div>
+					<h4 class="panel-title">Visitors User Agent</h4>
+				</div>
+				<div class="panel-body">
+					<div id="donut-chart" class="height-sm"></div>
+				</div>
+			</div>
+		</div>
     </div>
     
 	<!-- End content area -->
@@ -102,6 +116,7 @@
 
 {% block lazy_javascript_code %}
     <script src="{% static 'plugins/flot/jquery.flot.min.js' %}"></script>
+    <script src="{% static 'plugins/flot/jquery.flot.pie.min.js' %}"></script>
     <script src="{% static 'js/dashboard.js' %}"></script>
 	<script>
 		$(document).ready(function() {

@@ -183,7 +183,7 @@ function redirect(formtype)
 {
     var form = $("#form_type_id").val()
     if(form == 'FT3h'){ 
-        return window.location.href='{% url 'case_record_sheet' %}' + formtype;
+        return window.location.href='{% url 'forms' %}' + formtype;
     }    
 }
 </script>
