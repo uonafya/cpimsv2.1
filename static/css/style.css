@@ -6182,3 +6182,19 @@ body.flat-black {
     border-color: #2A72B5;
     color: #fff;
 }
+#id_activate_choice, #passreset{
+    list-style-position: outside;
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+#passreset li{
+    vertical-align: middle;
+}
+.asteriskField{
+    font-size: 16px;
+    color: #ff0000;
+}
+.multiselect-container{
+    width: 100%;
+}

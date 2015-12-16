@@ -134,10 +134,16 @@ function jsSearch()
                                             <td>{{ porg.org_unit_name}}</td>
                                         {% endfor %}
                                         
-                                        <td> 
+                                        <td>
+                                        {% ifequal result.id|gen_value:app_user result.id %}
                                         <button id="btn_create_account" type="submit" onClick="jsCreateUser()" class="btn  btn-sm btn-primary m-r-5">
                                         <b>Create Account</b>&nbsp&nbsp<i class="fa fa-lock"></i>
                                         </button>
+                                        {% else %}
+                                        <button id="btn_edit_details" onClick="window.location.href='/auth/roles/{{ result.id|gen_value:app_user|cut:"U" }}'" class="btn  btn-sm btn-primary m-r-5">
+                                            <b> Assign Roles</b>&nbsp&nbsp&nbsp&nbsp <i class="fa fa-edit"></i>
+                                        </button>
+                                        {% endifequal %}
                                         <button id="btn_view_details" onClick="window.location.href='/registry/view_person/{{ result.pk }}'" class="btn  btn-sm btn-primary m-r-5">
                                         <b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i>
                                         </button>

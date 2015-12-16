@@ -6,6 +6,7 @@ from cpovc_auth.forms import LoginForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.forms import formset_factory
+from django.contrib.auth.models import Group
 
 from .functions import (
     save_group_geo_org, remove_group_geo_org, get_allowed_units_county,
@@ -43,6 +44,11 @@ def log_in(request):
                     if user.is_active:
                         login(request, user)
                         # grps = user.groups.all()
+                        person_id = user.reg_person_id
+                        names = RegPerson.objects.get(pk=person_id)
+                        user_names = '%s %s' % (
+                            names.first_name, names.other_names)
+                        request.session['names'] = user_names
                         return HttpResponseRedirect(reverse(home))
                     else:
                         msg = "Login Account is currently disabled."
@@ -102,28 +108,27 @@ def roles_edit(request, user_id):
     '''
     try:
         group_ids = []
-        mygrp = request.user.groups.values_list('id', flat=True)
-        from django.contrib.auth.models import Group
-
         # All groups by details as per CPIMS
         cpims_groups = get_groups()
         groups_cpims = dict(zip(cpims_groups.values(), cpims_groups.keys()))
-
         # Current geo orgs
-        ex_areas, ex_orgs = get_allowed_units_county(user_id)
         user = AppUser.objects.get(pk=user_id)
+        # Test groups
+        mygrp = user.groups.values_list('id', flat=True)
+        person_id = user.reg_person_id
+        ex_areas, ex_orgs = get_allowed_units_county(user_id)
         user_data = {'user_id': user_id}
-
         vals = {'SMAL': 'Male', 'SFEM': 'Female'}
-        person = RegPerson.objects.get(pk=user_id)
-        person_extids = RegPersonsExternalIds.objects.filter(person=user_id)
+        person = RegPerson.objects.get(pk=person_id)
+        person_extids = RegPersonsExternalIds.objects.filter(
+            person=person_id)
         # Get org units
         person_orgs = RegPersonsOrgUnits.objects.select_related(
-            'org_unit_id').filter(person=user_id, is_void=False)
+            'org_unit_id').filter(person=person_id, is_void=False)
         units_count = person_orgs.count()
         # Get geo locations
         person_geos = RegPersonsGeo.objects.select_related(
-            'area').filter(person=user_id, is_void=False)
+            'area').filter(person=person_id, is_void=False)
         county_count = person_geos.count()
         for row in person_extids:
             id_type = row.identifier_type_id
@@ -131,7 +136,6 @@ def roles_edit(request, user_id):
                 person.national_id = row.identifier
             if id_type == "IWKF":
                 person.workforce_id = row.identifier
-
         # Forms details
         data = {'orgs-TOTAL_FORMS': units_count,
                 'orgs-INITIAL_FORMS': '0',
@@ -172,7 +176,6 @@ def roles_edit(request, user_id):
         geo_form_set = formset_factory(RolesGeoArea)
         gformset = geo_form_set(gdata, prefix='areas')
         # Get all groups
-
         for cpims_grp in cpims_groups:
             cur_group = cpims_groups[cpims_grp]
             if cpims_grp in mygrp:
@@ -182,7 +185,6 @@ def roles_edit(request, user_id):
         if not user.password_changed_timestamp:
             user_data['reset_password'] = True
         form = RolesForm(data=user_data)
-
         # Lets do the processing down here - Makes sense
         if request.method == 'POST':
             reqs = request.POST
@@ -237,7 +239,6 @@ def roles_edit(request, user_id):
                 if 'area_welfare' in area_details:
                     area_id = int(area_details['area_id'])
                     new_counties.append(area_id)
-                    print 'SAVE', area_id, county_grp, user_id
                     save_group_geo_org(user_id, county_grp, area_id, None)
                     if county_grp not in group_ids:
                         group_ids.append(county_grp)
@@ -267,7 +268,6 @@ def roles_edit(request, user_id):
                 group_ids.append(groups_cpims['group_STD'])
             # Check if any group is being removed
             removed_groups = list(set(mygrp) - set(group_ids))
-
             for group_id in group_ids:
                 group = Group.objects.get(id=group_id)
                 user.groups.add(group)

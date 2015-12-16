@@ -450,11 +450,10 @@
     <script type="text/javascript">
 		$(function () {
 		  $('#new_org_unit').parsley().on('form:validate', function (formInstance) {
-		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true) || formInstance.isValid('primary2', true) || formInstance.isValid('primary3', true);
+		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true) || formInstance.isValid('primary3', true);
+		    var msg = 'You must correctly fill the mandatory fields.';
 		    $(".alert").show();
-		    $('.invalid-form-message')
-		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
-		      .toggleClass('filled', !ok);
+		    $('.invalid-form-message').html(ok ? '' : msg).toggleClass('filled', !ok);
 		    if (!ok){
 		      formInstance.validationResult = false;
 		    }else{

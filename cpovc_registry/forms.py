@@ -276,7 +276,7 @@ class FormRegistryNew(forms.Form):
             attrs={'placeholder': _('Unit name'),
                    'class': 'form-control',
                    'autofocus': 'true',
-                   'data-parsley-checkuniq': "true",
+                   'data-parsley-checkunit': "true",
                    'data-parsley-required': "true",
                    'data-parsley-trigger': 'input',
                    'data-parsley-group': 'primary'}))

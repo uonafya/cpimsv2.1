@@ -14,8 +14,15 @@ var handleBootstrapWizardsValidation = function() {
                 }
             } else if (ui.index == 2) {
                 // step-3 validation
-                $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
                 if (false === $('form[name="form-wizard"]').parsley().validate('primary2')) {
+                    return false;
+                }else{
+                    $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
+                }
+            } else if (ui.index == 3) {
+                // step-4 validation
+                $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
+                if (false === $('form[name="form-wizard"]').parsley().validate('primary3')) {
                     return false;
                 }
             }

@@ -20,7 +20,4 @@ urlpatterns = patterns('cpovc_registry.views',
                        url(r'^delete_person/(?P<id>\d+)/$', 'delete_person',
                            name='delete_person'),
                        url(r'^lookup/$', 'registry_look', name='reg_lookup'),
-                       url(r'^roles/$', 'roles_home', name='roles_home'),
-                       url(r'^roles/(?P<user_id>\d+)/$', 'roles_edit',
-                           name='roles_edit'),
                        )

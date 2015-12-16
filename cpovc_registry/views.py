@@ -90,7 +90,7 @@ def home(request):
         raise e
 
 
-@is_allowed_groups(['RGM'])
+@is_allowed_groups(['RGM', 'RGU'])
 def register_new(request):
     '''
     Create page for New Organisation Unit
@@ -310,7 +310,7 @@ def register_details(request, org_id):
                       {'form': form})
 
 
-
+@is_allowed_groups(['RGM'])
 def new_person(request):
     operation_msg = None
 
@@ -470,6 +470,7 @@ def persons_search(request):
     person_type = None
     search_location = False
     search_wfc_by_org_unit = False
+    app_user = {}
 
     try:
         if request.method == 'POST':
@@ -535,9 +536,16 @@ def persons_search(request):
 
                                 result.pgeolocs = pgeolocs_
                                 result.porgs = porgs_
-
+                        accounts = AppUser.objects.all().values(
+                            'id', 'reg_person_id')
+                        for account in accounts:
+                            account_id = 'U%s' % (account['id'])
+                            app_user[account['reg_person_id']] = account_id
+                        print accounts
                     return render(request, 'registry/persons_search.html',
-                                  {'form': form, 'resultsets': resultsets, 'vals': vals, 'person_type': person_type})
+                                  {'form': form, 'resultsets': resultsets,
+                                   'vals': vals, 'person_type': person_type,
+                                   'app_user': app_user})
                 else:
                     messages.add_message(
                         request, messages.ERROR, 'Person not found!')
@@ -569,6 +577,14 @@ def view_person(request, id):
         person_orgs = RegPersonsOrgUnits.objects.filter(person=person)
         person_extids = RegPersonsExternalIds.objects.filter(person=person)
 
+        # Check if has an account
+        user_id = None
+        try:
+            users = AppUser.objects.get(reg_person=person)
+            user_id = users.pk
+        except Exception:
+            pass
+
         person.ptypes = person_types
         person.pgeos = person_geos
         person.porgs = person_orgs
@@ -582,6 +598,7 @@ def view_person(request, id):
 
         person.pgeolocs = pgeolocs_
         person.porgs = porgs_
+        person.person_id = user_id
 
         return render(request, 'registry/view_person.html',
                       {'person_details': person,
@@ -596,6 +613,7 @@ def view_person(request, id):
     return render(request, 'registry/view_person.html', {'form': form},)
 
 
+@is_allowed_groups(['RGM'])
 def edit_person(request, id):
     '''
     Some default page for the home page / Dashboard
@@ -1010,51 +1028,5 @@ def registry_look(request):
             print results
         return JsonResponse(results, content_type='application/json',
                             safe=False)
-    except Exception, e:
-        raise e
-
-
-def roles_home(request):
-    '''
-    Default page for Roles home
-    '''
-    try:
-        if request.method == 'POST':
-            print 'is POST'
-        form = FormRegistry()
-        return render(request, 'registry/roles.html',
-                      {'form': form})
-    except Exception, e:
-        raise e
-
-
-def roles_edit(request, user_id):
-    '''
-    Create / Edit page for the roles
-    '''
-    try:
-        vals = {'SMAL': 'Male', 'SFEM': 'Female'}
-        person = RegPerson.objects.get(pk=user_id)
-        person_extids = RegPersonsExternalIds.objects.filter(person=user_id)
-        # Get org units
-        person_orgs = RegPersonsOrgUnits.objects.select_related('org_unit_id')
-        person_orgs.filter(person=user_id)
-        person.org_units = person_orgs
-        # Get geo locations
-        person_geos = RegPersonsGeo.objects.select_related('person')
-        person_geos.filter(person=user_id)
-        person.geos = person_geos
-        for row in person_extids:
-            id_type = row.identifier_type_id
-            if id_type == "INTL":
-                person.national_id = row.identifier
-            if id_type == "IWKF":
-                person.workforce_id = row.identifier
-
-        if request.method == 'POST':
-            print 'is POST'
-        form = FormRegistry()
-        return render(request, 'registry/roles.html',
-                      {'form': form, 'person': person, 'vals': vals})
     except Exception, e:
         raise e
