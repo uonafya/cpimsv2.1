@@ -21,3 +21,4 @@ urlpatterns = patterns('cpovc_registry.views',
                            name='delete_person'),
                        url(r'^lookup/$', 'registry_look', name='reg_lookup'),
                        )
+# {% url 'view_person' id=result.id %}

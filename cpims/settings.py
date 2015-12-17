@@ -98,3 +98,5 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 IS_CAPTURE_SITE = False
 if IS_CAPTURE_SITE:
     import capture_settings
+
+GIT_ROOT = '/home/nmugaya/Repo/cpims'

@@ -178,10 +178,11 @@ var handleInteractiveChart = function () {
 var handleDonutChart = function () {
 	"use strict";
 	if ($('#donut-chart').length !== 0) {
-        var donutData = [{ label: "Chrome",  data: 35, color: purpleDark},
-			{ label: "Firefox",  data: 30, color: purple},
-			{ label: "Safari",  data: 15, color: purpleLight},
-			{ label: "Opera",  data: 15, color: blue}];
+        var donutData = [
+			{ label: "CBO",  data: 10, color: blue},
+            { label: "NGO",  data: 20, color: purple},
+            { label: "Government",  data: 35, color: purpleDark},
+            { label: "Private",  data: 10, color: aqua}];
 		$.plot('#donut-chart', donutData, {
 			series: {
 				pie: {

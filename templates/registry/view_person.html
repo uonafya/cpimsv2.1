@@ -160,12 +160,12 @@
                                         <tr>
                                         <td class="field"></td>
                                         <td>
-                                            <button id="btn_edit_details" onClick="window.location.href='/registry/edit_person/{{ person_details.pk }}'" class="btn  btn-sm btn-primary m-r-5">
+                                            <button id="btn_edit_details" onClick="window.location.href='{% url 'edit_person' id=person_details.pk %}'" class="btn  btn-sm btn-primary m-r-5">
                                             <b> Edit Person Details</b>&nbsp&nbsp<i class="fa fa-edit"></i>
                                             </button>
 
                                             {% if person_details.person_id != None %}
-                                            <button id="btn_edit_details" onClick="window.location.href='/auth/roles/{{ person_details.person_id }}'" class="btn  btn-sm btn-primary m-r-5">
+                                            <button id="btn_edit_details" onClick="window.location.href='{% url 'roles_home' %}{{ person_details.person_id }}'" class="btn  btn-sm btn-primary m-r-5">
                                             <b> Assign Permissions</b> <i class="fa fa-edit"></i>
                                             </button>
                                             {% endif %}

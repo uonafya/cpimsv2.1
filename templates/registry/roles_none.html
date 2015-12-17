@@ -25,13 +25,6 @@
     </ul>
 </div>
 {% endif %}
-{% if message %}
-    <div id="messages" class="alert alert-success fade in">
-        <span class="close" data-dismiss="alert">×</span>
-        <i class="fa fa-check fa-2x pull-left"></i>
-        <p class="invalid-form-message"> {{ message }}</p>
-    </div>
-{% endif %}
 <!-- begin row -->
 <div class="row">
 <!-- Start content area -->
@@ -46,7 +39,7 @@
         
         <div class="alert alert-danger fade in m-b-15">
             <strong>Warning! </strong>
-            You do NOT have enough permissions to access this page.
+            You do NOT have permissions to access this page.
             <span class="close" data-dismiss="alert">&times;</span>
         </div>
     </div>

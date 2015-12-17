@@ -140,11 +140,11 @@ function jsSearch()
                                         <b>Create Account</b>&nbsp&nbsp<i class="fa fa-lock"></i>
                                         </button>
                                         {% else %}
-                                        <button id="btn_edit_details" onClick="window.location.href='/auth/roles/{{ result.id|gen_value:app_user|cut:"U" }}'" class="btn  btn-sm btn-primary m-r-5">
+                                        <button id="btn_edit_details" onClick="window.location.href='{% url 'roles_home' %}/{{ result.id|gen_value:app_user|cut:"U" }}'" class="btn  btn-sm btn-primary m-r-5">
                                             <b> Assign Roles</b>&nbsp&nbsp&nbsp&nbsp <i class="fa fa-edit"></i>
                                         </button>
                                         {% endifequal %}
-                                        <button id="btn_view_details" onClick="window.location.href='/registry/view_person/{{ result.pk }}'" class="btn  btn-sm btn-primary m-r-5">
+                                        <button id="btn_view_details" onClick="window.location.href='{% url 'view_person' id=result.id %}'" class="btn  btn-sm btn-primary m-r-5">
                                         <b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i>
                                         </button>
                                         <button id="btn_delete_details" class="btn  btn-sm btn-primary m-r-5">

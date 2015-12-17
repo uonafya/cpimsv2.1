@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load git_version %}
 
 <!DOCTYPE html>
 <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
@@ -115,7 +116,9 @@
 			{% endif %}
 		</div>
 		<!-- end #content -->
-		<div id="footer" class="footer"> {{ status }} &nbsp; &copy; {% now "Y" %}. All Rights Reserved.
+		<div id="footer" class="footer"> {{ status }} &nbsp; &copy; {% now "Y" %}. All Rights Reserved. Version: 
+        {% git_version as the_version %}
+		{{ the_version }}
         <span class="promo"><img src="{% static 'img/usaid.png' %}" height="30"></span>
 		</div>
 		
