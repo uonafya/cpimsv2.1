@@ -23,6 +23,8 @@ from cpovc_main.functions import (
 from cpovc_main.models import SetupGeography
 from cpovc_auth.decorators import is_allowed_groups
 
+from django.contrib.auth.models import Group
+
 
 def home(request):
     '''
@@ -930,6 +932,7 @@ def new_user(request):
                                                    reg_person=person_id,
                                                    password=password)
                 if user:
+                    user.groups.add(Group.objects.get(name='Standard logged in'))
                     # Capture msg & op status
                     msg = 'User (%s) save success.' % (username)
                     messages.add_message(request, messages.INFO, msg)

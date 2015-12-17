@@ -140,7 +140,7 @@ function jsSearch()
                                         <b>Create Account</b>&nbsp&nbsp<i class="fa fa-lock"></i>
                                         </button>
                                         {% else %}
-                                        <button id="btn_edit_details" onClick="window.location.href='{% url 'roles_home' %}/{{ result.id|gen_value:app_user|cut:"U" }}'" class="btn  btn-sm btn-primary m-r-5">
+                                        <button id="btn_edit_details" onClick="window.location.href='{% url 'roles_home' %}{{ result.id|gen_value:app_user|cut:"U" }}'" class="btn  btn-sm btn-primary m-r-5">
                                             <b> Assign Roles</b>&nbsp&nbsp&nbsp&nbsp <i class="fa fa-edit"></i>
                                         </button>
                                         {% endifequal %}

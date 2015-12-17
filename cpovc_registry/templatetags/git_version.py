@@ -21,7 +21,7 @@ def git_version(context):
         git_short = git_values[0], git_values[1], git_values[2]
     except Exception, e:
         print str(e)
-        git_short = 'unknown'
+        git_short = '3.0.0'
         return git_short
     else:
         return git_short
