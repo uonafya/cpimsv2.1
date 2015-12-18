@@ -11,7 +11,7 @@ from .models import RegOrgUnitGeography
 from .functions import (
     org_id_generator, save_contacts, save_external_ids, close_org_unit,
     save_geo_location, get_external_ids, get_geo_location, get_contacts,
-    get_geo_selected, get_specific_geos)
+    get_geo_selected, get_specific_geos, search_org_units)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
@@ -40,10 +40,14 @@ def home(request):
 
                 closed_org = True if org_closed == 'True' else False
                 unit_type = [org_type] if org_type else []
-                results = get_list_of_org_units(search_string=search_string,
-                                                include_closed=closed_org,
-                                                in_org_unit_types=unit_type,
-                                                number_of_results=50)
+                if search_string:
+                    results = get_list_of_org_units(
+                        search_string=search_string,
+                        include_closed=closed_org,
+                        in_org_unit_types=unit_type,
+                        number_of_results=50)
+                else:
+                    results = search_org_units(unit_type, closed_org)
                 items = 'result' if len(results) == 1 else 'results'
                 ids = []
                 for result in results:

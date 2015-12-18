@@ -74,6 +74,27 @@ def get_geo_list(geo_lists, geo_filter):
         return result
 
 
+def org_unit_type_filter(queryset, passed_in_org_types):
+    for passed_in_org_type in passed_in_org_types:
+        queryset = queryset.filter(org_unit_type_id=passed_in_org_type)
+    return queryset
+
+
+def search_org_units(unit_types, is_closed):
+    try:
+        org_units = RegOrgUnit.objects.all()
+        if not is_closed:
+            org_units = org_units.filter(date_closed__isnull=True)
+        if unit_types:
+            org_units = org_unit_type_filter(org_units, unit_types)
+    except Exception, e:
+        error = "Error searching org units - %s" % (str(e))
+        print error
+        return {}
+    else:
+        return org_units
+
+
 def get_all_org_units():
     try:
         org_units = RegOrgUnit.objects.all().values(

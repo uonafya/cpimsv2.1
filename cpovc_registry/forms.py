@@ -240,11 +240,16 @@ class FormRegistry(forms.Form):
         required=False,
         widget=forms.Select(
             attrs={'class': 'form-control'}))
-    org_unit_name = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': _('Organisation unit'), 'class': 'form-control',
-               'autofocus': 'true', 'data-parsley-group': 'primary'}))
-    org_closed = forms.CharField(required=False, widget=forms.CheckboxInput(
-        attrs={'class': 'form-control', 'autofocus': 'true'}))
+    org_unit_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'placeholder': _('Organisation unit'),
+                   'class': 'form-control',
+                   'autofocus': 'true', 'data-parsley-group': 'primary'}))
+    org_closed = forms.CharField(
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={'class': 'form-control', 'autofocus': 'true'}))
 
 
 class FormRegistryNew(forms.Form):
