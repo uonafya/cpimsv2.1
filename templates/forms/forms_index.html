@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+ {% extends 'base.html' %}
 
 {% load app_filters %}
 
@@ -22,7 +22,7 @@
 <!-- end breadcrumb -->
 
 {% if messages %}
-<div id="messages" class="alert alert-info fade in">
+<div id="messages" class="alert alert-success fade in">
     <span class="close" data-dismiss="alert">×</span>
     <i class="fa fa-check fa-2x pull-left"></i>
     <ul class="messages">
@@ -34,7 +34,7 @@
 {% endif %}
 
 <!-- begin page-header -->
-<h1 class="page-header">Forms <small>Search OVC</small></h1>
+<h1 class="page-header">Forms <small>Search Child</small></h1>
 <!-- end page-header -->
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
@@ -44,37 +44,35 @@
 
 <!-- Search Row -->
 <div class="row">
-        <!-- begin col-12 -->
-        <div class="col-md-12">
-                <!-- begin panel -->
-                <div class="panel panel-inverse">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>                          
-                        <h4 class="panel-title"><b>Search OVC</b></h4>
-                    </div>
-                    <div class="panel-body">
-                    <form class="form-inline" action="{% url 'ovc_search' %}" method="POST"  data-parsley-validate="true">
-                       {% csrf_token %}
-                        <div class="form-group m-r-10">
-                            <b>{{ form.search_name }}</b>
-                        </div>
-                        <div class="form-group m-r-10">
-                            <b>{{ form.search_criteria }}</b>
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-search"></i>&nbsp<b>Search</b></button>
-                    </form> 
-               
+<!-- begin col-12 -->
+<div class="col-md-12">
+        <!-- begin panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>                          
+                <h4 class="panel-title"><b>Search Child</b></h4>
             </div>
-           </div>
+            <div class="panel-body">
+                <form class="form-inline" action="{% url 'ovc_search' %}" method="POST" data-parsley-validate="true">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <b>{{ form.search_name }}</b>
+                    </div>
+                    <div class="form-group">
+                        <b>{{ form.search_criteria }}</b>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary m-r-5">
+                        <i class="fa fa-search"></i>&nbsp<b>Search</b>
+                    </button>
+                </form>        
+            </div>
         </div>
-</div>
-<!-- End Search Row -->
 
-<!-- OVC Results Row -->
-<div class="row">
+        <!-- OVC Results Row -->
+        <div class="row">
         <!-- begin col-12 -->
         <div class="col-md-12">
                 <!-- begin panel -->
@@ -84,7 +82,7 @@
                                 <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                                 <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
                         </div>                          
-                        <h4 class="panel-title"><b>OVC List</b></h4>
+                        <h4 class="panel-title"><b>Child List</b></h4>
                     </div>
                     <div class="panel-body">                
                         
@@ -100,8 +98,8 @@
                                         <th>First Name</th>
                                         <th>Surname</th>
                                         <th>Sex</th>  
-                                        <th>Residence</th>
                                         <th>OrgUnit</th>
+                                        <th>Residence</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -113,46 +111,43 @@
                                         <td>{{ result.first_name }}</td>
                                         <td>{{ result.surname }}</td>
                                         <td>{{ result.sex_id|gen_value:vals }}</td>
-
-                                        
+                                        <td>No OrgUnit Info</td>
+                                        <td>No Residence Info</td>
+                                        <!--
                                         {% for pgeoloc in result.pgeolocs %}
                                             <td>{{ pgeoloc.area_name }}</td>
                                         {% endfor %}
-                                        
-                                        {% for porg in result.porgs%}
-                                            <td>{{ porg.org_unit_name}}</td>
-                                        {% endfor %}
-
+                                        -->
+                                     
                                         <td>
-                                        <a href="#form-chooser-dialog" class="btn  btn-sm btn-primary m-r-5" data-toggle="modal">
-                                        <b>Choose Form</b>&nbsp&nbsp<i class="fa fa-file"></i></a>
-                                        </td>
-                                    </tr>
+                                        <!-- #modal-dialog -->
+                                          <div class="modal fade" id="form-chooser-dialog-{{ result.id }}">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                                            <h4 class="modal-title">Choose Form</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Please choose a form to fill for  <b>{{ result.first_name }} {{ result.surname }}.</b>
 
-                                    <!-- #modal-dialog -->
-                                      <div class="modal fade" id="form-chooser-dialog">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                                        <h4 class="modal-title">Choose Form</h4>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        Please choose a form to fill for  <b>{{ result.first_name }} {{ result.surname }}.</b>
-
-                                                        <br><br>
-                                                        {{ form.form_type }}
-                                                        
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                                        <button class="btn  btn-sm btn-primary m-r-5" onClick="redirect({{result.id}})" >Ok</button>
+                                                            <br><br>
+                                                            {{ form.form_type_search }}
+                                                            
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                                            <button class="btn  btn-sm btn-primary m-r-5" onClick="open_form({{result.id}})" >Ok</button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    <!-- #modal-dialog -->
-                                    
+                                        <!-- #modal-dialog -->
+
+                                        <a href="#form-chooser-dialog-{{ result.id }}" class="btn  btn-sm btn-primary m-r-5" data-toggle="modal">
+                                        <b>Choose Form</b>&nbsp&nbsp<i class="fa fa-file"></i></a>
+                                        </td>
+                                    </tr>                              
                                     {% endfor %}
                                 {% endfor %}  
                                 </tbody>
@@ -167,24 +162,35 @@
 
                     </div>
                  </div>
+            </div>
         </div>
+        <!-- End OVC Results Row -->
+  </div>
 </div>
-<!-- End OVC Results Row -->
+<!-- End Search Row -->
+
+
 
 <!-- End content area -->
 {% endblock %}
 
 {% block lazy_javascript_code %}
-<script src="/static/plugins/parsley/dist/parsley.js"></script>
+<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
 <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
 <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
 <script>
-function redirect(formtype)
+function open_form(id)
 {
-    var form = $("#form_type_id").val()
+    var form = $("#form_type_search").val();
+    localStorage.setItem("person_id",id);
+
+    //alert(form);
     if(form == 'FT3h'){ 
-        return window.location.href='{% url 'forms' %}' + formtype;
-    }    
+        return window.location.href='{% url 'case_record_sheet' id=0 %}'.replace("0", id);
+    } 
+    else{
+        alert('WARNING: Selected Form is still under Development!!')
+    }   
 }
 </script>
 <script>
@@ -209,7 +215,15 @@ $(document).ready(function()
         
         onClickRow: function (row, $element)
         {
-            
+            // row: the record corresponding to the clicked row, 
+            // $element: the tr element
+           
+            person_id = row[0];
+            person_fname = row[1];
+            person_sname = row[2];
+            localStorage.setItem("person_id",person_id);
+            localStorage.setItem("person_fname",person_fname);
+            localStorage.setItem("person_sname",person_sname);
         }
         
     });

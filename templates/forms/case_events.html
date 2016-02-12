@@ -1,0 +1,1930 @@
+{% extends 'base.html' %}
+
+{% load app_filters %}
+
+{% load staticfiles %}
+
+{% block page_title %} Case Events {% endblock %}
+
+{% block style_code %}
+<link href="{% static 'css/jquery.fileupload.css' %}" rel="stylesheet" />
+<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
+<style type="text/css">
+.dialog_paragraph {
+  color: #f00;
+}
+</style>
+{% endblock %}
+
+{% block javascript_code%}
+{% endblock javascript_code%}
+
+{% block primary %}
+<!-- begin breadcrumb -->
+<ol class="breadcrumb pull-right">
+    <li><a href="#">Home</a></li>
+    <li clasbootstrap-tas="active">Forms</li>
+</ol>
+<!-- end breadcrumb -->
+
+{% if messages %}
+<div id="messages" class="alert alert-success fade in">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-check fa-2x pull-left"></i>
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.info %} class="{{ message.info }}"{% endif %}><b>{{ message }}</b></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+
+<div id="ce_msgs" class="alert alert-success fade in" style="display:none;">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-check fa-2x pull-left"></i>
+    <ul class="messages">
+       <p></p>
+    </ul>
+</div>
+
+<!-- begin page-header -->
+<h1 class="page-header">Forms <small>Case Events | <span id="person_name"></small><b></b></h1>
+<!-- end page-header -->
+
+<div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-check fa-2x pull-left"></i>
+    <p class="invalid-form-message"></p>
+</div>
+
+<div id="case_status_msg" align="right">
+{% for resultset in  resultsets %}
+    {% for result in  resultset %}
+        {% for res in result.c_record %}
+            <small>
+                <p>
+                    <i class="fa fa-tachometer"></i>
+                    <b>CASE STATUS : </b> <b class="dialog_paragraph">{{ res.case_status }}</b>
+                </p>
+            </small>
+        {% endfor %}
+    {% endfor %}
+{% endfor %}
+</div>
+
+<!-- OVC Case Record Row -->
+<div class="row">
+        <!-- begin col-12 -->
+        <div class="col-md-12">
+                <!-- begin panel -->
+                <div class="panel panel-inverse">
+                    <div class="panel-heading">
+                        <div class="panel-heading-btn">
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                        </div>                          
+                        <h4 class="panel-title"><b>Case Events List </b></h4>                    
+                    </div>
+
+                   
+                    <!-- begin panel -->
+
+                    {% if resultsets %}
+                    <div class="panel-body">
+                        <div  class="panel panel-inverse">
+                            <div id="case-events"  class="table-responsive">
+                                <table id="case-events-data-table" class="table table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Event ID</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Notes</th>            
+                                        <th>Workforce Member</th>                   
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for resultset in resultsets %} 
+                                    {% for result in resultset %}
+                                        {% for cev in result.c_evnts %}
+                                        <tr>
+                                            
+                                            <td>{{ cev.case_event_id }}</td>
+                                            <td>{{ cev.case_event_type_id}}</td>
+                                            <td>{{ cev.date_of_event }}</td>
+                                            <td>{{ cev.case_event_notes }}</td>
+                                            <td>{{ cev.app_user_id|gen_username }}</td>          
+                                            <td>
+                                            <button id="view_ce" type="submit" onClick="edit_view_delete_CaseEvent('{{ cev.case_event_type_id}}','{{ cev.case_event_id }}','VIEW')" 
+                                                class="btn  btn-sm btn-primary m-r-5">
+                                                    <b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i>
+                                            </button>
+
+                                            <button id="edit_ce" type="submit" onClick="edit_view_delete_CaseEvent('{{ cev.case_event_type_id}}','{{ cev.case_event_id }}','EDIT')" 
+                                                class="btn  btn-sm btn-primary m-r-5">
+                                                    <b>Edit</b>&nbsp&nbsp<i class="fa fa-edit"></i>
+                                            </button>
+
+                                            <button id="delete_ce" type="submit" onClick="edit_view_delete_CaseEvent('{{ cev.case_event_type_id}}','{{ cev.case_event_id }}', 'DELETE')" 
+                                                class="btn  btn-sm btn-danger m-r-5">
+                                                    <b>Delete</b>&nbsp&nbsp<i class="fa fa-trash"></i>
+                                            </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}  
+                                    {% endfor %}
+                                {% endfor %}
+                                </tbody>
+                                </table>
+                            </div>
+                            <br><br>                           
+                        </div>
+                        <!-- end panel -->
+                    </div>
+                    
+                    {% else %}
+                        <div class="norecords" align="center"><b>No records found.</b></div>
+                    {% endif %} 
+                    <!-- end panel -->
+                </div>
+
+                 <!-- Case ID -->
+                <div>
+                    {{ form.case_id }}
+                    {{ form.operation_mode }}
+                    {{ form.case_event_id }}
+                    {{ form.case_event_type }}
+                </div>
+
+                <!-- #delete-dialog -->
+                <div class="modal fade" id="delete-dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title">Confirm Delete</h4>
+                            </div>
+                            <div id ="div-delete-doalog" class="modal-body">
+                                <p></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-sm btn-white" data-dismiss="modal">No</button>
+                                <button class="btn btn-sm btn-success" 
+                                    onClick="deleteCaseEvent_()">Yes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- #delete-dialog -->
+
+                <!-- #services-dialog -->
+                <div class="modal fade" id="services-dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
+                                <div id="services-dialog-header">
+                                    <p>Add Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i></p>      
+                                </div>
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+
+                                <div id="encounters_msgs" class="alert alert-danger fade in" style="display:none;">
+                                    <span class="close" data-dismiss="alert">×</span>
+                                    <i class="fa fa-close fa-2x pull-left"></i>
+                                    <ul class="messages">
+                                       <p></p>
+                                    </ul>
+                                </div>
+
+                                <div class="row">
+                                    {{ form.case_event_id_svc }}   
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.service_provided_case }}
+                                                <div id="encounters_msgs0"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>                                 
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Date Of Encounter/Service * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.date_of_encounter_event }}
+                                                <div id="encounters_msgs1"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Encounter/Service Notes * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.encounter_notes }}
+                                                <div id="encounters_msgs2"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br><br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Services Provided * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.service_provided }}
+                                                <div id="encounters_msgs3"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                                <span id="sel_service_provided"></span>
+                                                <br>
+                                        </div>
+                                    </div>
+                                    <br><br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.workforce_member_svc }}
+                                                <div id="encounters_msgs0"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                </div>
+                                
+                            </div>
+                            <div class="modal-footer" >
+                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                <button id="btn_save_encounter" class="btn btn-sm btn-success" onClick="fnSaveEncounter()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- #end services-dialog -->
+
+                <!-- #court-sessions-dialog -->
+                <div class="modal fade" id="court-sessions-dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title">
+                                <div id="court-sessions-dialog-header">
+                                    <p>Add Court Session &nbsp&nbsp<i class="fa fa-legal"></i></p>      
+                                </div>
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+
+                                <div id="court_msgs" class="alert alert-danger fade in" style="display:none;">
+                                    <span class="close" data-dismiss="alert">×</span>
+                                    <i class="fa fa-close fa-2x pull-left"></i>
+                                    <ul class="messages">
+                                       <p></p>
+                                    </ul>
+                                </div>
+
+                                <div class="row">
+                                    {{ form.case_event_id_court }} 
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.court_session_case }}
+                                                <div id="court_msgs0"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>                                   
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Date Of Court Session * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.date_of_court_event }}
+                                                <div id="court_msgs1"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Court Session Notes* :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.court_notes }}
+                                                <div id="court_msgs2"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br><br><br>                                        
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Court Order(s) * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.court_order }}
+                                                <div id="court_msgs3"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                                <span id="sel_court_order"></span>
+                                                <br>
+                                        </div>
+                                    </div>
+                                    <br><br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.workforce_member_court }}
+                                                <div id="court_msgs0"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                </div>
+                            </div>
+                            <div class="modal-footer" >
+                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                <button id="btn_save_court" class="btn btn-sm btn-success" onClick="fnSaveCourtSession()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- #end court-sessions-dialog -->
+
+                <!-- #residential-placement-dialog -->
+                <div class="modal fade" id="residential-placement-dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title">
+                                <div id="court-sessions-dialog-header">
+                                    <p>
+                                    Add Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>
+                                    </p>      
+                                </div>
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+
+                                <div id="placement_msgs" class="alert alert-danger fade in" style="display:none;">
+                                    <span class="close" data-dismiss="alert">×</span>
+                                    <i class="fa fa-close fa-2x pull-left"></i>
+                                    <ul class="messages">
+                                       <p></p>
+                                    </ul>
+                                </div>
+
+                                <div class="row">
+                                    <br><br>
+                                    {{ form.case_event_id_plcmt }} 
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.placement_case }}
+                                                <div id="placement_msgs0"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>                                  
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Date Of Placement * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.date_of_placement_event }}
+                                                <div id="placement_msgs1"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Placement Notes * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.placement_notes }}
+                                                <div id="placement_msgs2"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br><br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Residential Institution * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.residential_institution }}
+                                                <div id="placement_msgs3"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Current Residential Status * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.current_residential_status }}
+                                                <div id="placement_msgs4"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Court Committal Order? * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.has_court_committal_order }}
+                                                <div id="placement_msgs5"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Free for Adoption? * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.free_for_adoption }}
+                                                <div id="placement_msgs6"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Admission Date * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.admission_date }}
+                                                <div id="placement_msgs7"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div id="div_departure_date" class="form-group"  style="display:none;">
+                                        <label class="control-label col-md-4 col-sm-4">Departure Date * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.departure_date }}
+                                                <div id="placement_msgs8"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br> 
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                            {{ form.workforce_member_plcmnt }}
+                                            <div id="placement_msgs0"  style="display:none;">
+                                                <span><p class="dialog_paragraph">This value is required</p></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                </div> 
+                                <div class="modal-footer" >
+                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                <button id="btn_save_placement" class="btn btn-sm btn-success" onClick="fnSaveResidentialPlacement()">Save</button>
+                            </div>  
+                            </div>
+                        </div>                               
+                    </div>
+                </div>
+                <!-- #end residential-placement-dialog -->
+
+                <!-- #manage-referals-dialog -->
+                <div class="modal fade" id="manage-referals-dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title">Manage Referrals
+                                &nbsp&nbsp<i class="fa fa-share"></i></h4>
+                            </div>
+                            <div class="modal-body">
+                                <div id="referral_event_msgs" class="alert alert-danger fade in" style="display:none;">
+                                    <span class="close" data-dismiss="alert">×</span>
+                                    <i class="fa fa-close fa-2x pull-left"></i>
+                                    <ul class="messages">
+                                       <p></p>
+                                    </ul>
+                                </div>
+
+                                <div class="row">
+                                    <div class="form-group">
+                                        <p><b>Referrals Made Previously</b></p>
+                                        <br>
+                                        <p>
+                                        <b>
+                                        <i>NB: To complete a referral check against the corresponding row.</i>
+                                        </b>
+                                        </p>
+
+
+                                        <br><br>
+                                        <table id="referrals_data_table" class="table table-striped table-bordered">
+                                            <thead>
+                                                <th data-checkbox="true"></th>
+                                                <th>ID</th>
+                                                <th>Completion Date</th>
+                                                <th>Referral Description</th>
+                                                <th>Referral Date</th>
+                                                <th>Status</th>
+                                            </thead>
+                                            <tbody>
+                                            {% if resultsets %}
+                                                {% for resultset in resultsets %} 
+                                                    {% for result in resultset %}
+                                                        {% for res in result.c_referral %}
+                                                        <tr>
+                                                            <td></td>
+                                                            <td>{{ res.id }}</td>
+                                                            <td>
+                                                            {% if res.refferal_status == 'PENDING' %}
+                                                                {{ form.date_of_referral_event }}
+                                                            {% else %}
+                                                                {{ res.date_of_referral_event }}
+                                                            {% endif %}
+                                                            <div id="referral_event_msgs1"  style="display:none;">
+                                                                <span><p class="dialog_paragraph">This value is required</p></span>
+                                                            </div>
+                                                            </td>
+                                                            <td>{{ res.refferal_to|gen_value:vals }}</td>
+                                                            <td>{{ res.timestamp_created }}</td>
+                                                            <td>
+                                                            {% if res.refferal_status == 'PENDING' %}
+                                                                Pending
+                                                            {% else %}
+                                                                Completed
+                                                            {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            {% else %}
+                                            <div>No matching results found</div>
+                                            {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">    
+                                    <b>Make New Referrals:</b>
+                                    </div>
+                                    <div class="form-group">                                             
+                                        <div class="col-md-10 col-sm-10">
+                                                <b>{{ form.refferals_made }}</b>
+                                                <span id="sel_refferals_made"></span>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                </div>
+                                
+                            </div>
+                            <div class="modal-footer" >
+                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                <button class="btn btn-sm btn-success" onClick="fnManageReferral()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- #end manage-referals-dialog -->
+
+                <!-- #close-case-dialog -->
+                <div class="modal fade" id="close-case-dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title">Case Closure
+                                &nbsp&nbsp<i class="fa fa-close"></i></h4>
+                            </div>
+                            <div class="modal-body">
+                                <div id="closure_msgs" class="alert alert-danger fade in" style="display:none;">
+                                    <span class="close" data-dismiss="alert">×</span>
+                                    <i class="fa fa-close fa-2x pull-left"></i>
+                                    <ul class="messages">
+                                       <p></p>
+                                    </ul>
+                                </div>
+
+                                <br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Case Status(Active?) * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.case_status }}
+                                                <div id="closure_msgs1"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Case Outcome Notes * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.case_outcome_notes }}
+                                                <div id="closure_msgs2"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4 col-sm-4">Date Case Closed * :</label>
+                                        <div class="col-md-6 col-sm-6">
+                                                {{ form.date_of_case_closure }}
+                                                <div id="closure_msgs3"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><br>
+                                <br><br>
+                                <div class="modal-footer" >
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                    <button class="btn btn-sm btn-success" onClick="fnCloseCase()">Save</button>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- #end close-case-dialog -->
+            </div>
+        </div>
+        <!-- End OVC Results Row -->  
+
+        <br>
+        <!--<div class="row" align="center"> -->
+        <div align="center">
+            <a href="#services-dialog" class="btn  btn-sm btn-inverse m-r-5"  data-toggle="modal">
+                <b>Add Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
+            </a>
+            <a href="#court-sessions-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
+                <b>Add Court Session</b>&nbsp&nbsp<i class="fa fa-legal"></i>
+            </a>
+            <a href="#residential-placement-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
+                <b>Add Residential Institution Placement</b>&nbsp&nbsp<i class="fa fa-university"></i>
+            </a>
+            <a href="#manage-referals-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
+                <b>Manage Referals</b>&nbsp&nbsp<i class="fa fa-share"></i>
+            </a>
+            <a href="#close-case-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
+                <b>Close Case</b>&nbsp&nbsp<i class="fa fa-close"></i>
+            </a>
+        </div>
+
+        <br><br>
+        <!-- Case Summary -->
+        <div class="profile-section">
+            <!-- begin row -->
+            <div class="row">
+                <!-- begin col-4 -->
+                <div class="col-md-12">
+                    <h4 class="title"><b>Case Summary</b> <small>Info</small></h4>
+                    <!-- begin scrollbar -->
+                    <div data-scrollbar="true" data-height="150px" class="bg-silver">
+                        <table class="table">
+                            <thead>                                
+                                <th>Case Serial</th>
+                                <th>Place Of Event</th>
+                                <th>Case Category(s) | Date Of Event</th>
+                                <th>Referrals</th>
+                                <th>Interventions</th>
+                            </thead>
+                            <tbody>
+                            {% for resultset in  resultsets %}
+                                {% for result in  resultset %}
+                                <tr>
+                                {% for res in result.c_record %} 
+                                    <td>{{ res.case_serial }}</td>
+                                    <td>{{ res.place_of_event|gen_value:vals }}</td>
+                                {% endfor %}
+                                <td>
+                                    <ol>
+                                    {% for res in result.c_cats %}                             
+                                        <li>
+                                        {{ res.case_category|gen_value:vals }} | {{ res.date_of_event }} <br>
+                                        </li>                                
+                                    {% endfor %}
+                                    </ol>
+                                </td>
+                                <td>
+                                    <ol>
+                                    {% for res in result.c_refs %}                             
+                                        <li>
+                                        {{ res.refferal_to|gen_value:vals }} <br>
+                                        </li>                                
+                                    {% endfor %}
+                                    </ol>
+                                </td>
+                                <td>
+                                    <ol>
+                                    {% for res in result.c_intvs %}                             
+                                        <li>
+                                        {{ res.intervention|gen_value:vals }} <br>
+                                        </li>                                
+                                    {% endfor %}
+                                    </ol>
+                                </td>                                
+                                
+                                </tr>
+                                {% endfor %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- end scrollbar -->
+                </div>
+            </div>
+        </div>
+        <!-- End Case Summary -->
+
+
+    </div>
+  </div>
+</div>
+<!-- End Search Row -->
+
+
+
+<!-- End content area -->
+{% endblock %}
+
+{% block lazy_javascript_code %}
+<script src="/static/plugins/parsley/dist/parsley.js"></script>
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
+<script type="text/javascript">
+function getJsonObject001()
+{
+    var case_id = $('#case_id').val();
+    var multiselect_data = [];
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'case_id': case_id    
+    };
+
+    $.ajax({
+            url: '{% url 'getJsonObject001' %}',
+            dataType: 'json',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            {
+                var multiselect_dict = {};
+                var multiselect_dict_initial = { label:'Please Select', value:''};
+                multiselect_data.push(multiselect_dict_initial);
+                $.each(result, function(i, val) {
+                    var case_category_id = val.case_category_id;
+                    var case_category = val.case_category;
+                    var multiselect_dict = { label: case_category, value: case_category_id };
+                    multiselect_data.push(multiselect_dict);
+                }); 
+
+                //multi selects
+                $('#service_provided_case, #court_session_case, #placement_case').multiselect({
+                    selectAllValue: 'multiselect-all',
+                    enableCaseInsensitiveFiltering: true,
+                    numberDisplayed: 1,
+                    maxHeight: 300,
+                    buttonWidth: '100%',
+                    buttonClass: 'btn btn-white'
+                }); 
+                $("#service_provided_case").multiselect("refresh");
+                $("#service_provided_case").multiselect('dataprovider', multiselect_data); 
+
+                $("#court_session_case").multiselect("refresh");
+                $("#court_session_case").multiselect('dataprovider', multiselect_data); 
+
+                $("#placement_case").multiselect("refresh");
+                $("#placement_case").multiselect('dataprovider', multiselect_data);      
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
+}
+function edit_view_delete_CaseEvent(event_type, event_id, action)
+{
+    /*
+     Set Mode To EDIT/VIEW. 
+     Use this value in Ajax to switch url params
+     */
+    //alert(event_id);
+    $('#operation_mode').val(action.trim());
+    var event_type = event_type.trim();
+    var event_id = event_id.trim();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'event_id':event_id
+    };
+
+
+    // case_event_id
+    $('#case_event_id_svc').val(event_id);
+    $('#case_event_id_court').val(event_id);
+    $('#case_event_id_plcmt').val(event_id);
+
+    if(event_type == 'SERVICES')
+    {
+        var services_array = new Array();
+
+        $.ajax({
+            url: '{% url 'view_encounter' %}',
+            dataType: 'json',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            {    
+                $.each(result, function(i, val) {
+                    var date_of_encounter_event = val.date_of_event;
+                    var encounter_notes = val.case_event_notes;
+                    var service_provided = ((val.ovc_services).toString()).split(",");
+
+                    for(var i =0; i < service_provided.length; i++)
+                    {
+                        $("#service_provided option[value='" + service_provided[i] + "']").prop("selected", true);
+                    }
+                    $("#service_provided").multiselect("refresh");
+                    $('#service_provided').trigger('change');
+
+                    $('#date_of_encounter_event').datepicker('setDate', dateHandler(date_of_encounter_event));
+                    $('#encounter_notes').val(encounter_notes); 
+                });                
+
+                
+
+                // change dialog-title & show save button on EDIT
+                if(action == 'VIEW')
+                {
+                    // show dialog
+                    $('#services-dialog').modal('show');
+
+                    //disable inputs - view mode
+                    $('#service_provided').prop("readonly", true);
+                    $('#date_of_encounter_event').prop("readonly", true);
+                    $('#encounter_notes').prop("readonly", true); 
+
+                    $('#services-dialog-header p').html('View Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i>');  
+                    $("#btn_save_encounter").hide();
+                }
+                if(action == 'EDIT')
+                {
+                    // show dialog
+                    $('#services-dialog').modal('show');
+
+                    //enable inputs - edit mode
+                    $('#service_provided').prop("readonly", false);
+                    $('#date_of_encounter_event').prop("readonly", false);
+                    $('#encounter_notes').prop("readonly", false); 
+
+                    $('#services-dialog-header p').html('Edit Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i>');  
+                    $("#btn_save_encounter").show();
+                } 
+                if(action == 'DELETE')
+                {
+                    $('#div-delete-doalog p').html('Do you want to delete '+  event_type + ' EVENT (' + event_id + ')?');
+                    // show dialog
+                    $('#delete-dialog').modal('show');
+                }               
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
+    }
+    else if(event_type == 'COURT')
+    {
+        var court_sessions_array = new Array();
+
+        $.ajax({
+                url: '{% url 'view_court' %}',
+                dataType: 'json',
+                method: 'POST',
+                data: values,
+                success: function(result)
+                { 
+                    $.each(result, function(i, val) {
+                        var date_of_court_event = val.date_of_event;
+                        var court_notes = val.case_event_notes;
+                        var court_orders = ((val.ovc_court_orders).toString()).split(",");
+
+                        for(var i =0; i < court_orders.length; i++)
+                        {
+                            $("#court_order option[value='" + court_orders[i] + "']").prop("selected", true);
+                        }
+                        $("#court_order").multiselect("refresh");
+                        $('#court_order').trigger('change');
+
+                        $('#date_of_court_event').datepicker('setDate', dateHandler(date_of_court_event));
+                        $('#court_notes').val(court_notes);
+                        });
+
+                    // change dialog-title & show save button on EDIT
+                    if(action == 'VIEW')
+                    {
+                        // show dialog
+                        $('#court-sessions-dialog').modal('show');
+
+                        //disable inputs - view mode
+                        $('#court_order').prop("readonly", true);
+                        $('#date_of_court_event').prop("readonly", true);
+                        $('#court_notes').prop("readonly", true);
+
+                        $('#court-sessions-dialog p').html('View Court Session &nbsp&nbsp<i class="fa fa-legal"></i>');     
+                        $("#btn_save_court").hide();
+                    }
+                    if(action == 'EDIT')
+                    {
+                        // show dialog
+                        $('#court-sessions-dialog').modal('show');
+
+                        //disable inputs - view mode
+                        $('#court_order').prop("readonly", false);
+                        $('#date_of_court_event').prop("readonly", false);
+                        $('#court_notes').prop("readonly", false);
+
+                        $('#court-sessions-dialog p').html('Edit Court Session &nbsp&nbsp<i class="fa fa-legal"></i>');     
+                        $("#btn_save_court").show();
+                    } 
+                    if(action == 'DELETE')
+                    {
+                        $('#div-delete-doalog p').html('Do you want to delete '+  event_type + ' EVENT (' + event_id + ')?');
+                        // show dialog
+                        $('#delete-dialog').modal('show');
+                    } 
+                },
+                error: function(xhr, status, error)
+                {
+                    alert(error);
+                }
+        });       
+    }
+    else if(event_type == 'PLACEMENT')
+    {
+        var placements_array = new Array();
+
+        $.ajax({
+            url: '{% url 'view_placement' %}',
+            dataType: 'json',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            { 
+                $.each(result, function(i, val) {
+                    var date_of_placement_event = val.date_of_event;
+                    var placement_notes = val.case_event_notes;
+                    var placements = ((val.ovc_placements).toString()).split(",");
+
+                    $('#date_of_placement_event').datepicker('setDate', dateHandler(date_of_placement_event));
+                    $('#placement_notes').val(placement_notes);
+                    
+                    $('#residential_institution').val(placements[0]);
+                    $('#current_residential_status').val(placements[1]);
+                    $('#has_court_committal_order').val(placements[2]);
+                    $('#free_for_adoption').val(placements[3]);
+                    $('#admission_date').val(placements[4]);
+                    $('#departure_date').val(placements[5]);
+                });      
+
+                var operation_mode = $('#operation_mode').val(); 
+                if(operation_mode == 'EDIT') { $('#div_departure_date').css({'display': 'block'}); }
+                if(operation_mode == 'VIEW') { $('#div_departure_date').css({'display': 'none'}); }
+
+                // change dialog-title & show save button on EDIT
+                if(action == 'VIEW')
+                {
+                    // show dialog
+                    $('#residential-placement-dialog').modal('show');
+
+                    //disable inputs - view mode
+                    $('#date_of_placement_event').prop("readonly", true);
+                    $('#placement_notes').prop("readonly", true);
+                    $('#residential_institution').prop("readonly", true);   
+                    $('#current_residential_status').prop("disabled", true);   
+                    $('#has_court_committal_order').prop("disabled", true);   
+                    $('#free_for_adoption').prop("disabled", true);   
+                    $('#admission_date').prop("readonly", true); 
+                    $('#departure_date').prop("readonly", true);    
+                    $("#btn_save_placement").hide();
+
+                    $('#residential-placement-dialog p').html('View Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>');    
+                    $("#btn_save_placement").hide();
+                }
+                else if(action == 'EDIT')
+                {
+                    // show dialog
+                    $('#residential-placement-dialog').modal('show');
+
+                    //disable inputs - view mode
+                    $('#date_of_placement_event').prop("readonly", false);
+                    $('#placement_notes').prop("readonly", false);
+                    $('#residential_institution').prop("readonly", false);   
+                    $('#current_residential_status').prop("disabled", false);   
+                    $('#has_court_committal_order').prop("disabled", false);   
+                    $('#free_for_adoption').prop("disabled", false);   
+                    $('#admission_date').prop("readonly", false); 
+                    $('#departure_date').prop("readonly", false);    
+                    $("#btn_save_placement").hide();
+
+                    $('#residential-placement-dialog p').html('Edit Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>');    
+                    $("#btn_save_placement").show();
+                } 
+                else if(action == 'DELETE')
+                {
+                    $('#div-delete-doalog p').html('Do you want to delete '+  event_type + ' EVENT (' + event_id + ')?');
+                    // show dialog
+                    $('#delete-dialog').modal('show');
+                }
+                else{ console.log('DoNothingError!');}  
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });  
+    }
+    else
+    {
+        console.log('No EVENT TYPE recognized!');
+    }
+}
+function dateHandler(mydate)
+{
+    var my_date = mydate.split(" ")
+    var date_array = new Array();
+    for(var i =0; i < my_date.length; i++)
+    {
+        date_array.push(my_date[i]);
+    }
+    
+    var date = date_array[0];
+    date = new Date(date)
+
+    return date;
+}
+function deleteCaseEvent_()
+{
+    var event_type = $('#case_event_type').val().trim();
+    var event_id = $('#case_event_id').val().trim();
+
+    if(event_type)
+    {
+        if(event_id)
+        {
+            // Call deleteCaseEvent(event_type, event_id)
+            deleteCaseEvent(event_type, event_id);
+        }
+        else
+        {
+            alert('Missing value - event_id')
+        }
+    }
+    else
+    {
+        alert('Missing value - event_type');
+    }
+    
+}
+function deleteCaseEvent(event_type, event_id)
+{
+    if(event_type == 'SERVICES')
+    {
+        var crudMsg = 'Encounter/Services Deleted Successfully!';
+        var services_array = new Array();
+        var csrftoken = $.cookie('csrftoken');
+        var values = {  
+            'csrfmiddlewaretoken': csrftoken,
+            'event_id':event_id
+        };
+
+        $.ajax({
+            url: '{% url 'delete_encounter' %}',
+            dataType: 'text',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            {
+                $("#ce_msgs").css({ 'display': "block" }); 
+                $('#ce_msgs p').html(crudMsg);
+                $('#case-events').load(document.URL +  ' #case-events'); 
+
+                //close delete-dialog
+                $('#delete-dialog').modal('hide');
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
+    }
+    if(event_type == 'PLACEMENT')
+    {
+        var crudMsg = 'Residential Placement Deleted Successfully!';
+        var services_array = new Array();
+        var csrftoken = $.cookie('csrftoken');
+        var values = {  
+            'csrfmiddlewaretoken': csrftoken,
+            'event_id':event_id
+        };
+
+        $.ajax({
+            url: '{% url 'delete_placement' %}',
+            dataType: 'text',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            {
+                $("#ce_msgs").css({ 'display': "block" }); 
+                $('#ce_msgs p').html(crudMsg);
+                $('#case-events').load(document.URL +  ' #case-events'); 
+
+                //close delete-dialog
+                $('#delete-dialog').modal('hide');
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
+    }
+    if(event_type == 'COURT')
+    {
+        var crudMsg = 'Court Orders Deleted Successfully!';
+        var services_array = new Array();
+        var csrftoken = $.cookie('csrftoken');
+        var values = {  
+            'csrfmiddlewaretoken': csrftoken,
+            'event_id':event_id
+        };
+
+        $.ajax({
+            url: '{% url 'delete_court' %}',
+            dataType: 'text',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            {
+                $("#ce_msgs").css({ 'display': "block" }); 
+                $('#ce_msgs p').html(crudMsg);
+                $('#case-events').load(document.URL +  ' #case-events'); 
+
+                //close delete-dialog
+                $('#delete-dialog').modal('hide');
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
+    }
+}
+function fnCloseCase()
+{
+    var crudMsg = 'Case  Closed Successfully.';
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    var case_status = $('#case_status').val();
+    var case_outcome_notes = $('#case_outcome_notes').val(); 
+    var date_of_case_closure = $('#date_of_case_closure').val();
+
+    if(case_status)
+    {
+        if(case_outcome_notes)
+        {
+            if(date_of_case_closure)
+            {
+                var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id,
+                    'case_status':case_status,
+                    'case_outcome_notes':case_outcome_notes,
+                    'date_of_case_closure':date_of_case_closure
+                };
+                $.ajax({
+                    url: '{% url 'close_case' %}',
+                    dataType: 'json',
+                    method: 'POST',
+                    data: values,
+                    success: function(result)
+                    {
+                        $.each(result, function(i, val) {
+                            var closure_status = val.closure_status;
+                            var case_status = val.case_status;
+
+                            if(closure_status == 'CLOSED')
+                            {
+                                crudMsg = 'Case Already Closed!';
+                            }
+                        });
+
+                        $("#ce_msgs").css({ 'display': "block" }); 
+                        $('#ce_msgs p').html(crudMsg); 
+
+                        $('#case_status').val('');
+                        $('#case_outcome_notes').val(''); 
+                        $('#date_of_case_closure').val(''); 
+
+                        //close residential-placement-dialog
+                        $('#close-case-dialog').modal('hide');
+                        $("#closure_msgs").css({ 'display': "none" }); 
+
+                        $('#case_status_msg').load(document.URL +  ' #case_status_msg');
+                    },
+                    error: function(e)
+                    {
+                        console.log(e)
+                    }
+                });        
+            }
+            else
+            {
+                $("#closure_msgs3").css({ 'display': "block" }); 
+
+                $("#closure_msgs").css({ 'display': "block" }); 
+                $('#closure_msgs p').html('Please fill the missing values');
+            }
+        }
+        else
+        {
+            $("#closure_msgs2").css({ 'display': "block" }); 
+
+            $("#closure_msgs").css({ 'display': "block" }); 
+            $('#closure_msgs p').html('Please fill the missing values');
+        }
+    }
+    else
+    {
+        $("#closure_msgs1").css({ 'display': "block" }); 
+
+        $("#closure_msgs").css({ 'display': "block" }); 
+        $('#closure_msgs p').html('Please fill the missing values');
+    }
+}
+function fnManageReferral()
+{
+    var ePX = [];
+    var TableData = new Array();
+
+    $('#referrals_data_table tr').each(function(row, tr)
+    {
+        var id = $(tr).find('td:eq(1)').text();
+        var status = '';
+        var checked = $(tr).find('input[type="checkbox"]').is(':checked');
+        var date_of_referral_event = $(tr).find('input[type="text"]').val();
+
+        if(checked)
+        { 
+            if(!date_of_referral_event)
+            { ePX.push("false"); }
+
+            status = 'COMPLETED';
+            TableData[row]={
+                "id" : id,
+                "status" : status,
+                "date_of_referral_event" : date_of_referral_event
+             }
+        }
+    });
+
+    TableData.shift(); //remove first row(headers stuff)
+    TableData = JSON.stringify(TableData);
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    var refferals_made = $('#refferals_made').val();    
+    if(!refferals_made)
+    { refferals_made = ('').toString(); }
+
+    if($.inArray('false', ePX) == -1)
+    {
+        var values = {  
+                'csrfmiddlewaretoken': csrftoken,
+                'case_id':case_id,
+                'refferals_made':refferals_made.toString(),
+                'TableData':TableData
+            };
+            $.ajax({
+                url: '{% url 'manage_refferal' %}',
+                dataType: 'text',
+                method: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: values,
+                success: function(data)
+                {
+                   $("#ce_msgs").css({ 'display': "block" });
+                   $('#ce_msgs p').html('Referrals Managed Successfully.'); 
+                   $('#refferals_made').val(''); 
+
+                   //close manage-referals-dialog
+                    $('#manage-referals-dialog').modal('hide');
+                },
+                error: function(e)
+                {
+                    console.log(e)
+                }
+            });
+    }
+    else
+    {
+        $("#referral_event_msgs").css({ 'display': "block" }); 
+        $('#referral_event_msgs p').html('Please fill the missing values for Date Completed');
+    }
+}  
+
+function fnSaveResidentialPlacement(){
+    var operation_mode = $('#operation_mode').val(); 
+    var crudMsg = 'Residential Placement Saved Successfully.';
+    var _url = '{% url 'save_placement' %}';   
+    var case_event_id = $('#case_event_id_plcmt').val();
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id
+                 };
+
+    var date_of_placement_event = $('#date_of_placement_event').val();
+    var placement_notes = $('#placement_notes').val(); 
+    var residential_institution = $('#residential_institution').val(); 
+    var current_residential_status = $('#current_residential_status').val(); 
+    var has_court_committal_order = $('#has_court_committal_order').val(); 
+    var free_for_adoption = $('#free_for_adoption').val(); 
+    var admission_date = $('#admission_date').val(); 
+    var departure_date = $('#departure_date').val(); 
+    var workforce_member_plcmnt = $('#workforce_member_plcmnt').val();
+
+    // On Edit
+    if(operation_mode == 'EDIT')
+    { 
+        crudMsg = 'Residential Placement Updated Successfully.'; 
+        _url = '{% url 'edit_placement' %}';
+        values['case_event_id'] = case_event_id;
+    }
+
+    
+    //validation
+    if(date_of_placement_event)
+    {
+        if(placement_notes)
+        {
+            if(residential_institution)
+            {
+                if(current_residential_status)
+                {
+                    if(has_court_committal_order)
+                    {
+                        if(free_for_adoption)
+                        {
+                            if(admission_date)
+                            {
+                               values['date_of_placement_event'] = date_of_placement_event;
+                                values['placement_notes'] = placement_notes;
+                                values['residential_institution'] = residential_institution;
+                                values['current_residential_status'] = current_residential_status;
+                                values['has_court_committal_order'] = has_court_committal_order;
+                                values['free_for_adoption'] = free_for_adoption;
+                                values['admission_date'] = admission_date;
+                                values['departure_date'] = departure_date;
+
+                                $.ajax({
+                                        url: _url,
+                                        dataType: 'text',
+                                        method: 'POST',
+                                        contentType: 'application/x-www-form-urlencoded',
+                                        data: values,
+                                        success: function(data)
+                                        {
+                                            $("#ce_msgs").css({ 'display': "block" }); 
+                                            $('#ce_msgs p').html(crudMsg); 
+                                            $('#case-events').load(document.URL +  ' #case-events');
+
+                                            $('#date_of_placement_event').val('');
+                                            $('#placement_notes').val(''); 
+                                            $('#residential_institution').val(''); 
+                                            $('#current_residential_status').val(''); 
+                                            $('#has_court_committal_order').val(''); 
+                                            $('#free_for_adoption').val(''); 
+                                            $('#admission_date').val(''); 
+                                            $('#departure_date').val(''); 
+
+                                            //close residential-placement-dialog
+                                            $('#residential-placement-dialog').modal('hide');
+                                            $("#placement_msgs").css({ 'display': "none" }); 
+                                        },
+                                        error: function(e)
+                                        {
+                                            console.log(e)
+                                        }
+                                }); 
+                            }
+                            else
+                            {
+                                $("#placement_msgs7").css({ 'display': "block" }); 
+
+                                $("#placement_msgs").css({ 'display': "block" }); 
+                                $('#placement_msgs p').html('Please fill the missing values');
+                            }
+                        }
+                        else
+                        {
+                            $("#placement_msgs6").css({ 'display': "block" }); 
+
+                            $("#placement_msgs").css({ 'display': "block" }); 
+                            $('#placement_msgs p').html('Please fill the missing values');
+                        }
+                    }
+                    else
+                    {
+                        $("#placement_msgs5").css({ 'display': "block" }); 
+
+                        $("#placement_msgs").css({ 'display': "block" }); 
+                        $('#placement_msgs p').html('Please fill the missing values');
+                    }
+                }
+                else
+                {
+                    $("#placement_msgs4").css({ 'display': "block" }); 
+
+                    $("#placement_msgs").css({ 'display': "block" }); 
+                    $('#placement_msgs p').html('Please fill the missing values');
+                }
+            }
+            else
+            {
+                $("#placement_msgs3").css({ 'display': "block" }); 
+
+                $("#placement_msgs").css({ 'display': "block" }); 
+                $('#placement_msgs p').html('Please fill the missing values');   
+            }
+        }
+        else
+        {
+            $("#placement_msgs2").css({ 'display': "block" }); 
+
+            $("#placement_msgs").css({ 'display': "block" }); 
+            $('#placement_msgs p').html('Please fill the missing values');
+        }
+    }
+    else
+    {
+        $("#placement_msgs1").css({ 'display': "block" }); 
+
+        $("#placement_msgs").css({ 'display': "block" }); 
+        $('#placement_msgs p').html('Please fill the missing values');
+    }
+    
+}
+function fnSaveCourtSession(){
+    var operation_mode = $('#operation_mode').val(); 
+    var crudMsg = 'Court Session Saved Successfully.';
+    var _url = '{% url 'save_court' %}';
+
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var date_of_court_event = $('#date_of_court_event').val();
+    var case_id = $('#case_id').val();
+    var court_notes = $('#court_notes').val();
+    var court_orders = $('#court_order').val();
+    var workforce_member_court = $('#workforce_member_court').val();
+    var case_event_id = $('#case_event_id_court').val();
+
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id
+                 };
+
+    // On Edit
+    if(operation_mode == 'EDIT')
+    { 
+        crudMsg = 'Court Session Updated Successfully.'; 
+        _url = '{% url 'edit_court' %}';
+        values['case_event_id'] = case_event_id;
+    }
+
+    if(date_of_court_event)
+    {
+        if(court_notes)
+        {
+            if(court_orders)
+            {
+                values['date_of_court_event'] = date_of_court_event;
+                values['court_notes'] = court_notes;
+                values['court_orders'] = court_orders.toString();
+                values['workforce_member_court'] = workforce_member_court;
+                $.ajax({
+                        url: _url,
+                        dataType: 'text',
+                        method: 'POST',
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: values,
+                        success: function(data)
+                        {
+                            $("#ce_msgs").css({ 'display': "block" });  
+                            $('#ce_msgs p').html(crudMsg);
+                            $('#case-events').load(document.URL +  ' #case-events');
+
+                            $('#date_of_court_event').val(''); 
+                            //$('#case_id').val(''); 
+                            $('#court_notes').val(''); 
+                            $("#court_order").multiselect("clearSelection");
+                            $( "#sel_court_order").html('');
+
+                            //close courtsessions-dialog
+                            $('#court-sessions-dialog').modal('hide');
+                            $("#court_msgs").css({ 'display': "none" });
+                        },
+                        error: function(e)
+                        {
+                            console.log(e)
+                        }
+                });  
+            }
+            else
+            {
+                $("#court_msgs3").css({ 'display': "block" }); 
+
+                $("#court_msgs").css({ 'display': "block" }); 
+                $('#court_msgs p').html('Please fill the missing values');
+            }
+        }
+        else
+        {
+            $("#court_msgs2").css({ 'display': "block" }); 
+
+            $("#court_msgs").css({ 'display': "block" }); 
+            $('#court_msgs p').html('Please fill the missing values');
+        }
+
+    }
+    else
+    {
+        $("#court_msgs1").css({ 'display': "block" }); 
+
+        $("#court_msgs").css({ 'display': "block" }); 
+        $('#court_msgs p').html('Please fill the missing values');
+    }
+}
+function fnSaveEncounter(){
+    var operation_mode = $('#operation_mode').val(); 
+    var crudMsg = 'Service/Encounter Saved Successfully.';
+    var _url = '{% url 'save_encounter' %}';
+
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var date_of_encounter_event = $('#date_of_encounter_event').val();
+    var case_id = $('#case_id').val();
+    var encounter_notes = $('#encounter_notes').val();
+    var workforce_member_svc = $('#workforce_member_svc').val();
+    var services_provided = $('#service_provided').val();
+    var case_event_id = $('#case_event_id_svc').val();
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id
+                 };
+
+    // On Edit
+    if(operation_mode == 'EDIT')
+    { 
+        crudMsg = 'Service/Encounter Updated Successfully.'; 
+        _url = '{% url 'edit_encounter' %}';
+        values['case_event_id'] = case_event_id;
+    }
+
+    //validation
+    if(date_of_encounter_event)
+    {
+        if(encounter_notes)
+        {
+            if(services_provided)
+            { 
+                if(workforce_member_svc)
+                {
+                    values['workforce_member_svc'] = workforce_member_svc;
+                    values['date_of_encounter_event'] = date_of_encounter_event;
+                    values['encounter_notes'] = encounter_notes;
+                    values['services_provided'] = services_provided.toString();
+
+                    $.ajax({
+                        url: _url,
+                        dataType: 'text',
+                        method: 'POST',
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: values,
+                        success: function(data)
+                        {
+                            $("#ce_msgs").css({ 'display': "block" });
+                            $('#ce_msgs p').html(crudMsg);
+
+                            $('#operation_mode').val('')
+                            $('#case-events').load(document.URL +  ' #case-events'); 
+                            $('#date_of_encounter_event').val(''); 
+                            $('#encounter_notes').val(''); 
+                            $("#service_provided").multiselect("clearSelection");
+                            $( "#sel_service_provided").html('');
+
+                            //close services-dialog
+                            $('#services-dialog').modal('hide');
+                            $("#encounters_msgs").css({ 'display': "none" });
+                        },
+                        error: function(e)
+                        {
+                            console.log(e);
+                        }
+                    });
+                }
+                else
+                {
+                    $("#encounters_msgs0").css({ 'display': "block" }); 
+
+                    $("#encounters_msgs").css({ 'display': "block" }); 
+                    $('#encounters_msgs p').html('Please fill the missing values');
+                }
+                
+            }
+            else
+            {
+                $("#encounters_msgs3").css({ 'display': "block" }); 
+
+                $("#encounters_msgs").css({ 'display': "block" }); 
+                $('#encounters_msgs p').html('Please fill the missing values');
+            }
+        }
+        else
+        {
+            $("#encounters_msgs2").css({ 'display': "block" }); 
+
+            $("#encounters_msgs").css({ 'display': "block" }); 
+            $('#encounters_msgs p').html('Please fill the missing values');
+        }
+    }
+    else
+    {
+        $("#encounters_msgs1").css({ 'display': "block" }); 
+
+        $("#encounters_msgs").css({ 'display': "block" }); 
+        $('#encounters_msgs p').html('Please fill the missing values');
+    }
+}
+</script>
+<script>
+$(document).ready(function() 
+{
+    /* 
+    Make a Call To getJsonObject001() To Get Case Categories to load to Multiselects;
+     These will be picked when adding Encounters/Court/Placements
+    */
+    getJsonObject001();
+
+    /* Get Case Owner */
+    var pfirst_name = localStorage.getItem("pfirst_name");
+    var psurname = localStorage.getItem("psurname");
+    var person_name = pfirst_name + ' ' + psurname;
+    $('#person_name')[0].innerHTML = person_name;
+
+    // workforce_member autocomplete
+    $( "#workforce_member_svc,#workforce_member_court,#workforce_member_plcmnt" ).autocomplete({
+        source: function( request, response ) {
+        $.ajax({
+          url: "{% url 'registry' %}",
+          dataType: "json",
+          data: {q: request.term, id: 0},
+          success: function( data ) {
+            response( data );
+          }
+        });
+      },
+      minLength: 4,
+      open: function() {
+        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+      },
+      close: function() {
+        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+      }
+    });
+
+    //multi selects
+    $('#service_provided_case, #court_session_case, #placement_case, #residential_institution, #service_provided, #court_order, #refferals_made').multiselect({
+        selectAllValue: 'multiselect-all',
+        includeSelectAllOption: true,
+        enableCaseInsensitiveFiltering: true,
+        numberDisplayed: 1,
+        maxHeight: 300,
+        buttonWidth: '100%',
+        buttonClass: 'btn btn-white'
+    }); 
+
+    //bootstrap table - #case-events-data-table
+    $('#case-events-data-table').bootstrapTable(
+    { 
+        toggle: 'table', 
+        search: 'true',
+        locale: 'en-US',
+        pagination: 'true',
+        pageNumber: 1,
+        pageSize: 10,
+        //showRefresh: true,
+        showToggle: true,
+        //showColumns: true,
+        singleSelect: true,
+        clickToSelect:true,
+        maintainSelected: true, 
+
+        onClickRow: function (row, $element)
+        {
+            var case_event_id = row[0].trim();
+            var case_event_type = row[1].trim();
+            $('#case_event_id').val(case_event_id);
+            $('#case_event_type').val(case_event_type);
+        }
+    }); 
+
+    //bootstrap table - referrals-data-table
+    $('#referrals_data_table').bootstrapTable(
+    { 
+        toggle: 'table', 
+        search: 'true',
+        locale: 'en-US',
+        pagination: 'true',
+        pageNumber: 1,
+        pageSize: 10,
+        //showRefresh: true,
+        showToggle: true,
+        //showColumns: true,
+        //singleSelect: true,
+        clickToSelect:true,
+        maintainSelected: true,
+        
+        onClickRow: function (row, $element)
+        {
+            // row: the record corresponding to the clicked row, 
+            // $element: the tr element
+           
+            //checked = row[3];
+            //alert('Value: ' +checked)
+        }
+        
+    }); 
+});
+</script>
+<script type="text/javascript">
+function displayVals(value)
+{
+    var selections = [];
+    $("#" + value + " option:selected").each(function () 
+    {
+       var $this = $(this);
+       if ($this.length)
+       {
+            var selText = $this.text();
+            selections.push(selText);
+            //console.log(selText);
+       }
+    });
+    $( "#sel_"+value ).html(selections.join( ", " ) );
+}
+
+$("#service_provided").change(function(event) 
+{ 
+    displayVals("service_provided");
+});
+$('#service_provided').trigger('change');
+
+$("#court_order").change(function(event) 
+{ 
+    displayVals("court_order");
+});
+$('#court_order').trigger('change');
+
+
+$("#refferals_made").change(function(event) 
+{ 
+    displayVals("refferals_made");
+});
+$('#refferals_made').trigger('change');
+
+//- - - - - CLEAR ERRORS - - - - //
+
+/* Services/Encounters Dialog */
+$('#workforce_member_svc').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#encounters_msgs0").css({ 'display': "none" }); 
+    }
+});
+
+$('#date_of_encounter_event').datepicker({ format: 'dd-M-yyyy' });
+$('#date_of_encounter_event').datepicker().on('change.dp', function(e) {
+    $("#encounters_msgs1").css({ 'display': "none" });
+});
+
+$('#encounter_notes').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#encounters_msgs2").css({ 'display': "none" }); 
+    }
+});
+
+$("#service_provided").change(function(event) 
+{ 
+    $("#encounters_msgs3").css({ 'display': "none" }); 
+});
+
+/* Court Sessions Dialog */
+$('#workforce_member_court').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#court_msgs0").css({ 'display': "none" }); 
+    }
+});
+
+$('#date_of_court_event').datepicker({ format: 'dd-M-yyyy' });
+$('#date_of_court_event').datepicker().on('change.dp', function(e) {
+    $("#court_msgs1").css({ 'display': "none" });
+});
+
+$('#court_notes').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#court_msgs2").css({ 'display': "none" }); 
+    }
+});
+
+$("#court_order").change(function(event) 
+{ 
+    $("#court_msgs3").css({ 'display': "none" }); 
+});
+
+
+/* Placement Dialog */
+$('#workforce_member_plcmnt').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#placement_msgs0").css({ 'display': "none" }); 
+    }
+});
+
+$('#date_of_placement_event').datepicker({ format: 'dd-M-yyyy' });
+$('#date_of_placement_event').datepicker().on('change.dp', function(e) {
+    $("#placement_msgs1").css({ 'display': "none" });
+});
+
+$('#placement_notes').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#placement_msgs2").css({ 'display': "none" }); 
+    }
+});
+
+$("#residential_institution").keyup(function(event) 
+{ 
+    $("#placement_msgs3").css({ 'display': "none" }); 
+});
+
+$("#current_residential_status").change(function(event) 
+{ 
+    $("#placement_msgs4").css({ 'display': "none" }); 
+});
+
+$("#has_court_committal_order").change(function(event) 
+{ 
+    $("#placement_msgs5").css({ 'display': "none" }); 
+});
+
+$("#free_for_adoption").change(function(event) 
+{ 
+    $("#placement_msgs6").css({ 'display': "none" }); 
+});
+$('#admission_date').datepicker({ format: 'dd-M-yyyy' });
+$("#admission_date").change(function(event) 
+{ 
+    $("#placement_msgs7").css({ 'display': "none" }); 
+});
+$('#departure_date').datepicker({ format: 'dd-M-yyyy' });
+$("#departure_date").change(function(event) 
+{ 
+    $("#placement_msgs8").css({ 'display': "none" }); 
+});
+
+/* Closure Dialog */
+$('#date_of_case_closure').datepicker({ format: 'dd-M-yyyy' });
+$('#date_of_case_closure').datepicker().on('change.dp', function(e) {
+    $("#closure_msgs3").css({ 'display': "none" });
+});
+$('#case_outcome_notes').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#closure_msgs2").css({ 'display': "none" }); 
+    }
+});
+$("#case_status").change(function(event) 
+{ 
+    $("#closure_msgs1").css({ 'display': "none" }); 
+});
+</script>
+{% endblock %}

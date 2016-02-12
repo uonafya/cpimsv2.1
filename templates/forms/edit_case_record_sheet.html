@@ -16,9 +16,6 @@
 </style>
 {% endblock %}
 
-{% block javascript_code%}
-{% endblock javascript_code%}
-
 {% block primary %}
 <!-- begin breadcrumb -->
 <ol class="breadcrumb pull-right">
@@ -27,7 +24,7 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h1 class="page-header">Forms <small>Case Record Sheet  | <span id="person_name"></small></h1>
+<h1 class="page-header">Forms <small>Edit Case Record Sheet</small></h1>
 <!-- end page-header -->
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
@@ -50,8 +47,10 @@
             </div>
             <div class="panel-body">
                 <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true"
-                name="form-wizard3" id="new_case_record">
+                name="form-wizard3" id="edit_case_record">
+
                 	{% csrf_token %}
+
 					<div id="wizard3">
 						<ol>
 							<li>
@@ -84,9 +83,7 @@
                                 <legend class="pull-left width-full">Case Reporting</legend>
                                 <div class="row"> 
                                 	<!-- Create/Pick FK -->
-									{{ form.person }}
-									{{ form.case_id }}
-									{{ form.case_category_id }}
+									{{ form.person }} 
 									<div class="form-group"> 
 										<label class="control-label col-md-4 col-sm-4" for="case_reporter_first_name">Self-Reported * :</label>
 										<div class="checkboxcol-md-6 col-sm-6">
@@ -95,8 +92,8 @@
 				                            </label>
 				                        </div>   
                                         <a href="#" data-toggle="tooltip" title="Check this for self-reporting"><i class="fa fa-info-circle fa-sm"></i></a>
-                                    </div>               
-                                    <div id="div_reporter_names" class="form-group">
+                                    </div>                   
+                                    <div  id="div_reporter_names" class="form-group">
                                         <label class="control-label col-md-4 col-sm-4" for="case_reporter_first_name">Reporter Name(s) * :</label>
                                         <div class="col-md-2 col-sm-6">
                                                 <b>{{ form.case_reporter_first_name }}</b>
@@ -110,7 +107,7 @@
                                         <a href="#" data-toggle="tooltip" title="Enter reporter names"><i class="fa fa-info-circle fa-sm"></i></a>
                                     </div>                                  
                                     <div id="div_reporter_contacts" class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4" for="case_reporter_contacts">Reporter PhoneNumber * :</label>
+                                        <label class="control-label col-md-4 col-sm-4" for="case_reporter_contacts">Reporter Contacts * :</label>
                                         <div class="col-md-6 col-sm-6">
                                                 <b>{{ form.case_reporter_contacts }}</b>
                                         </div>                                      
@@ -144,27 +141,23 @@
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="init_data">Initial Details :</label>
 										<div class="col-md-6 col-sm-6">
-												
-												{% for data in init_data %}
-		                                			<p><b>CHILD NAMES: </b><i>{{ data.first_name }} {{ data.surname }}</i></p>
-				                                    <p><b>DATE OF BIRTH: </b><i>{{ data.date_of_birth }}</i></p>
-				                                    <p><b>SEX: </b><i>{{ data.sex_id|gen_value:vals }}</i></p>
-				                                    <p><b>AGE: </b><i>{{ data.date_of_birth|gen_age }} YRS (APPROX)</i></p>
-		                                		{% endfor %}
-												
+											<p><b>CHILD NAMES: </b><i>{{ init_data.first_name }} {{ data.surname }}</i></p>
+		                                    <p><b>DATE OF BIRTH: </b><i>{{ init_data.date_of_birth }}</i></p>
+		                                    <p><b>SEX: </b><i>{{ init_data.sex_id|gen_value:vals }}</i></p>
+		                                    <p><b>AGE: </b><i>{{ init_data.date_of_birth|gen_age }} YRS (APPROX)</i></p>
 										</div>
-									</div>									
+									</div>
                                     <div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="household_economics">House economic status * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.household_economics }}</b>
+												{{ form.household_economics }}
 										</div>
 										<a href="#" data-toggle="tooltip" title="Describe household economic status"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="family_status">Family status * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.family_status }}</b>
+												{{ form.family_status }}
 										</div>										
 										<a href="#" data-toggle="tooltip" title="Describe family status"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
@@ -205,21 +198,21 @@
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="child_in_school">Mental condition * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.mental_condition }}</b>
+												{{ form.mental_condition }}
 										</div>
 										<a href="#" data-toggle="tooltip" title="Select mental condition"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="school_category">Physical condition * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.physical_condition }}</b>
+												{{ form.physical_condition }}
 										</div>
 										<a href="#" data-toggle="tooltip" title="Select physical condition"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="school_category">Other condition * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.other_condition }}</b>
+												{{ form.other_condition }}
 										</div>
 										<a href="#" data-toggle="tooltip" title="Select other conditions if any"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
@@ -238,69 +231,45 @@
                                 	<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="serial_number">Case Serial Number * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.serial_number }}</b>
+												{{ form.serial_number }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Serial Number"><i class="fa fa-info-circle fa-sm"></i></a>
+										<a href="#" data-toggle="tooltip" title="Enter case serial number"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="case_category">Case Category * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.case_category }}</b><br>
-												<span id="sel_case_category"></span>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Category"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									-->
 	                            	<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="perpetrator_first_name">Perpetrator/Offender Name(s) * :</label>
 										<div class="col-md-2 col-sm-6">
-												<b>{{ form.perpetrator_first_name }}</b>
+												{{ form.perpetrator_first_name }}
 										</div>
 										<div class="col-md-2 col-sm-6">
-												<b>{{ form.perpetrator_other_names }}</b>
+												{{ form.perpetrator_other_names }}
 										</div>
 										<div class="col-md-2 col-sm-6">
-												<b>{{ form.perpetrator_surname }}</b>
+												{{ form.perpetrator_surname }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Perpetrator/Offender Name(s)"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="perpetrator_relationship">Relationship to Child * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.perpetrator_relationship }}</b>
+												{{ form.perpetrator_relationship }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Relationship to Child"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="place_of_event">Place of Event * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.place_of_event }}</b>
+												{{ form.place_of_event }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Place of Event"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div> 
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="date_of_event">Date of Event * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.date_of_event }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Date of Event"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-									-->								
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="case_nature">Case Nature * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.case_nature }}</b>
+												{{ form.case_nature }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Nature"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div> 
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="risk_level">Risk Level * :</label>
 										<div class="col-md-6 col-sm-6">
-												<b>{{ form.risk_level }}</b>
+												{{ form.risk_level }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Risk Level"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div> 
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="risk_level">Immediate Needs * :</label>
@@ -311,7 +280,6 @@
 	                                        </b>
 	                                        {{ form.immediate_needs }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Immediate Needs"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="risk_level">Future Needs * :</label>
@@ -322,18 +290,7 @@
 	                                        </b>
 	                                        {{ form.future_needs }}
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Future Needs"><i class="fa fa-info-circle fa-sm"></i></a>
 									</div>
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Intervention(s) * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.intervention }}</b>
-												<span id="sel_intervention"></span>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Intervention(s)"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									--> 
 									<!--
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Refferal Destination * :</label>
@@ -342,31 +299,12 @@
 										</div>
 									</div> 
 									-->
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="refferal_to"> Refferal To * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.refferal_to }}</b>
-												<span id="sel_refferal_to"></span>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Refferals"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-									-->
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Refferal Reason * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.refferal_reason }}</b>
-										</div>
-									</div> 
-									--> 									
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Case Remarks * :</label>
 										<div class="col-md-6 col-sm-6">
 												<b>{{ form.case_remarks }}</b>
 										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Remarks"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
+									</div>   
                                 </div>
                             </fieldset>
                         </div>
@@ -383,8 +321,7 @@
                             </div>
 
                             <fieldset>
-                                <legend class="pull-left width-full">Referrals/Interventions</legend>                            
-
+                                <legend class="pull-left width-full">Referrals/Interventions</legend>  
                                	<table id="refferals_manager_table" class="table table-striped table-bordered">
                            	 		<thead>
 	                                    <tr id="id_inputHeaders">
@@ -393,15 +330,15 @@
 	                                        <th>Date Of Event</th>
 	                                        <th>Intervention(s)</th>
 	                                        <th>Referral(s)</th>
-	                                        <th>Actions</th> 
+	                                        <th>Actions</th>
 	                                    </tr>
 	                                </thead>
 	                                <tbody>
-		                                <tr id="id_inputElements">
-		                                	<td>#</td>
+	                                <tr id="id_row0">
+	                                		<td>#</td>
 			                                <td>
 			                                {{ form.case_category }}
-			                                <span id="sel_case_category"></span>
+			                                <span id="sel_case_category" style="color:#000099"></span>
 			                                <div id="case_category_errormsg" style="display:none;">
                                                 <span><p class="dialog_paragraph">This value is required</p></span>
                                             </div>
@@ -416,7 +353,7 @@
 
 			                                <td>
 			                                {{ form.intervention }}
-			                                <span id="sel_intervention"></span>
+			                                <span id="sel_intervention" style="color:#000099"></span>
 			                                <div id="intervention_errormsg" style="display:none;">
                                                 <span><p class="dialog_paragraph">This value is required</p></span>
                                             </div>
@@ -424,34 +361,80 @@
 
 			                                <td>
 			                                {{ form.refferal_to }}
-			                                <span id="sel_refferal_to"></span>
+			                                <span id="sel_refferal_to" style="color:#000099"></span>
 			                                <div id="refferal_to_errormsg" style="display:none;">
                                                 <span><p class="dialog_paragraph">This value is required</p></span>
                                             </div>
 			                                </td>
 
 			                                <td>
-			                                <button type="button" class="btn btn-sm btn-primary m-r-5" onClick="AddRow()">
-			                                	<i class="fa fa-plus"></i>&nbsp; <b>Add Record</b>
-			                                </button>
+				                                <button id="btnSaveChanges" type="button" class="btn btn-sm btn-white m-r-5" style="display:none" onClick="SaveRow()">
+				                                	<i class="fa fa-save"></i>&nbsp; <b>Save</b>
+				                                </button>
+				                                <button id="btnCancelChanges" type="button" class="btn btn-sm btn-white m-r-5" style="display:none" onClick="CancelRow()">
+				                                	<i class="fa fa-close"></i>&nbsp; <b>Cancel</b>
+				                                </button>
 			                                </td>
-			                            <tr>
+	                                </tr>
+	                                <tr></tr>
+	                                {% for resultset in resultsets %}
+	                                	{% regroup resultset by case_grouping_id as case_grouping_id_list %}
+		                                	{% for case_grouping_id in case_grouping_id_list %}	                        	
+				                                <tr id="id_inputElements{{ forloop.counter }}">
+				                                	<td>
+				                                	{{ forloop.counter }}				                                	
+				                                	<div id="span_case_grouping_id" style="display:none">
+					                            		<span>{{ case_grouping_id.list|gen_case_grouping_id }}</span>
+					                            	</div>
+				                                	</td>
+
+				                                	<td>
+				                                	{% for item in case_grouping_id.list %}
+				                                		{{ item.case_category|gen_value2 }}
+				                                		<br>
+					                            	{% endfor %}
+					                            	</td>
+
+					                                <td>
+					                                {{ case_grouping_id.list|gen_date_of_event }}
+					                            	</td>
+
+					                                <td>
+					                                {% autoescape off %}
+					                                	{{  case_grouping_id.list|gen_intervention }} 
+					                                {% endautoescape %}
+					                                </td>
+
+					                                <td>
+					                                {% autoescape off %}
+					                                	{{  case_grouping_id.list|gen_refferal }}
+					                                {% endautoescape %}
+					                                </td>
+
+					                                <td>
+						                                <button id="btnEdit{{ forloop.counter }}" type="button" class="btn btn-sm btn-link m-r-5" onClick="EditRow({{ forloop.counter }})">
+						                                	<i class="fa fa-edit"></i>&nbsp; <b>Edit</b>
+						                                </button>
+					                                </td>
+					                            <tr>
+				                            {% endfor %}
+			                        {% endfor %}
 	                                </tbody>
                            	 	</table>
 							</fieldset>
 						</div>
 						<!-- end wizard step-5 -->
-					</div>
 
-					<!-- begin panel -->
+					</div>
+					
 	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
 	                    <div class="panel-body panel-form">
 							<div class="form-group">
 								<label class="control-label col-md-4 col-sm-4"></label>
 								<div class="col-md-6 col-sm-6">
 								    <p></p>
-									<button id="mysubmit3" type="submit" class="btn btn-primary">Submit</button>
-									<button class="btn btn-default" onClick="fnCancel()">Cancel</button>
+									<button id="mysubmit2" type="submit" class="btn btn-primary">Update</button>
+									<button class="btn btn-default" onClick="fnCancel()">Back</button>
 									<p></p>
 								</div>
 							</div>
@@ -469,194 +452,152 @@
 {% endblock %}
 
 {% block lazy_javascript_code %}
-	<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
-	<script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>	
-	<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
-	<script src="{% static 'js/apps.js' %}"></script>
-	<script src="{% static 'js/form-wizards.js' %}"></script>
-	<script src="{% static 'js/tag-it.js' %}"></script>
-	<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
-	<script type="text/javascript">	
-	function RemoveRow(index)
+<script src="{% static 'js/apps.js' %}"></script>
+<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
+<script src="{% static 'js/form-wizards.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
+<script src="{% static 'js/tag-it.js' %}"></script>
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
+<script type="text/javascript">
+function fnCancel()
+{
+	return window.location.href='{% url 'forms_registry' %}';
+}
+function SaveRow()
+{	var CaseManagementData = new Array();
+	var case_category = $('#case_category').val();
+	var date_of_event = $('#date_of_event').val();
+	var intervention = $('#intervention').val();
+	var refferal_to = $('#refferal_to').val();
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken
+                 };
+    if(case_category)
 	{
-		var data = new Array();
-	    var csrftoken = $.cookie('csrftoken');	    
-	    var index = index
-	    var values = {  
-	                    'csrfmiddlewaretoken': csrftoken,
-	                    'index': index
-	                 };
-	    
-	    $.ajax({
-            url: '{% url 'manage_refferal002' %}',
-            dataType: 'text',
-            method: 'POST',
-            contentType: 'application/x-www-form-urlencoded',
-            data: values,
-            success: function(result)
-            { 
-            				                     
-            },
-            error: function(xhr, status, error)
-            {
-                alert(error);
-            }
-        });	
-		
-
-	    // <tr> id = id_index
-	    var tr_id = "#id_" + index;
-	    $(tr_id).remove();
-	}
-	function AddRow()
-	{
-		var CaseManagementData = new Array();
-		var case_category = $('#case_category').val();
-		var date_of_event = $('#date_of_event').val();
-		var intervention = $('#intervention').val();
-		var refferal_to = $('#refferal_to').val();
-	    var data = new Array();
-	    var csrftoken = $.cookie('csrftoken');
-	    var values = {  
-	                    'csrfmiddlewaretoken': csrftoken
-	                 };
-
-		if(case_category)
+		if(date_of_event)
 		{
-			if(date_of_event)
+			if(intervention)
 			{
-				if(intervention)
+				if(refferal_to)
 				{
-					if(refferal_to)
-					{
-						CaseManagementData = {
-			                "case_category" : case_category,
-			                "date_of_event" : date_of_event,
-			                "interventions" : intervention,
-			                "refferals_to" : refferal_to
-			            }
-			            CaseManagementData = JSON.stringify(CaseManagementData);
-			            values['CaseManagementData'] = CaseManagementData;
-
-						$.ajax({
-			                url: '{% url 'manage_refferal001' %}',
-			                dataType: 'text',
-	                        method: 'POST',
-	                        contentType: 'application/x-www-form-urlencoded',
-			                data: values,
-			                success: function(result)
-			                { 
-			                	// Find a <table> element with id="myTable":
-								var table = $('#refferals_manager_table')[0]; //document.getElementById("refferals_manager_table");
-
-								// Create an empty <tr> element with id and add it to the 1st position of the table:
-								var rows_length = refferals_manager_table.rows.length;
-								var row = table.insertRow(rows_length);
-								row.id = "id_" + (rows_length-2);
-
-								//Insert new cells (<td> elements) of the "new" <tr> element:
-								var cell0 = row.insertCell(0);
-								var cell1 = row.insertCell(1);
-								var cell2 = row.insertCell(2);
-								var cell3 = row.insertCell(3);
-								var cell4 = row.insertCell(4);
-								var cell5 = row.insertCell(5);
-
-								// Add some text to the new cells:
-								var index = rows_length - 2;
-								cell0.innerHTML = (index);
-								cell1.innerHTML = displayVals2("case_category");
-								cell2.innerHTML = $('#date_of_event').val();
-								cell3.innerHTML = displayVals2("intervention");
-								cell4.innerHTML = displayVals2("refferal_to");
-
-								var btnDeleteItemId = 'btnDeleteItem' + index;
-								/*
-								cell5.innerHTML = "<button id='" + btnDeleteItemId + "'  type='button' class='btn btn-sm btn-danger m-r-5'><i class='fa fa-trash'></i>&nbsp; <b>Delete</b></button>"
-								*/
-
-								cell5.innerHTML  = "<a id='" + btnDeleteItemId + "' class='btn btn-sm btn-danger m-r-5 href='#'><i class='fa fa-minus'></i>&nbsp; <b>Remove</b></a>"
-
-								// AddClick EVent To Delete Button
-								$("#" + btnDeleteItemId + "").click(function(e)
-								{																    
-									RemoveRow(index);
-
-									$('#refferals_manager_table tr').each(function(row, tr)
-								    {
-								    	var rowIndex = parseInt(tr.rowIndex);
-								    	if(rowIndex > 1)
-								    	{
-								    		$(tr).find('td:eq(0)').text(rowIndex-2);
-								    	}
-								    });
-								});
-
-								// Reset Input Elements/Error Divs
-								$('#date_of_event').val('');
-								$("#date_of_event_errormsg").css({ 'display': "none" }); //clear date_of_event_errormsg
-								$("#refferal_intervention_msgs").css({ 'display': "none" }); //clear refferal_intervention_msgs 
-								$("#case_category").multiselect("clearSelection");
-								$("#intervention").multiselect("clearSelection");
-								$("#refferal_to").multiselect("clearSelection");
-						        $( "#sel_case_category").html('');
-						        $( "#sel_intervention").html('');
-						        $( "#sel_refferal_to").html('');			                     
-			                },
-			                error: function(xhr, status, error)
-			                {
-			                    alert(error);
-			                }
-				        });						
-					}
-					else
-					{
-						$("#refferal_to_errormsg").css({ 'display': "block" });
-						$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            			$('#refferal_intervention_msgs p').html('Please fill the missing values');
-					}	
-				}
-				else
+					CaseManagementData = {
+		                "case_category" : case_category,
+		                "date_of_event" : date_of_event,
+		                "interventions" : intervention,
+		                "refferals_to" : refferal_to
+		            }
+		        }
+		        else
 				{
-					$("#intervention_errormsg").css({ 'display': "block" });
+					$("#refferal_to_errormsg").css({ 'display': "block" });
 					$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            		$('#refferal_intervention_msgs p').html('Please fill the missing values');
+        			$('#refferal_intervention_msgs p').html('Please fill the missing values');
 				}
-			}
-			else
+		    }
+		    else
 			{
-				$("#date_of_event_errormsg").css({ 'display': "block" });
+				$("#intervention_errormsg").css({ 'display': "block" });
 				$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            	$('#refferal_intervention_msgs p').html('Please fill the missing values');
+        		$('#refferal_intervention_msgs p').html('Please fill the missing values');
 			}
 		}
 		else
 		{
-			$("#case_category_errormsg").css({ 'display': "block" });
+			$("#date_of_event_errormsg").css({ 'display': "block" });
 			$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            $('#refferal_intervention_msgs p').html('Please fill the missing values'); 
-		}      
+        	$('#refferal_intervention_msgs p').html('Please fill the missing values');
+		}
 	}
-	function fnCancel()
+	else
 	{
-		return window.location.href='{% url 'forms_registry' %}';
-	}
-	window.onload = function(e)
-	{ 
-	   $('#person').val(localStorage.getItem("person_id"));
-	}
-	</script>
-	<script>
-	jQuery(document).ready(function() 
-	{
-		/* Get Case Owner */
-	    var pfirst_name = localStorage.getItem("person_fname");
-	    var psurname = localStorage.getItem("person_sname");
-	    var person_name = pfirst_name + ' ' + psurname;
-	    $('#person_name')[0].innerHTML = person_name;
+		$("#case_category_errormsg").css({ 'display': "block" });
+		$("#refferal_intervention_msgs").css({ 'display': "block" }); 
+        $('#refferal_intervention_msgs p').html('Please fill the missing values'); 
+	} 		 
+}
+function CancelRow()
+{
+	 // Clear Input Elements
+	 $('#date_of_event').val(''); 
+     $("#case_category").multiselect("clearSelection");
+     $("#intervention").multiselect("clearSelection");
+     $("#refferal_to").multiselect("clearSelection");
 
-		//Default Reporter Divs Behaviour (Hide)
+    // Show Save/Cancel Buttons For This edit
+    $("#btnSaveChanges").css({ 'display': "none" }); 
+    $("#btnCancelChanges").css({ 'display': "none" }); 
+
+    // Reset/Clear <Spans>
+    $( "#sel_case_category").html('');
+    $( "#sel_intervention").html('');
+    $( "#sel_refferal_to").html('');
+}
+function EditRow(rowIndex)
+{
+	rowId = 'id_inputElements' + String(rowIndex)
+	var span_case_grouping_id = $("#" + rowId + " span:eq(0)").text(); 
+	var csrftoken = $.cookie('csrftoken');
+	var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'span_case_grouping_id': span_case_grouping_id
+                 };
+	$.ajax({
+        url: '{% url 'manage_refferal003' %}',
+        dataType: "json",
+        method: 'POST',
+        contentType: 'application/x-www-form-urlencoded',
+        data: values,
+        success: function(result)
+        {
+        	//On success - Get Json From View/Populate Multiselects
+        	var case_categorys;
+        	var interventions;
+        	var referrals;
+        	var date_of_events;
+        	$.each(result, function(i, val) {
+                case_categorys = val.case_category_list;
+                date_of_events = val.date_of_event_list;
+                interventions = val.intervention_list;
+                referrals = val.referral_list;
+            });
+        	 
+        	$('#date_of_event').datepicker('setDate', new Date(date_of_events[0]));
+
+            $("#case_category").val(case_categorys);
+            $("#case_category").multiselect("refresh");
+            $('#case_category').trigger('change');
+
+            $("#intervention").val(interventions);
+            $("#intervention").multiselect("refresh");
+            $('#intervention').trigger('change');
+
+            $("#refferal_to").val(referrals);
+            $("#refferal_to").multiselect("refresh");
+            $('#refferal_to').trigger('change');
+
+            // Show Save/Cancel Buttons For This edit
+            $("#btnSaveChanges").css({ 'display': "block" }); 
+            $("#btnCancelChanges").css({ 'display': "block" }); 
+        },
+        error: function(e)
+        {
+            console.log(e)
+        }
+    });
+}
+</script>
+<script type="text/javascript">
+jQuery(document).ready(function() 
+{
+	//get CheckBox value
+	var checkBoxValue = $('#case_reporter_first_name').val();
+	if(checkBoxValue == 'SELF-REPORTER')
+	{
+		$('#self_reporter').prop('checked',true);
 		$('#div_reporter_names').hide();
         //$('#div_reporter_contacts').hide();
         $('#div_reporter_relationship_to_child').hide();
@@ -664,212 +605,184 @@
         $('#case_reporter_surname').attr('data-parsley-required', 'false');
         //$('#case_reporter_contacts').attr('data-parsley-required', 'false');
         $('#case_reporter_relationship_to_child').attr('data-parsley-required', 'false');
+	}
+	else
+	{
+		$('#self_reporter').prop('checked',false);
+		$('#div_reporter_names').show();
+        //$('#div_reporter_contacts').hide();
+        $('#div_reporter_relationship_to_child').show();
+        $('#case_reporter_first_name').attr('data-parsley-required', 'true');
+        $('#case_reporter_surname').attr('data-parsley-required', 'true');
+        //$('#case_reporter_contacts').attr('data-parsley-required', 'false');
+        $('#case_reporter_relationship_to_child').attr('data-parsley-required', 'true');
+	}
 
-		var friends_list = new Array();
-		var hobbies_list = new Array();
-		var immediate_needs_list = new Array();
-		var future_needs_list = new Array();
-
-		//multi selects
-		$('#gliving_in, #case_category, #intervention, #refferal_to').multiselect({
-            selectAllValue: 'multiselect-all',
-            includeSelectAllOption: true,
-            enableCaseInsensitiveFiltering: true,
-            numberDisplayed: 1,
-            maxHeight: 300,
-            buttonWidth: '100%',
-            buttonClass: 'btn btn-white'
-      	});	
-		$('#immediate_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var immediate_needs_list = $("#immediate_needs_list").tagit("assignedTags");
-	        	$("#immediate_needs").val(immediate_needs_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var immediate_needs_list = $("#immediate_needs_list").tagit("assignedTags");
-	        	$("#immediate_needs").val(immediate_needs_list)
-	        	//console.log(friends_list);
-		    }
-		});
-		$('#future_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var future_needs_list = $("#future_needs_list").tagit("assignedTags");
-	        	$("#future_needs").val(future_needs_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var future_needs_list = $("#future_needs_list").tagit("assignedTags");
-	        	$("#future_needs").val(future_needs_list)
-	        	//console.log(friends_list);
-		    }
-		});
-		$('#friends_list').tagit(
-		{
-			placeholderText:'Type names + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var friends_list = $("#friends_list").tagit("assignedTags");
-	        	$("#friends").val(friends_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var friends_list = $("#friends_list").tagit("assignedTags");
-	        	$("#friends").val(friends_list)
-			    //console.log(friends_list);
-		    }
-		});
-		$('#hobbies_list').tagit(
-		{
-			placeholderText:'Type hobby + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var hobbies_list = $("#hobbies_list").tagit("assignedTags");
-	        	$("#hobbies").val(hobbies_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var hobbies_list = $("#hobbies_list").tagit("assignedTags");
-	        	$("#hobbies").val(hobbies_list)
-			    //console.log(friends_list);
-		    }
-		});
-		$('#immediate_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER'
-		});
-		$('#future_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER'
-		});
-
-		$('#data-table1').bootstrapTable(
-        { 
-            toggle: 'table', 
-            search: 'true',
-            locale: 'en-US',
-            pagination: 'true',
-            pageNumber: 1,
-            pageSize: 5,
-            //showRefresh: true,
-            showToggle: true,
-            //showColumns: true,
-            singleSelect: true,
-            clickToSelect:true,
-            maintainSelected: true
-        });
-        $('#data-table2').bootstrapTable(
-        { 
-            toggle: 'table',
-            locale: 'en-US',
-            pagination: 'true',
-            pageNumber: 1,
-            pageSize: 10,
-            singleSelect: true,
-            clickToSelect:true,
-            maintainSelected: true
-        });
-
-        $('#data-table-tbgr').bootstrapTable(
-        { 
-            toggle: 'table', 
-            search: 'true',
-            locale: 'en-US',
-            pagination: 'true',
-            pageNumber: 1,
-            pageSize: 5,
-            //showRefresh: true,
-            showToggle: true,
-            //showColumns: true,
-            singleSelect: true,
-            clickToSelect:true,
-            maintainSelected: true
-        });
-
-		$('html,body').scrollTop(0);
-		FormWizardValidation.init();
+	//multi selects
+	$('#gliving_in, #case_category, #intervention, #refferal_to').multiselect({
+		selectAllValue: 'multiselect-all',
+		includeSelectAllOption: true,
+		enableCaseInsensitiveFiltering: true,
+		numberDisplayed: 1,
+		maxHeight: 300,
+		buttonWidth: '100%',
+		buttonClass: 'btn btn-white',
+		//dropLeft: true,
 	});
-	</script>
-	<script type="text/javascript">
-	function displayVals(value)
-	{
-		var selections = [];
-		$("#" + value + " option:selected").each(function () 
-		{
-		   var $this = $(this);
-		   if ($this.length)
-		   {
-			    var selText = $this.text();
-			    selections.push(selText);
-			    //console.log(selText);
-		   }
-		});
-		$( "#sel_"+value ).html(selections.join( ", <br>" ) );
-	}
 
-	function displayVals2(value)
+	var friends_list = new Array();
+	var hobbies_list = new Array();
+	var immediate_needs_list = new Array();
+	var future_needs_list = new Array();         
+	$('#immediate_needs_list').tagit(
 	{
-		var selections = [];
-		$("#" + value + " option:selected").each(function () 
-		{
-		   var $this = $(this);
-		   if ($this.length)
-		   {
-			    var selText = $this.text();
-			    selections.push(selText);
-			    //console.log(selText);
-		   }
-		});
-		
-		return selections.join( ", <br>" );
-	}
+		placeholderText:'Type need + ENTER',
+		removeConfirmation: true,
 
-	$("#case_category").change(function(event) 
+		afterTagAdded: function(event, ui)
+		{
+		// do something special
+		var immediate_needs_list = $("#immediate_needs_list").tagit("assignedTags");
+		$("#immediate_needs").val(immediate_needs_list)
+		//console.log(friends_list);
+		},
+
+		afterTagRemoved : function(event, ui)
+		{
+		// do something special
+		var immediate_needs_list = $("#immediate_needs_list").tagit("assignedTags");
+		$("#immediate_needs").val(immediate_needs_list)
+		//console.log(friends_list);
+		}
+	});
+
+	$('#future_needs_list').tagit(
+	{
+		placeholderText:'Type need + ENTER',
+		removeConfirmation: true,
+
+		afterTagAdded: function(event, ui)
+		{
+		// do something special
+		var future_needs_list = $("#future_needs_list").tagit("assignedTags");
+		$("#future_needs").val(future_needs_list)
+		//console.log(friends_list);
+		},
+
+		afterTagRemoved : function(event, ui)
+		{
+		// do something special
+		var future_needs_list = $("#future_needs_list").tagit("assignedTags");
+		$("#future_needs").val(future_needs_list)
+		//console.log(friends_list);
+		}
+	});
+
+	$('#friends_list').tagit(
+	{
+		placeholderText:'Type names + ENTER',
+		removeConfirmation: true,
+
+		afterTagAdded: function(event, ui)
+		{
+		// do something special
+		var friends_list = $("#friends_list").tagit("assignedTags");
+		$("#friends").val(friends_list)
+		//console.log(friends_list);
+		},
+
+		afterTagRemoved : function(event, ui)
+		{
+		// do something special
+		var friends_list = $("#friends_list").tagit("assignedTags");
+		$("#friends").val(friends_list)
+		//console.log(friends_list);
+		}
+	});
+
+	$('#hobbies_list').tagit(
+	{
+		placeholderText:'Type hobby + ENTER',
+		removeConfirmation: true,
+
+		afterTagAdded: function(event, ui)
+		{
+		// do something special
+		var hobbies_list = $("#hobbies_list").tagit("assignedTags");
+		$("#hobbies").val(hobbies_list)
+		//console.log(friends_list);
+		},
+
+		afterTagRemoved : function(event, ui)
+		{
+		// do something special
+		var hobbies_list = $("#hobbies_list").tagit("assignedTags");
+		$("#hobbies").val(hobbies_list)
+		//console.log(friends_list);
+		}
+	});
+
+	$('#data-table1').bootstrapTable(
+    { 
+        toggle: 'table', 
+        search: 'true',
+        locale: 'en-US',
+        pagination: 'true',
+        pageNumber: 1,
+        pageSize: 5,
+        //showRefresh: true,
+        showToggle: true,
+        //showColumns: true,
+        singleSelect: true,
+        clickToSelect:true,
+        maintainSelected: true,
+        
+        onClickRow: function (row, $element)
+        {
+        }
+        
+    });
+
+    $('#data-table-tbgr').bootstrapTable(
+    { 
+        toggle: 'table', 
+        search: 'true',
+        locale: 'en-US',
+        pagination: 'true',
+        pageNumber: 1,
+        pageSize: 5,
+        //showRefresh: true,
+        showToggle: true,
+        //showColumns: true,
+        singleSelect: true,
+        clickToSelect:true,
+        maintainSelected: true,
+        
+        onClickRow: function (row, $element)
+        {
+
+			alert('We Just Picked You!')
+        }
+        
+    });
+
+    $("#case_category").change(function(event) 
 	{ 
 		displayVals("case_category");
-		$("#case_category_errormsg").css({ 'display': "none" });
-    });
-    $('#case_category').trigger('change');
+	});
+	$('#case_category').trigger('change');
 
-    $("#intervention").change(function(event) 
+	$("#intervention").change(function(event) 
 	{ 
 		displayVals("intervention");
-		$("#intervention_errormsg").css({ 'display': "none" });
-    });
-    $('#intervention').trigger('change');
+	});
+	$('#intervention').trigger('change');
 
-    $("#refferal_to").change(function(event) 
+	$("#refferal_to").change(function(event) 
 	{ 
 		displayVals("refferal_to");
-		$("#refferal_to_errormsg").css({ 'display': "none" });
-    });
-	$('#refferal_to').trigger('change');	
+	});
+	$('#refferal_to').trigger('change');
 
 	$("#date_case_opened").change(function(event) 
 	{ 
@@ -887,6 +800,53 @@
 		});
 	});
 
+	// Get PersonID()
+	$('#person').val(localStorage.getItem("person_id"));
+
+	//Load immediate_needs
+	var immediate_needs = $('#immediate_needs').val()
+	var immediate_needs = immediate_needs.replace('[','');
+	var immediate_needs = immediate_needs.replace(']','');
+	var immediate_needs_array = immediate_needs.split(',') ;
+	for(var i=0, l = immediate_needs_array.length; i < l; i++)
+	{
+	    $("#immediate_needs_list").tagit("createTag", 
+	    	immediate_needs_array[i].replace("'","").replace("'",""));	
+	}
+
+    //Load future_needs
+	var future_needs = $('#future_needs').val()
+	var future_needs = future_needs.replace('[','');
+	var future_needs = future_needs.replace(']','');
+	var future_needs_array = future_needs.split(',') ;
+	for(var i=0, l = future_needs_array.length; i < l; i++)
+	{
+	    $("#future_needs_list").tagit("createTag", 
+	    	future_needs_array[i].replace("'","").replace("'",""));	
+    }
+
+    //Load hobbies
+	var hobbies = $('#hobbies').val()
+	var hobbies = hobbies.replace('[','');
+	var hobbies = hobbies.replace(']','');
+	var hobbies_array = hobbies.split(',') ;
+	for(var i=0, l = hobbies_array.length; i < l; i++)
+	{
+	    $("#hobbies_list").tagit("createTag", 
+	    	hobbies_array[i].replace("'","").replace("'",""));	
+    }
+
+    //Load friends
+	var friends = $('#friends').val()
+	var friends = friends.replace('[','');
+	var friends = friends.replace(']','');
+	var friends_array = friends.split(',') ;
+	for(var i=0, l = friends_array.length; i < l; i++)
+	{
+	    $("#friends_list").tagit("createTag", 
+	    	friends_array[i].replace("'","").replace("'",""));	
+	}
+
 	// handle CheckBox Checked/Unchecked
 	$('#self_reporter').change(function()
 	{
@@ -901,8 +861,8 @@
 
 	        // Reset Controls For Reporter
 	        $('#case_reporter_first_name').val('');
-	        $('#case_reporter_other_names').val('');
 	        $('#case_reporter_surname').val('');
+	         $('#case_reporter_other_names').val('');
 	        //$('#case_reporter_contacts').val('');
 	        $('#case_reporter_relationship_to_child').val('');
 
@@ -926,24 +886,63 @@
 	        $('#case_reporter_relationship_to_child').attr('data-parsley-required', 'true');
 	    }
 	});
-	
-	</script>
-	<!--
-    <script type="text/javascript">
-	$(function () {
-	  $('#new_case_record').parsley().on('form:validate', function (formInstance) {
-	    var ok = formInstance.isValid('group0', true) || formInstance.isValid('group1', true) || formInstance.isValid('group2', true) || formInstance.isValid('group3', true) || formInstance.isValid('group4', true) || formInstance.isValid('group5', true);
-	    $(".alert").show();
-	    $('.invalid-form-message')
-	      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
-	      .toggleClass('filled', !ok);
-	    if (!ok){
-	      formInstance.validationResult = false;
-	    }else{
-	    	$(".alert").hide();
-	    }
-	  });
+
+	$('html,body').scrollTop(0);
+	FormWizardValidation.init();
+});
+</script>
+<script type="text/javascript">
+function displayVals(value)
+{
+	var selections = [];
+	$("#" + value + " option:selected").each(function () 
+	{
+		var $this = $(this);
+		if ($this.length)
+		{
+			var selText = $this.text();
+			selections.push(selText);
+			//console.log(selText);
+		}
 	});
-	</script>
-	-->
+
+	$( "#sel_"+value ).html(selections.join( ",<br>" ));
+}
+</script>
+<!--
+   <script type="text/javascript">
+   $(function () {
+     $('#new_case_record').parsley().on('form:validate', function (formInstance) {
+       var ok = formInstance.isValid('group0', true) || formInstance.isValid('group1', true) || formInstance.isValid('group2', true) || formInstance.isValid('group3', true) || formInstance.isValid('group4', true) || formInstance.isValid('group5', true);
+       $(".alert").show();
+       $('.invalid-form-message')
+         .html(ok ? '' : 'You must correctly fill the mandatory fields.')
+         .toggleClass('filled', !ok);
+       if (!ok){
+         formInstance.validationResult = false;
+       }else{
+         $(".alert").hide();
+       }
+     });
+   });
+   </script>
+   -->
+   <!--
+    <script type="text/javascript">
+   $(function () {
+     $('#new_case_record').parsley().on('form:validate', function (formInstance) {
+       var ok = formInstance.isValid('group0', true) || formInstance.isValid('group1', true) || formInstance.isValid('group2', true) || formInstance.isValid('group3', true) || formInstance.isValid('group4', true) || formInstance.isValid('group5', true);
+       $(".alert").show();
+       $('.invalid-form-message')
+         .html(ok ? '' : 'You must correctly fill the mandatory fields.')
+         .toggleClass('filled', !ok);
+       if (!ok){
+         formInstance.validationResult = false;
+       }else{
+         $(".alert").hide();
+       }
+     });
+   });
+   </script>
+   -->
 {% endblock %}
