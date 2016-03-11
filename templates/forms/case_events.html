@@ -10,9 +10,18 @@
 <link href="{% static 'css/jquery.fileupload.css' %}" rel="stylesheet" />
 <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
 <link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
+<link href="{% static 'plugins/bootstrap-wizard/css/bwizard.min.css' %}" rel="stylesheet" />
 <style type="text/css">
 .dialog_paragraph {
   color: #f00;
+}
+.table_data {
+  display: none;
+}
+.container {
+    width: 100%;
+    overflow-x: auto;
+    /*white-space: nowrap;*/
 }
 </style>
 {% endblock %}
@@ -74,608 +83,7 @@
 {% endfor %}
 </div>
 
-<!-- OVC Case Record Row -->
-<div class="row">
-        <!-- begin col-12 -->
-        <div class="col-md-12">
-                <!-- begin panel -->
-                <div class="panel panel-inverse">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>                          
-                        <h4 class="panel-title"><b>Case Events List </b></h4>                    
-                    </div>
-
-                   
-                    <!-- begin panel -->
-
-                    {% if resultsets %}
-                    <div class="panel-body">
-                        <div  class="panel panel-inverse">
-                            <div id="case-events"  class="table-responsive">
-                                <table id="case-events-data-table" class="table table-striped table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Event ID</th>
-                                        <th>Type</th>
-                                        <th>Date</th>
-                                        <th>Notes</th>            
-                                        <th>Workforce Member</th>                   
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                {% for resultset in resultsets %} 
-                                    {% for result in resultset %}
-                                        {% for cev in result.c_evnts %}
-                                        <tr>
-                                            
-                                            <td>{{ cev.case_event_id }}</td>
-                                            <td>{{ cev.case_event_type_id}}</td>
-                                            <td>{{ cev.date_of_event }}</td>
-                                            <td>{{ cev.case_event_notes }}</td>
-                                            <td>{{ cev.app_user_id|gen_username }}</td>          
-                                            <td>
-                                            <button id="view_ce" type="submit" onClick="edit_view_delete_CaseEvent('{{ cev.case_event_type_id}}','{{ cev.case_event_id }}','VIEW')" 
-                                                class="btn  btn-sm btn-primary m-r-5">
-                                                    <b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i>
-                                            </button>
-
-                                            <button id="edit_ce" type="submit" onClick="edit_view_delete_CaseEvent('{{ cev.case_event_type_id}}','{{ cev.case_event_id }}','EDIT')" 
-                                                class="btn  btn-sm btn-primary m-r-5">
-                                                    <b>Edit</b>&nbsp&nbsp<i class="fa fa-edit"></i>
-                                            </button>
-
-                                            <button id="delete_ce" type="submit" onClick="edit_view_delete_CaseEvent('{{ cev.case_event_type_id}}','{{ cev.case_event_id }}', 'DELETE')" 
-                                                class="btn  btn-sm btn-danger m-r-5">
-                                                    <b>Delete</b>&nbsp&nbsp<i class="fa fa-trash"></i>
-                                            </button>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}  
-                                    {% endfor %}
-                                {% endfor %}
-                                </tbody>
-                                </table>
-                            </div>
-                            <br><br>                           
-                        </div>
-                        <!-- end panel -->
-                    </div>
-                    
-                    {% else %}
-                        <div class="norecords" align="center"><b>No records found.</b></div>
-                    {% endif %} 
-                    <!-- end panel -->
-                </div>
-
-                 <!-- Case ID -->
-                <div>
-                    {{ form.case_id }}
-                    {{ form.operation_mode }}
-                    {{ form.case_event_id }}
-                    {{ form.case_event_type }}
-                </div>
-
-                <!-- #delete-dialog -->
-                <div class="modal fade" id="delete-dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h4 class="modal-title">Confirm Delete</h4>
-                            </div>
-                            <div id ="div-delete-doalog" class="modal-body">
-                                <p></p>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-sm btn-white" data-dismiss="modal">No</button>
-                                <button class="btn btn-sm btn-success" 
-                                    onClick="deleteCaseEvent_()">Yes</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- #delete-dialog -->
-
-                <!-- #services-dialog -->
-                <div class="modal fade" id="services-dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
-                                <div id="services-dialog-header">
-                                    <p>Add Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i></p>      
-                                </div>
-                                </h4>
-                            </div>
-                            <div class="modal-body">
-
-                                <div id="encounters_msgs" class="alert alert-danger fade in" style="display:none;">
-                                    <span class="close" data-dismiss="alert">×</span>
-                                    <i class="fa fa-close fa-2x pull-left"></i>
-                                    <ul class="messages">
-                                       <p></p>
-                                    </ul>
-                                </div>
-
-                                <div class="row">
-                                    {{ form.case_event_id_svc }}   
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.service_provided_case }}
-                                                <div id="encounters_msgs0"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>                                 
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Date Of Encounter/Service * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.date_of_encounter_event }}
-                                                <div id="encounters_msgs1"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Encounter/Service Notes * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.encounter_notes }}
-                                                <div id="encounters_msgs2"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br><br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Services Provided * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.service_provided }}
-                                                <div id="encounters_msgs3"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                                <span id="sel_service_provided"></span>
-                                                <br>
-                                        </div>
-                                    </div>
-                                    <br><br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.workforce_member_svc }}
-                                                <div id="encounters_msgs0"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                </div>
-                                
-                            </div>
-                            <div class="modal-footer" >
-                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                <button id="btn_save_encounter" class="btn btn-sm btn-success" onClick="fnSaveEncounter()">Save</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- #end services-dialog -->
-
-                <!-- #court-sessions-dialog -->
-                <div class="modal fade" id="court-sessions-dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h4 class="modal-title">
-                                <div id="court-sessions-dialog-header">
-                                    <p>Add Court Session &nbsp&nbsp<i class="fa fa-legal"></i></p>      
-                                </div>
-                                </h4>
-                            </div>
-                            <div class="modal-body">
-
-                                <div id="court_msgs" class="alert alert-danger fade in" style="display:none;">
-                                    <span class="close" data-dismiss="alert">×</span>
-                                    <i class="fa fa-close fa-2x pull-left"></i>
-                                    <ul class="messages">
-                                       <p></p>
-                                    </ul>
-                                </div>
-
-                                <div class="row">
-                                    {{ form.case_event_id_court }} 
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.court_session_case }}
-                                                <div id="court_msgs0"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>                                   
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Date Of Court Session * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.date_of_court_event }}
-                                                <div id="court_msgs1"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Court Session Notes* :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.court_notes }}
-                                                <div id="court_msgs2"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br><br><br>                                        
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Court Order(s) * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.court_order }}
-                                                <div id="court_msgs3"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                                <span id="sel_court_order"></span>
-                                                <br>
-                                        </div>
-                                    </div>
-                                    <br><br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.workforce_member_court }}
-                                                <div id="court_msgs0"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                </div>
-                            </div>
-                            <div class="modal-footer" >
-                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                <button id="btn_save_court" class="btn btn-sm btn-success" onClick="fnSaveCourtSession()">Save</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- #end court-sessions-dialog -->
-
-                <!-- #residential-placement-dialog -->
-                <div class="modal fade" id="residential-placement-dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h4 class="modal-title">
-                                <div id="court-sessions-dialog-header">
-                                    <p>
-                                    Add Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>
-                                    </p>      
-                                </div>
-                                </h4>
-                            </div>
-                            <div class="modal-body">
-
-                                <div id="placement_msgs" class="alert alert-danger fade in" style="display:none;">
-                                    <span class="close" data-dismiss="alert">×</span>
-                                    <i class="fa fa-close fa-2x pull-left"></i>
-                                    <ul class="messages">
-                                       <p></p>
-                                    </ul>
-                                </div>
-
-                                <div class="row">
-                                    <br><br>
-                                    {{ form.case_event_id_plcmt }} 
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.placement_case }}
-                                                <div id="placement_msgs0"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>                                  
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Date Of Placement * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.date_of_placement_event }}
-                                                <div id="placement_msgs1"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Placement Notes * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.placement_notes }}
-                                                <div id="placement_msgs2"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br><br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Residential Institution * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.residential_institution }}
-                                                <div id="placement_msgs3"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Current Residential Status * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.current_residential_status }}
-                                                <div id="placement_msgs4"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Court Committal Order? * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.has_court_committal_order }}
-                                                <div id="placement_msgs5"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Free for Adoption? * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.free_for_adoption }}
-                                                <div id="placement_msgs6"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Admission Date * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.admission_date }}
-                                                <div id="placement_msgs7"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div id="div_departure_date" class="form-group"  style="display:none;">
-                                        <label class="control-label col-md-4 col-sm-4">Departure Date * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.departure_date }}
-                                                <div id="placement_msgs8"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br> 
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                            {{ form.workforce_member_plcmnt }}
-                                            <div id="placement_msgs0"  style="display:none;">
-                                                <span><p class="dialog_paragraph">This value is required</p></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                </div> 
-                                <div class="modal-footer" >
-                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                <button id="btn_save_placement" class="btn btn-sm btn-success" onClick="fnSaveResidentialPlacement()">Save</button>
-                            </div>  
-                            </div>
-                        </div>                               
-                    </div>
-                </div>
-                <!-- #end residential-placement-dialog -->
-
-                <!-- #manage-referals-dialog -->
-                <div class="modal fade" id="manage-referals-dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h4 class="modal-title">Manage Referrals
-                                &nbsp&nbsp<i class="fa fa-share"></i></h4>
-                            </div>
-                            <div class="modal-body">
-                                <div id="referral_event_msgs" class="alert alert-danger fade in" style="display:none;">
-                                    <span class="close" data-dismiss="alert">×</span>
-                                    <i class="fa fa-close fa-2x pull-left"></i>
-                                    <ul class="messages">
-                                       <p></p>
-                                    </ul>
-                                </div>
-
-                                <div class="row">
-                                    <div class="form-group">
-                                        <p><b>Referrals Made Previously</b></p>
-                                        <br>
-                                        <p>
-                                        <b>
-                                        <i>NB: To complete a referral check against the corresponding row.</i>
-                                        </b>
-                                        </p>
-
-
-                                        <br><br>
-                                        <table id="referrals_data_table" class="table table-striped table-bordered">
-                                            <thead>
-                                                <th data-checkbox="true"></th>
-                                                <th>ID</th>
-                                                <th>Completion Date</th>
-                                                <th>Referral Description</th>
-                                                <th>Referral Date</th>
-                                                <th>Status</th>
-                                            </thead>
-                                            <tbody>
-                                            {% if resultsets %}
-                                                {% for resultset in resultsets %} 
-                                                    {% for result in resultset %}
-                                                        {% for res in result.c_referral %}
-                                                        <tr>
-                                                            <td></td>
-                                                            <td>{{ res.id }}</td>
-                                                            <td>
-                                                            {% if res.refferal_status == 'PENDING' %}
-                                                                {{ form.date_of_referral_event }}
-                                                            {% else %}
-                                                                {{ res.date_of_referral_event }}
-                                                            {% endif %}
-                                                            <div id="referral_event_msgs1"  style="display:none;">
-                                                                <span><p class="dialog_paragraph">This value is required</p></span>
-                                                            </div>
-                                                            </td>
-                                                            <td>{{ res.refferal_to|gen_value:vals }}</td>
-                                                            <td>{{ res.timestamp_created }}</td>
-                                                            <td>
-                                                            {% if res.refferal_status == 'PENDING' %}
-                                                                Pending
-                                                            {% else %}
-                                                                Completed
-                                                            {% endif %}
-                                                            </td>
-                                                        </tr>
-                                                        {% endfor %}
-                                                    {% endfor %}
-                                                {% endfor %}
-                                            {% else %}
-                                            <div>No matching results found</div>
-                                            {% endif %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">    
-                                    <b>Make New Referrals:</b>
-                                    </div>
-                                    <div class="form-group">                                             
-                                        <div class="col-md-10 col-sm-10">
-                                                <b>{{ form.refferals_made }}</b>
-                                                <span id="sel_refferals_made"></span>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                </div>
-                                
-                            </div>
-                            <div class="modal-footer" >
-                                <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                <button class="btn btn-sm btn-success" onClick="fnManageReferral()">Save</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- #end manage-referals-dialog -->
-
-                <!-- #close-case-dialog -->
-                <div class="modal fade" id="close-case-dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h4 class="modal-title">Case Closure
-                                &nbsp&nbsp<i class="fa fa-close"></i></h4>
-                            </div>
-                            <div class="modal-body">
-                                <div id="closure_msgs" class="alert alert-danger fade in" style="display:none;">
-                                    <span class="close" data-dismiss="alert">×</span>
-                                    <i class="fa fa-close fa-2x pull-left"></i>
-                                    <ul class="messages">
-                                       <p></p>
-                                    </ul>
-                                </div>
-
-                                <br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Case Status(Active?) * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.case_status }}
-                                                <div id="closure_msgs1"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Case Outcome Notes * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.case_outcome_notes }}
-                                                <div id="closure_msgs2"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                    <br><br>
-                                    <div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4">Date Case Closed * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                {{ form.date_of_case_closure }}
-                                                <div id="closure_msgs3"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <br><br>
-                                <br><br>
-                                <div class="modal-footer" >
-                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                    <button class="btn btn-sm btn-success" onClick="fnCloseCase()">Save</button>
-                                </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- #end close-case-dialog -->
-            </div>
-        </div>
-        <!-- End OVC Results Row -->  
-
-        <br>
-        <!--<div class="row" align="center"> -->
-        <div align="center">
-            <a href="#services-dialog" class="btn  btn-sm btn-inverse m-r-5"  data-toggle="modal">
-                <b>Add Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
-            </a>
-            <a href="#court-sessions-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
-                <b>Add Court Session</b>&nbsp&nbsp<i class="fa fa-legal"></i>
-            </a>
-            <a href="#residential-placement-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
-                <b>Add Residential Institution Placement</b>&nbsp&nbsp<i class="fa fa-university"></i>
-            </a>
-            <a href="#manage-referals-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
-                <b>Manage Referals</b>&nbsp&nbsp<i class="fa fa-share"></i>
-            </a>
-            <a href="#close-case-dialog" class="btn  btn-sm btn-inverse m-r-5" data-toggle="modal">
-                <b>Close Case</b>&nbsp&nbsp<i class="fa fa-close"></i>
-            </a>
-        </div>
-
-        <br><br>
-        <!-- Case Summary -->
+<!-- Case Summary -->
         <div class="profile-section">
             <!-- begin row -->
             <div class="row">
@@ -690,7 +98,6 @@
                                 <th>Place Of Event</th>
                                 <th>Case Category(s) | Date Of Event</th>
                                 <th>Referrals</th>
-                                <th>Interventions</th>
                             </thead>
                             <tbody>
                             {% for resultset in  resultsets %}
@@ -717,16 +124,7 @@
                                         </li>                                
                                     {% endfor %}
                                     </ol>
-                                </td>
-                                <td>
-                                    <ol>
-                                    {% for res in result.c_intvs %}                             
-                                        <li>
-                                        {{ res.intervention|gen_value:vals }} <br>
-                                        </li>                                
-                                    {% endfor %}
-                                    </ol>
-                                </td>                                
+                                </td>                            
                                 
                                 </tr>
                                 {% endfor %}
@@ -739,8 +137,611 @@
             </div>
         </div>
         <!-- End Case Summary -->
+        <br><br>
+    <!-- OVC Case Record Row -->
+    <div class="row">
+            <!-- begin col-12 -->
+            <div class="col-md-12">
+                    <!-- begin panel -->
+                    <div class="panel panel-inverse">
+                        <div class="panel-heading">
+                            <div class="panel-heading-btn">
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                            </div>                          
+                            <h4 class="panel-title"><b>Case Events List </b></h4>                    
+                        </div>
 
+                       
+                        <!-- begin panel -->
+                        <div class="panel-body">
+                            <div  class="panel panel-inverse">
+                                <div id="case-events"  class="table-responsive">
+                                    <table id="case_events_data_table" class="table table-striped table-bordered">
+                                    <thead>
+                                        <tr> 
+                                            <th>Event</th>
+                                            <th>Case Category</th>                                            
+                                            <th>Details</th> 
+                                            <th>Date</th>                
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                    </table>
+                                </div>
+                                <br><br>                           
+                            </div>
+                        </div>
+                        <!-- end panel -->
+                    </div>
 
+                     <!-- Case ID -->
+                    <div>
+                        {{ form.case_id }}
+                        {{ form.operation_mode }}
+                        {{ form.case_event_id }}
+                        {{ form.case_event_type }}
+                    </div>
+
+                    <!-- #delete-dialog -->
+                    <div class="modal fade" id="delete-dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title">Confirm Delete</h4>
+                                </div>
+                                <div id ="div-delete-doalog" class="modal-body">
+                                    <p></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">No</button>
+                                    <button class="btn btn-sm btn-success" 
+                                        onClick="deleteCaseEvent_()">Yes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- #delete-dialog -->
+
+                    <!-- #services-dialog -->
+                    <div class="modal fade" id="services-dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
+                                    <div id="services-dialog-header">
+                                        <p>Add Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i></p>      
+                                    </div>
+                                    </h4>
+                                </div>
+                                <div class="modal-body">
+
+                                    <div id="encounters_msgs" class="alert alert-danger fade in" style="display:none;">
+                                        <span class="close" data-dismiss="alert">×</span>
+                                        <i class="fa fa-close fa-2x pull-left"></i>
+                                        <ul class="messages">
+                                           <p></p>
+                                        </ul>
+                                    </div>
+
+                                    <div class="row">
+                                        {{ form.case_event_id_svc }}   
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.service_provided_case }}
+                                                    <div id="encounters_msgs0"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>                                       
+                                        <br><br>
+                                        <div class="form-group">
+                                             <table id="services_manager_table" class="table">
+                                                <thead>
+                                                    <tr id="id_inputHeaders">
+                                                        <th>#</th>
+                                                        <th width="30%">Service(s)</th>
+                                                        <th width="20%">Date Of Service</th>
+                                                        <th width="20%">Service(s) Provider</th>
+                                                        <th width="20%">Place Of Service</th>
+                                                        <th width="5%">Actions</th> 
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr id="id_inputElements">
+                                                        <td>#</td>
+                                                        <td width="30%">
+                                                        {{ form.service_provided }}
+                                                        <h6><span id="sel_service_provided"></span></h6>
+                                                        <div id="service_provided_errormsg" style="display:none;">
+                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                        </div>
+                                                        </td>
+
+                                                        <td width="20%">
+                                                        {{ form.date_of_encounter_event }}
+                                                        <div id="date_of_encounter_event_errormsg" style="display:none;">
+                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                        </div>
+                                                        </td>
+
+                                                        <td width="20%">
+                                                        {{ form.service_provider }}
+                                                        <div id="service_provider_errormsg" style="display:none;">
+                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                        </div>
+                                                        </td>
+
+                                                        <td width="20%">
+                                                        {{ form.place_of_service }}
+                                                        <div id="place_of_service_errormsg" style="display:none;">
+                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                        </div>
+                                                        </td>
+
+                                                        <td  width="5%">
+                                                        <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(2)">
+                                                            <i class="fa fa-plus"></i>&nbsp; <b>Add Service(s)</b>
+                                                        </button>
+                                                        </td>
+                                                    <tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Encounter/Service Notes * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.encounter_notes }}
+                                                    <div id="encounters_msgs2"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>  
+                                        <!--                                      
+                                        <br><br><br>                                        
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.workforce_member_svc }}
+                                                    <div id="encounters_msgs4"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        -->
+                                        <br><br>
+                                    </div>
+                                    
+                                </div>
+                                <div class="modal-footer" >
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                    <button id="btn_save_encounter" class="btn btn-sm btn-success" onClick="fnSaveEncounter()">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- #end services-dialog -->
+
+                    <!-- #court-sessions-dialog -->
+                    <div class="modal fade" id="court-sessions-dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title">
+                                    <div id="court-sessions-dialog-header">
+                                        <p>Add Court Session &nbsp&nbsp<i class="fa fa-legal"></i></p>      
+                                    </div>
+                                    </h4>
+                                </div>
+                                <div class="modal-body">
+
+                                    <div id="court_msgs" class="alert alert-danger fade in" style="display:none;">
+                                        <span class="close" data-dismiss="alert">×</span>
+                                        <i class="fa fa-close fa-2x pull-left"></i>
+                                        <ul class="messages">
+                                           <p></p>
+                                        </ul>
+                                    </div>
+
+                                    <div class="row">
+                                        {{ form.case_event_id_court }} 
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.court_session_case }}
+                                                    <div id="court_msgs0"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>                                   
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Date Of Court Session * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.date_of_court_event }}
+                                                    <div id="court_msgs1"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Court Session Notes* :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.court_notes }}
+                                                    <div id="court_msgs2"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br><br><br>                                        
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Court Order(s) * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.court_order }}
+                                                    <div id="court_msgs3"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                                    <span id="sel_court_order"></span>
+                                                    <br>
+                                            </div>
+                                        </div>
+                                        <!--
+                                        <br><br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.workforce_member_court }}
+                                                    <div id="court_msgs4"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        -->
+                                        <br><br>
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer" >
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                    <button id="btn_save_court" class="btn btn-sm btn-success" onClick="fnSaveCourtSession()">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- #end court-sessions-dialog -->
+
+                    <!-- #residential-placement-dialog -->
+                    <div class="modal fade" id="residential-placement-dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title">
+                                    <div id="court-sessions-dialog-header">
+                                        <p>
+                                        Add Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>
+                                        </p>      
+                                    </div>
+                                    </h4>
+                                </div>
+                                <div class="modal-body">
+
+                                    <div id="placement_msgs" class="alert alert-danger fade in" style="display:none;">
+                                        <span class="close" data-dismiss="alert">×</span>
+                                        <i class="fa fa-close fa-2x pull-left"></i>
+                                        <ul class="messages">
+                                           <p></p>
+                                        </ul>
+                                    </div>
+
+                                    <div class="row">
+                                        <br><br>
+                                        {{ form.case_event_id_plcmt }} 
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.placement_case }}
+                                                    <div id="placement_msgs0"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>                                  
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Date Of Placement * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.date_of_placement_event }}
+                                                    <div id="placement_msgs1"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Placement Notes * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.placement_notes }}
+                                                    <div id="placement_msgs2"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br><br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Residential Institution * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.residential_institution }}
+                                                    <div id="placement_msgs3"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Current Residential Status * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.current_residential_status }}
+                                                    <div id="placement_msgs4"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Court Committal Order? * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.has_court_committal_order }}
+                                                    <div id="placement_msgs5"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Free for Adoption? * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.free_for_adoption }}
+                                                    <div id="placement_msgs6"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Admission Date * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.admission_date }}
+                                                    <div id="placement_msgs7"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div id="div_departure_date" class="form-group"  style="display:none;">
+                                            <label class="control-label col-md-4 col-sm-4">Departure Date * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.departure_date }}
+                                                    <div id="placement_msgs8"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br> 
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
+                                                <div class="col-md-6 col-sm-6">
+                                                {{ form.workforce_member_plcmnt }}
+                                                <div id="placement_msgs9"  style="display:none;">
+                                                    <span><p class="dialog_paragraph">This value is required</p></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                    </div> 
+                                    <div class="modal-footer" >
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                    <button id="btn_save_placement" class="btn btn-sm btn-success" onClick="fnSaveResidentialPlacement()">Save</button>
+                                </div>  
+                                </div>
+                            </div>                               
+                        </div>
+                    </div>
+                    <!-- #end residential-placement-dialog -->
+
+                    <!-- #manage-referals-dialog -->
+                    <div class="modal fade" id="manage-referals-dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title">Create New Referrals</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="referral_event_msgs" class="alert alert-danger fade in" style="display:none;">
+                                        <span class="close" data-dismiss="alert">×</span>
+                                        <i class="fa fa-close fa-2x pull-left"></i>
+                                        <ul class="messages">
+                                           <h6><p></p></h6>
+                                        </ul>
+                                    </div>
+
+                                    <div class="row">
+                                        <table id="new_refferals_table" class="table table-striped table-bordered">
+                                            <thead>
+                                                <th><h6><b>#</b></h6></th>
+                                                <th><h6><b>Case Category</b></h6></th>
+                                                <th><h6><b>Referral To</b></th>
+                                                <th><h6><b>Actions</b></th>
+                                            </thead>
+                                            <tbody>
+                                                <td>#</td>
+                                                <td>
+                                                {{ form.refferal_case }}
+                                                <h6><span id="sel_refferal_case"></span></h6>
+                                                <div id="refferal_case_errormsg" style="display:none;">
+                                                    <h6><b><span><p class="dialog_paragraph">This value is required</p></span></b></h6>
+                                                </div>
+                                                </td>
+
+                                                <td>
+                                                {{ form.refferals_made }}
+                                                <h6><b><span id="sel_refferals_made"></span></b></h6>
+                                                <div id="refferals_made_errormsg" style="display:none;">
+                                                    <h6><b><span><p class="dialog_paragraph">This value is required</p></span></b></h6>
+                                                </div>
+                                                </td>
+
+                                                <td>
+                                                <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(1)">
+                                                    <i class="fa fa-plus"></i>&nbsp; <b>Save Referral</b>
+                                                </button>
+                                                </td>                                                                        
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <br><br>
+                                    <div class="row" id="div_referrals">
+                                        <legend class="pull-left width-full"><h4 class="modal-title">Manage Previous Referrals</h4></legend>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-white m-r-5" onClick="LoadReferrals()">
+                                                <i class="fa fa-refresh"></i>&nbsp; <b>Load Data / Refresh</b>
+                                            </button>
+                                        </div>
+                                        <br>
+                                        <div id="referral_msgs" class="alert alert-success fade in" style="display:none;">
+                                            <span class="close" data-dismiss="alert">×</span>
+                                            <i class="fa fa-check fa-2x pull-left"></i>
+                                            <ul class="messages">
+                                               <h6><p></p></h6>
+                                            </ul>
+                                        </div>
+                                        <br>  
+                                        <div class="container">                                   
+                                        <table id="old_refferals_table" class="table table-striped table-bordered">
+                                            <thead>
+                                                <th></th>
+                                                <th><h6><b>Referral End Date</b></h6></th>
+                                                <th><h6><b>Referral To</b></h6></th>
+                                                <th><h6><b>Case Category Attachment</b></h6></th>
+                                                <th><h6><b>Referral Status</b></h6></th>
+                                                <th><h6><b>Actions</b></h6></th>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Dynamically Created Using Json Object -->
+                                            </tbody>
+                                        </table>
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                </div>
+                                <div class="modal-footer" >
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Exit</button>
+                                    <!-- <button class="btn btn-sm btn-success" onClick="fnManageReferral()">Save</button> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- #end manage-referals-dialog -->
+
+                    <!-- #close-case-dialog -->
+                    <div class="modal fade" id="close-case-dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title">Case Closure
+                                    &nbsp&nbsp<i class="fa fa-close"></i></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="closure_msgs" class="alert alert-danger fade in" style="display:none;">
+                                        <span class="close" data-dismiss="alert">×</span>
+                                        <i class="fa fa-close fa-2x pull-left"></i>
+                                        <ul class="messages">
+                                           <p></p>
+                                        </ul>
+                                    </div>
+
+                                    <br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Case Status(Active?) * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.case_status }}
+                                                    <div id="closure_msgs1"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Case Outcome Notes * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.case_outcome_notes }}
+                                                    <div id="closure_msgs2"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4 col-sm-4">Date Case Closed * :</label>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.date_of_case_closure }}
+                                                    <div id="closure_msgs3"  style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br><br>
+                                    <br><br>
+                                    <div class="modal-footer" >
+                                        <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                        <button class="btn btn-sm btn-success" onClick="fnCloseCase()">Save</button>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- #end close-case-dialog -->
+                </div>
+            </div>
+            <!-- End OVC Results Row -->  
+
+        <br>
+        <!--<div class="row" align="center"> -->
+        <div align="center">
+            <!--
+            <a href="#services-dialog" class="btn  btn-sm btn-inverse m-r-5"  data-toggle="modal">
+                <b>Add Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
+            </a>
+            -->
+            <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Services')">
+                <b>Add Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
+            </button>
+            <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Court')">
+                <b>Add Court Session</b>&nbsp&nbsp<i class="fa fa-legal"></i>
+            </button>
+            <!--
+            <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Placement')">
+                <b>Add Residential Institution Placement</b>&nbsp&nbsp<i class="fa fa-university"></i>
+            </button>
+            -->
+            <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Referral')">
+                <b>Manage Referals</b>&nbsp&nbsp<i class="fa fa-share"></i>
+            </button>
+            <button href="#close-case-dialog" class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Closure')">
+                <b>Close Case</b>&nbsp&nbsp<i class="fa fa-close"></i>
+            </button>
+        </div>
+
+        <br><br>
     </div>
   </div>
 </div>
@@ -756,57 +757,633 @@
 <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
 <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
 <script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
+<script src="{% static 'js/form-wizards.js' %}"></script>
 <script type="text/javascript">
-function getJsonObject001()
+function fnOpenDialog(dialog_type)
 {
-    var case_id = $('#case_id').val();
-    var multiselect_data = [];
+    if(dialog_type == 'Services')
+    {
+        $('#services-dialog-header p').html('Add Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i>'); 
+        $('#services-dialog').modal('show');
+    }
+    if(dialog_type == 'Court')
+    {
+        $('#court-sessions-dialog').modal('show');
+    }
+    if(dialog_type == 'Placement')
+    {
+        $('#residential-placement-dialog').modal('show');
+    }
+    if(dialog_type == 'Referral')
+    {
+        $('#manage-referals-dialog').modal('show');
+    }
+    if(dialog_type == 'Closure')
+    {
+        $('#close-case-dialog').modal('show');
+    }
+}
+function LoadCaseEvents()
+{
+    // Load CaseEvents From Database
+    var data = new Array();
     var csrftoken = $.cookie('csrftoken');
-    var values = {  
-        'csrfmiddlewaretoken': csrftoken,
-        'case_id': case_id    
-    };
-
+    var case_id = $('#case_id').val();
+    var values = { 
+                    'case_id' : case_id,
+                    'csrfmiddlewaretoken': csrftoken
+                 };
     $.ajax({
-            url: '{% url 'getJsonObject001' %}',
-            dataType: 'json',
+                url: '{% url 'manage_case_events' %}',
+                dataType: 'json',
+                method: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: values,
+                success: function(result)
+                {
+                    // Clear <tbody>
+                    $("#case_events_data_table tbody").html('');
+
+                    $.each(result, function(i, val) {
+                        var case_event_id = val.case_event_id;
+                        var case_event_type = val.case_event_type;
+                        var case_event_category = val.case_event_category;
+                        var case_event_description = val.case_event_description;
+                        var case_event_date = val.case_event_date;
+
+                        var caseEventTypeId = 'caseEventTypeId' + i;
+                        var caseEventCategoryId = 'caseEventCategoryId' + i;
+                        var caseEventDescriptionId = 'caseEventDescriptionId' + i;
+                        var caseEventDateId = 'caseEventDateId' + i;
+                        var btnViewCe = 'btnViewCe' + i;
+                        var btnEditCe = 'btnEditCe' + i;
+                        var btnDeleteCe = 'btnDeleteCe' + i;
+                        var tableRowId = 'tableRowId' + i;
+
+
+                        // Append to rows to table rows
+                        $("#case_events_data_table tbody").append('<tr id=' + tableRowId + '>' + 
+                            '<td width="10%"><h6>' + case_event_type + '</h6></td>' +
+                            '<td width="25%"><h6>' + case_event_category + '</h6></td>' + 
+                            '<td width="25%"><h6>' + case_event_description +'</h6></td>' + 
+                            '<td width="15%"><h6>' + case_event_date + '</h6></td>' +
+                            '<td>' + 
+                            '<button id=' + btnViewCe + ' type="submit" class="btn  btn-sm btn-primary m-r-5"><b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i></button>' +
+                            '<button id=' + btnEditCe + ' type="submit" class="btn  btn-sm btn-primary m-r-5"><b>Edit</b>&nbsp&nbsp<i class="fa fa-edit"></i></button>' +
+                            /* '<button id=' + btnDeleteCe + ' type="submit" class="btn  btn-sm btn-danger m-r-5"><b>Delete</b>&nbsp&nbsp<i class="fa fa-trash"></i></button>' + */
+                            '</td></tr>');
+
+                        // Add Click Event To Buttons      edit_view_delete_CaseEvent(event_type, event_id, action)
+                        $("#" + btnViewCe + "").click(function(e)
+                        {
+                            edit_view_delete_CaseEvent(case_event_type, case_event_id,'VIEW');
+                        }); 
+
+                        $("#" + btnEditCe + "").click(function(e)
+                        {
+                            edit_view_delete_CaseEvent(case_event_type, case_event_id,'EDIT');
+                        }); 
+
+                        $("#" + btnDeleteCe + "").click(function(e)
+                        {
+                            edit_view_delete_CaseEvent(case_event_type, case_event_id,'DELETE');
+                        }); 
+                    });
+                },
+                error: function(xhr, status, error)
+                {
+                    alert(error);
+                }
+
+            });  
+}
+function LoadReferrals()
+{
+    // Load Referrals From Database
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    var values = { 
+                    'case_id' : case_id,
+                    'csrfmiddlewaretoken': csrftoken
+                 };
+    $.ajax({
+                url: '{% url 'manage_refferal002' %}',
+                dataType: 'json',
+                method: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: values,
+                success: function(result)
+                {
+                    // Clear <tbody>
+                    $("#old_refferals_table tbody").html('');
+
+                    $.each(result, function(i, val) {
+                        var refferal_id = val.refferal_id;
+                        var refferal_to = val.refferal_to;
+                        var refferal_status = val.refferal_status;
+                        var refferal_enddate = val.refferal_enddate;
+                        var refferal_case_category = val.refferal_case_category;
+
+                        // alert(refferal_case_category_id);
+
+                        // Append rows to #old_refferals_table <tbody>
+                        var datePickerId = 'date_referral_completed' + i;
+                        var caseCategoryId = 'caseCategory' + i;
+                        var divButtonsId = 'divButton' + i;
+                        var tableRowId = 'tableRow' + i;
+                        var btnEdit = 'btnEdit' + i;
+                        var btnSaveChanges = 'btnSaveChanges' + i;
+                        var btnCancelChanges = 'btnCancelChanges' + i;
+                        var spanCaseCategoryId = 'sel_caseCategory' + i;
+                        var spanReferralId = 'spanRefferalId' + i;
+                        var spanDateInputEditId = 'spanRefferalId' + i;
+                        var dateInput_errormsgId = 'dateInput_errormsg' + i;
+                        var dateInput;
+
+                        // Determine MArkup For Date Column (Datepicker/Date Text)
+                        if(refferal_enddate)
+                        { dateInput = '<span id=' + spanDateInputEditId + '>' + refferal_enddate + '</span>'; }
+                        else
+                        { 
+                            dateInput = '<input id=' + datePickerId + ' type="text" value="Referral End Date" class="form-control"><div id=' + dateInput_errormsgId + ' style="display:none;"><h6><b><span><p class="dialog_paragraph">This value is required</p></span></b></h6></div>'; 
+                        }
+
+                        // Append to rows to table rows
+                        $("#old_refferals_table tbody").append('<tr id=' + tableRowId + '>' + 
+                            '<td width="5%"><span id=' + spanReferralId + ' style="display:none">' + refferal_id + '</span><button id=' + btnEdit + ' type="button" class="btn btn-sm btn-link m-r-5"><i class="fa fa-edit"></i>&nbsp; <b>Edit</b></button></td>' +
+                            '<td width="15%"><h6>' + dateInput + '</h6></td>' +
+                            '<td width="25%"><h6>' + refferal_to + '</h6></td>' + 
+                            '<td width="15%"><h6><select id=' + caseCategoryId + ' name="case_to_attach" class="form-control" multiple></select><span id=' + spanCaseCategoryId + '></span></h6></td>' + 
+                            '<td width="5%"><h6>' + refferal_status + '</h6></td>' +
+                            '<td width="5%"><div id=' + divButtonsId + ' style="display:none"><button id=' + btnSaveChanges + ' type="button" class="btn btn-sm btn-white m-r-5"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp; <b>Save</b></button><button id=' + btnCancelChanges + ' type="button" class="btn btn-sm btn-white m-r-5"><i class="fa fa-close"></i>&nbsp; <b>Cancel</b></button></div></td>' +
+                            '</tr>');
+
+                        // Datepicker to Capture Date Referral was Completed   
+                        $("#" + datePickerId + "").datepicker({
+                            dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
+                            endDate: '+0d', enddate: '+0d', autoclose: true
+                        });                    
+
+                        // Populate multiSelects With Case Categorys For This Case
+                        var multiselect_data = [];
+                        values['action'] = 1;
+                        $.ajax({
+                            url: '{% url 'getJsonObject001' %}',
+                            dataType: 'json',
+                            method: 'POST',
+                            data: values,
+                            success: function(result)
+                            {
+                                var multiselect_dict = {};
+                                var multiselect_dict_initial = { label:'Please Select', value:''};
+                                multiselect_data.push(multiselect_dict_initial);
+                                $.each(result, function(i, val) {
+                                    var case_category_id = val.case_category_id;
+                                    var case_category = val.case_category;
+                                    var multiselect_dict = { label: case_category, value: case_category_id };
+                                    multiselect_data.push(multiselect_dict);
+                                }); 
+
+                                //Case To Attach - multi selects
+                                $("#" + caseCategoryId + "").multiselect({
+                                    selectAllValue: 'multiselect-all',
+                                    includeSelectAllOption: true,
+                                    enableCaseInsensitiveFiltering: true,
+                                    numberDisplayed: 1,
+                                    maxHeight: 300,
+                                    buttonWidth: '100%',
+                                    buttonClass: 'btn btn-white'
+                                });                                
+                                $("#" + caseCategoryId + "").multiselect('dataprovider', multiselect_data); 
+
+                                // Set Selected Options
+                                if(refferal_case_category)
+                                {
+                                    // alert(refferal_case_category_id);
+                                    $("#" + caseCategoryId + "").val(refferal_case_category); 
+                                    $("#" + caseCategoryId + "").multiselect("refresh");
+                                }                                
+                            },
+                            error: function(xhr, status, error)
+                            {
+                                alert(error);
+                            }
+                        });
+
+                        /* ---------------------------- ACTION EVENTS -------------------------------*/                        
+
+                        // Attach Change() Event to CaseCateory Multiselect
+                        $("#" + caseCategoryId + "").change(function(event) 
+                        { 
+                           displayVals(caseCategoryId);
+                        });   
+                        $("#" + caseCategoryId + "").trigger('change'); 
+
+                        // Add Click Event To buttonEdit
+                        $("#" + btnEdit + "").click(function(e)
+                        {
+                            var refferal_enddate_ = $('#old_refferals_table').find('tr#' + tableRowId + ' span:eq(1)').text(); 
+                            
+                            if(refferal_enddate_)
+                            {
+                                refferal_enddate_ = new Date(refferal_enddate_);
+
+
+                                if(refferal_enddate_ == 'Invalid Date')
+                                {
+                                    $("#" + divButtonsId + "").css({ 'display': "block" }); 
+                                }
+                                else
+                                {
+                                    $('#old_refferals_table').find('tr#' + tableRowId).find('td:eq(1)').html('<input id=' + datePickerId + ' type="text" class="form-control">')
+
+                                    // Set Datepicker on Edit
+                                    $("#" + datePickerId + "").datepicker({
+                                        dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
+                                        endDate: '+0d', enddate: '+0d', autoclose: true
+                                    });
+                                    $("#" + datePickerId + "").datepicker('setDate', new Date(refferal_enddate_));   
+                                }
+                                $("#" + divButtonsId + "").css({ 'display': "block" });                                
+                            }
+                        });
+
+                        // Add Click Event To btnSaveChanges
+                        $("#" + btnSaveChanges + "").click(function(e)
+                        {
+                            // Get Row id
+                            var tableRowId = 'tableRow' +i;
+
+                            // Get User Inputs Per Row
+                            var date_referral_completed = $('#old_refferals_table').find('tr#' + tableRowId).find('input[id=' + datePickerId + ']').val();
+                            var refferal_id = $('#old_refferals_table').find('tr#' + tableRowId + ' span:eq(0)').text();
+                            var case_category_ids = $('#old_refferals_table').find('tr#' + tableRowId).find('#' + caseCategoryId + '').val();
+
+                            if(date_referral_completed)
+                            {
+                                var ReferralsData = {
+                                "refferal_id" : refferal_id,
+                                "date_referral_completed" : date_referral_completed,
+                                "case_category_ids": case_category_ids
+                                 }
+                                ReferralsData = JSON.stringify(ReferralsData);
+                                var values = {  
+                                    'csrfmiddlewaretoken': csrftoken,
+                                    'case_id':case_id,
+                                    'ReferralsData':ReferralsData
+                                };
+
+                                $.ajax({
+                                    url: '{% url 'manage_refferal003' %}',
+                                    dataType: 'json',
+                                    method: 'POST',
+                                    contentType: 'application/x-www-form-urlencoded',
+                                    data: values,
+                                    success: function(data)
+                                    {
+                                        $("#referral_msgs").css({ 'display': "block" }); 
+                                        $('#referral_msgs p').html('Referral Managed Successfully - Details updated.');
+
+                                        LoadReferrals();
+
+                                        $("#" + dateInput_errormsgId + "").css({ 'display': "none" });
+                                    },
+                                    error: function(e)
+                                    {
+                                        console.log(e)
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                $("#" + dateInput_errormsgId + "").css({ 'display': "block" });
+                            }
+                            
+                        });
+
+                        // Add Click Event To btnCancelChanges
+                        $("#" + btnCancelChanges + "").click(function(e)
+                        {
+                           var referralStatus = $('#old_refferals_table').find('tr#' + tableRowId + ' td:eq(4)').text();
+                           if(referralStatus == 'COMPLETED')
+                           {
+                                var date_referral_completed = $('#old_refferals_table').find('tr#' + tableRowId).find('input[id=' + datePickerId + ']').val();
+                                $('#old_refferals_table').find('tr#' + tableRowId).find('td:eq(1)').html('<span><h6>' + date_referral_completed + '</h6></span>')
+                           }
+                           else
+                           {                                
+                                $("#" + datePickerId + "").val('Referral End Date');
+                           }
+                           $("#" + divButtonsId + "").css({ 'display': "none" });                           
+                           $("#" + dateInput_errormsgId + "").css({ 'display': "none" });
+                        }); 
+                    });
+                },
+                error: function(xhr, status, error)
+                {
+                    alert(error);
+                }
+
+            });  
+}
+function AddRow(x)
+{
+    /* 
+    Create JsonObjects To Hold Data From Grids 
+    */
+
+    if(x == 1) // Refferals Table
+    {
+        var refferal_case = $("#refferal_case").val();
+        var refferals_made = $("#refferals_made").val();
+        var case_id = $('#case_id').val();
+        var ReferralsData = new Array();
+        var data = new Array();
+        var csrftoken = $.cookie('csrftoken');
+        var values = { 
+                        'action' : 0, // Save new referral 
+                        'case_id' : case_id,
+                        'csrfmiddlewaretoken': csrftoken
+                     };
+        if(refferal_case)
+        {
+            if(refferals_made)
+            {
+                //Save to database - OVCReferrals Table
+                ReferralsData = {
+                            "refferal_case" : refferal_case,
+                            "refferals_made" : refferals_made
+                        };
+                ReferralsData = JSON.stringify(ReferralsData);
+                values['ReferralsData'] = ReferralsData;
+                $.ajax({
+                            // url: '{% url 'manage_casecategory001' %}',
+                            url: '{% url 'manage_refferal' %}',
+                            dataType: 'json',
+                            method: 'POST',
+                            contentType: 'application/x-www-form-urlencoded',
+                            data: values,
+                            success: function(result)
+                            {
+                                //On success - Get referral_grouping_id from Json to be used onRemove()
+                                var referral_grouping_id;
+                                $.each(result, function(i, val) {
+                                    referral_grouping_id = val.referral_grouping_id;
+                                });
+
+                                // Find a <table> element with id="myTable":
+                                var table = $('#new_refferals_table')[0]; 
+
+                                // Create an empty <tr> element with id and add it to the 1st position of the table:
+                                var rows_length = table.rows.length;
+                                var row = table.insertRow(rows_length);
+                                var rowId = row.id = "id_" + (rows_length-2);
+
+                                //Insert new cells (<td> elements) of the "new" <tr> element:
+                                var cell0 = row.insertCell(0);
+                                var cell1 = row.insertCell(1);
+                                var cell2 = row.insertCell(2);
+                                var cell3 = row.insertCell(3);
+                                // var cell4 = row.insertCell(4);
+
+                                // Add some text to the new cells:
+                                var index = rows_length - 1;
+                                cell0.innerHTML =  "<h6>" + (index) + "</h6>" + "<div id='span_referral_grouping_id' style='display:none'><span>" + referral_grouping_id + "</span></div>";
+                                cell1.innerHTML = '<h6>' + $('#refferal_case option:selected').text() + '</h6>';
+                                cell2.innerHTML = '<h6>' + displayVals3("refferals_made") + '</h6>';
+                                cell3.innerHTML  = "<button id=btnRemove" + index +" type='button' class='btn btn-sm btn-link m-r-5'><i class='fa fa-minus'></i>&nbsp; <b>Remove</b></button>"
+
+                                // AddClick EVent To Remove Button
+                                var btnRemoveId = 'btnRemove' + index;
+                                var span_referral_grouping_id = $("#" + rowId + " span:eq(0)").text(); 
+                                $("#" + btnRemoveId + "").click(function(e)
+                                {
+                                    RemoveRow(span_referral_grouping_id, rowId);
+                                }); 
+
+                                // Reset Input Elements/Error Divs
+                                $("#refferal_case").multiselect("clearSelection");
+                                $("#refferals_made").multiselect("clearSelection");
+                                $( "#sel_refferals_made").html('');
+                                $( "#refferal_case_errormsg").html('');
+                                $( "#refferals_made_errormsg").html('');
+                                $("#referral_event_msgs").css({ 'display': "none" });
+                            },
+                            error: function(xhr, status, error)
+                            {
+                                alert(error);
+                            }
+
+                        });                
+            }
+            else
+            {
+                $("#refferals_made_errormsg").css({ 'display': "block" }); 
+
+                $("#referral_event_msgs").css({ 'display': "block" }); 
+                $('#referral_event_msgs p').html('Please fill the missing values');
+            }
+        }
+        else
+        {
+            $("#refferal_case_errormsg").css({ 'display': "block" }); 
+
+            $("#referral_event_msgs").css({ 'display': "block" }); 
+            $('#referral_event_msgs p').html('Please fill the missing values');
+        }        
+    }
+    if(x == 2) // Encounters/Services Table
+    {
+        var service_provided = $("#service_provided").val();
+        var date_of_encounter_event = $("#date_of_encounter_event").val();
+        var service_provider = $("#service_provider").val();
+        var place_of_service = $("#place_of_service").val();
+        var csrftoken = $.cookie('csrftoken');        
+        var values = {  
+            'csrfmiddlewaretoken': csrftoken
+        };
+
+        // Perform Ajax() to create jsonObjectArrayServices
+        if(service_provided)
+        {
+            if(date_of_encounter_event)
+            {
+                if(service_provider)
+                {
+                    if(place_of_service)
+                    {
+                        EncountersData = {
+                                            "service_provided" : service_provided,
+                                            "date_of_encounter_event" : date_of_encounter_event,
+                                            "service_provider" : service_provider,
+                                            "place_of_service" : place_of_service
+                                        }
+                        EncountersData = JSON.stringify(EncountersData);
+                        values['EncountersData'] = EncountersData;
+
+                         $.ajax({
+                                    url: '{% url 'manage_encounters001' %}',
+                                    dataType: 'text',
+                                    method: 'POST',
+                                    contentType: 'application/x-www-form-urlencoded',
+                                    data: values,
+                                    success: function(result)
+                                    { 
+                                        // Find a <table> element with id="myTable":
+                                        var table = $('#services_manager_table')[0]; 
+
+                                        // Create an empty <tr> element with id and add it to the 1st position of the table:
+                                        var rows_length = table.rows.length;
+                                        var row = table.insertRow(rows_length);
+                                        row.id = "id_" + (rows_length-2);
+
+                                        // Insert new cells (<td> elements) of the "new" <tr> element:
+                                        var cell0 = row.insertCell(0);
+                                        var cell1 = row.insertCell(1);
+                                        var cell2 = row.insertCell(2);
+                                        var cell3 = row.insertCell(3);
+                                        var cell4 = row.insertCell(4);
+                                        var cell5 = row.insertCell(5);
+
+                                        // Add some text to the new cells:
+                                        var index = rows_length - 2;
+                                        cell0.innerHTML = '<h6>' + (index) + '</h6>';        
+                                        cell1.innerHTML = '<h6>' + displayVals3("service_provided") + '</h6>';
+                                        cell2.innerHTML = '<h6>' + $('#date_of_encounter_event').val() + '</h6>';
+                                        cell3.innerHTML = '<h6>' + displayVals3("service_provider") + '</h6>';
+                                        cell4.innerHTML = '<h6>' + $('#place_of_service').val() + '</h6>';
+                                        cell5.innerHTML  = '<h6>' + "<a  class='btn btn-sm btn-link m-r-5 href='#'></i>&nbsp; <b>Remove</b></a>" + '</h6>';
+
+                                        // Reset Input Elements/Error Divs
+                                        $("#service_provided").multiselect("clearSelection");
+                                        $('#date_of_encounter_event').val('');
+                                        $("#service_provider").multiselect("clearSelection");
+                                        $('#place_of_service').val('');
+                                        $( "#sel_service_provided").html('');
+
+                                    },
+                                    error: function(xhr, status, error)
+                                    {
+                                        alert(error);
+                                    }
+                            }); 
+                    } 
+                    else
+                    {
+                        $("#place_of_service_errormsg").css({ 'display': "block" }); 
+                    }         
+                }
+                else
+                {
+                    $("#service_provider_errormsg").css({ 'display': "block" }); 
+                }
+            }
+            else
+            {
+                $("#date_of_encounter_event_errormsg").css({ 'display': "block" }); 
+            }
+        }
+        else
+        {
+            $("#service_provided_errormsg").css({ 'display': "block" }); 
+        }       
+    }    
+}
+function EditRow(x, id)
+{
+    if(x == 1) // Refferals Table
+    {
+    }
+    if(x == 2) // Encounters/Services Table
+    {
+        /* 
+        Set RowId Of Clicked Row - This will be used when populating Clicked tr cells with data
+        
+        alert(id);
+        rowId = 'id_inputElements' + String(rowIndex)
+        $('#row_id').val(rowId)
+        alert(id);*/
+
+        var service_grouping_id = id; 
+        var csrftoken = $.cookie('csrftoken');
+        var values = {  
+                        'csrfmiddlewaretoken': csrftoken,
+                        'service_grouping_id': service_grouping_id
+                     };
+        $.ajax({
+            url: '{% url 'manage_encounters004' %}',
+            dataType: "json",
             method: 'POST',
+            contentType: 'application/x-www-form-urlencoded',
             data: values,
             success: function(result)
             {
-                var multiselect_dict = {};
-                var multiselect_dict_initial = { label:'Please Select', value:''};
-                multiselect_data.push(multiselect_dict_initial);
+                //On success - Get Json From View/Populate Multiselects
+                var service_provided;
+                var place_of_service;
+                var date_of_encounter_event;
                 $.each(result, function(i, val) {
-                    var case_category_id = val.case_category_id;
-                    var case_category = val.case_category;
-                    var multiselect_dict = { label: case_category, value: case_category_id };
-                    multiselect_data.push(multiselect_dict);
-                }); 
+                    service_provided = val.service_provided_list;
+                    place_of_service = val.place_of_service_list;
+                    date_of_encounter_event = val.date_of_encounter_event_list;
+                });
+                 
+                $('#date_of_encounter_event').datepicker('setDate', new Date(date_of_encounter_event[0]));
+                $('#place_of_service').val(place_of_service);
+                $('#service_provided').val(service_provided);
+                $("#service_provided").multiselect("refresh");
+                $('#service_provided').trigger('change');
 
-                //multi selects
-                $('#service_provided_case, #court_session_case, #placement_case').multiselect({
-                    selectAllValue: 'multiselect-all',
-                    enableCaseInsensitiveFiltering: true,
-                    numberDisplayed: 1,
-                    maxHeight: 300,
-                    buttonWidth: '100%',
-                    buttonClass: 'btn btn-white'
-                }); 
-                $("#service_provided_case").multiselect("refresh");
-                $("#service_provided_case").multiselect('dataprovider', multiselect_data); 
-
-                $("#court_session_case").multiselect("refresh");
-                $("#court_session_case").multiselect('dataprovider', multiselect_data); 
-
-                $("#placement_case").multiselect("refresh");
-                $("#placement_case").multiselect('dataprovider', multiselect_data);      
+                // Show Save/Cancel Buttons For This edit
+                $("#btnSaveChanges").css({ 'display': "block" }); 
+                $("#btnCancelChanges").css({ 'display': "block" }); 
             },
-            error: function(xhr, status, error)
+            error: function(e)
             {
-                alert(error);
+                console.log(e)
             }
         });
+    }
+}
+function RemoveRow(uuid, tr_id)
+{
+    if(uuid)
+    {
+        var data = new Array();
+        var csrftoken = $.cookie('csrftoken');
+        var values = {  
+                        'referral_grouping_id' : uuid,
+                        'csrfmiddlewaretoken': csrftoken
+                     };
+        $.ajax({
+                    // url: '{% url 'manage_casecategory001' %}',
+                    url: '{% url 'manage_refferal001' %}',
+                    dataType: 'text',
+                    method: 'POST',
+                    contentType: 'application/x-www-form-urlencoded',
+                    data: values,
+                    success: function(result)
+                    {
+                        //Delete Table Row
+                        $("#" + tr_id).remove();
+
+                        $('#new_refferals_table tr').each(function(row, tr)
+                        {
+                            var rowIndex = parseInt(tr.rowIndex);
+                            if(rowIndex > 1)
+                            {
+                                $(tr).find('td:eq(0)').text(rowIndex-1);
+                            }
+                        });
+                    },
+                    error: function(xhr, status, error)
+                    {
+                        alert(error);
+                    }
+
+                });  
+    }
 }
 function edit_view_delete_CaseEvent(event_type, event_id, action)
 {
@@ -840,34 +1417,17 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
             method: 'POST',
             data: values,
             success: function(result)
-            {    
-                $.each(result, function(i, val) {
-                    var date_of_encounter_event = val.date_of_event;
-                    var encounter_notes = val.case_event_notes;
-                    var service_provided = ((val.ovc_services).toString()).split(",");
-
-                    for(var i =0; i < service_provided.length; i++)
-                    {
-                        $("#service_provided option[value='" + service_provided[i] + "']").prop("selected", true);
-                    }
-                    $("#service_provided").multiselect("refresh");
-                    $('#service_provided').trigger('change');
-
-                    $('#date_of_encounter_event').datepicker('setDate', dateHandler(date_of_encounter_event));
-                    $('#encounter_notes').val(encounter_notes); 
-                });                
-
-                
-
+            { 
                 // change dialog-title & show save button on EDIT
                 if(action == 'VIEW')
                 {
                     // show dialog
                     $('#services-dialog').modal('show');
 
+                    //Hide Controls in Table
+                    $('#id_inputElements').hide();
+
                     //disable inputs - view mode
-                    $('#service_provided').prop("readonly", true);
-                    $('#date_of_encounter_event').prop("readonly", true);
                     $('#encounter_notes').prop("readonly", true); 
 
                     $('#services-dialog-header p').html('View Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i>');  
@@ -875,6 +1435,9 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                 }
                 if(action == 'EDIT')
                 {
+                    //Show Controls in Table
+                    $('#id_inputElements').show();
+
                     // show dialog
                     $('#services-dialog').modal('show');
 
@@ -891,7 +1454,39 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                     $('#div-delete-doalog p').html('Do you want to delete '+  event_type + ' EVENT (' + event_id + ')?');
                     // show dialog
                     $('#delete-dialog').modal('show');
-                }               
+                }  
+
+                // Populate Grid
+                $.each(result, function(i, val) {
+                    var date_of_event = val.date_of_event;
+                    var encounter_notes = val.case_event_notes;
+                    var case_category = val.case_category;
+                    var resultsets = val.resultsets;
+
+                    $.each(resultsets, function(i, resultset)
+                    {
+                        $.each(resultset, function(i, result)
+                        { 
+                            // Remove pre-exisiting rows 
+                            $('#id_inputElements' + i + '').remove();
+
+                            var rowIndex = i;
+                            var service_provided = result.service_provided;
+                            var date_of_encounter_event = result.date_of_encounter_event;
+                            var service_provider = result.service_provider;
+                            var place_of_service = result.place_of_service;
+                            var service_grouping_id = result.service_grouping_id;
+
+                            var table_row = '<tr id=id_inputElements' + i +'><td><h6>' + (i+1) + '</h6></td><td><h6>' + service_provided + '</h6></td><td><h6>' + date_of_encounter_event + '</h6></td><td><h6>' + service_provider + '</h6></td><td><h6>' + place_of_service + '</h6></td><td><button id=btnEdit' + (i+1) +' type="button" class="btn btn-sm btn-link m-r-5" onClick="EditRow(2,\''+service_grouping_id+'\')"><i class="fa fa-edit" ></i>&nbsp; Edit</b></button></td></tr>'                           
+
+                            // Append each result to  row
+                            $('#services_manager_table > tbody:last-child').append(table_row);
+                        });
+                    });
+                    $('#encounter_notes').val(encounter_notes);
+                    $('#service_provided_case').val(case_category); 
+                    $('#service_provided_case').multiselect('refresh'); 
+                });                     
             },
             error: function(xhr, status, error)
             {
@@ -914,6 +1509,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                         var date_of_court_event = val.date_of_event;
                         var court_notes = val.case_event_notes;
                         var court_orders = ((val.ovc_court_orders).toString()).split(",");
+                        var case_category_id = ((val.ovc_category_ids).toString()).split(",");
 
                         for(var i =0; i < court_orders.length; i++)
                         {
@@ -924,6 +1520,9 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
 
                         $('#date_of_court_event').datepicker('setDate', dateHandler(date_of_court_event));
                         $('#court_notes').val(court_notes);
+
+                        $('#court_session_case').val(case_category_id); 
+                        $("#court_session_case").multiselect("refresh");
                         });
 
                     // change dialog-title & show save button on EDIT
@@ -971,7 +1570,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
         var placements_array = new Array();
 
         $.ajax({
-            url: '{% url 'view_placement' %}',
+            url: '{% url 'view_placement' id=0 %}',
             dataType: 'json',
             method: 'POST',
             data: values,
@@ -981,6 +1580,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                     var date_of_placement_event = val.date_of_event;
                     var placement_notes = val.case_event_notes;
                     var placements = ((val.ovc_placements).toString()).split(",");
+                    var case_category_id = ((val.ovc_category_ids).toString()).split(",");
 
                     $('#date_of_placement_event').datepicker('setDate', dateHandler(date_of_placement_event));
                     $('#placement_notes').val(placement_notes);
@@ -991,6 +1591,9 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                     $('#free_for_adoption').val(placements[3]);
                     $('#admission_date').val(placements[4]);
                     $('#departure_date').val(placements[5]);
+
+                    $('#placement_case').val(case_category_id); 
+                    $("#placement_case").multiselect("refresh");
                 });      
 
                 var operation_mode = $('#operation_mode').val(); 
@@ -1054,6 +1657,63 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
     {
         console.log('No EVENT TYPE recognized!');
     }
+}
+
+function getJsonObject001()
+{
+    var case_id = $('#case_id').val();
+    var action = 1;
+    var multiselect_data = [];
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'case_id': case_id,
+        'action': action   
+    };
+
+    $.ajax({
+            url: '{% url 'getJsonObject001' %}',
+            dataType: 'json',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            {
+                var multiselect_dict = {};
+                var multiselect_dict_initial = { label:'Please Select', value:''};
+                multiselect_data.push(multiselect_dict_initial);
+                $.each(result, function(i, val) {
+                    var case_category_id = val.case_category_id;
+                    var case_category = val.case_category;
+                    var multiselect_dict = { label: case_category, value: case_category_id };
+                    multiselect_data.push(multiselect_dict);
+                }); 
+
+                //multi selects
+                $('#service_provided_case, #court_session_case, #placement_case').multiselect({
+                    selectAllValue: 'multiselect-all',
+                    enableCaseInsensitiveFiltering: true,
+                    numberDisplayed: 1,
+                    maxHeight: 300,
+                    buttonWidth: '100%',
+                    buttonClass: 'btn btn-white'
+                }); 
+                $("#service_provided_case").multiselect("refresh");
+                $("#service_provided_case").multiselect('dataprovider', multiselect_data); 
+
+                $("#court_session_case").multiselect("refresh");
+                $("#court_session_case").multiselect('dataprovider', multiselect_data); 
+
+                $("#placement_case").multiselect("refresh");
+                $("#placement_case").multiselect('dataprovider', multiselect_data);   
+
+                $("#refferal_case").multiselect("refresh");
+                $("#refferal_case").multiselect('dataprovider', multiselect_data);      
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
 }
 function dateHandler(mydate)
 {
@@ -1267,76 +1927,6 @@ function fnCloseCase()
         $('#closure_msgs p').html('Please fill the missing values');
     }
 }
-function fnManageReferral()
-{
-    var ePX = [];
-    var TableData = new Array();
-
-    $('#referrals_data_table tr').each(function(row, tr)
-    {
-        var id = $(tr).find('td:eq(1)').text();
-        var status = '';
-        var checked = $(tr).find('input[type="checkbox"]').is(':checked');
-        var date_of_referral_event = $(tr).find('input[type="text"]').val();
-
-        if(checked)
-        { 
-            if(!date_of_referral_event)
-            { ePX.push("false"); }
-
-            status = 'COMPLETED';
-            TableData[row]={
-                "id" : id,
-                "status" : status,
-                "date_of_referral_event" : date_of_referral_event
-             }
-        }
-    });
-
-    TableData.shift(); //remove first row(headers stuff)
-    TableData = JSON.stringify(TableData);
-    var csrftoken = $.cookie('csrftoken');
-    var case_id = $('#case_id').val();
-    var refferals_made = $('#refferals_made').val();    
-    if(!refferals_made)
-    { refferals_made = ('').toString(); }
-
-    if($.inArray('false', ePX) == -1)
-    {
-        var values = {  
-                'csrfmiddlewaretoken': csrftoken,
-                'case_id':case_id,
-                'refferals_made':refferals_made.toString(),
-                'TableData':TableData
-            };
-            $.ajax({
-                url: '{% url 'manage_refferal' %}',
-                dataType: 'text',
-                method: 'POST',
-                contentType: 'application/x-www-form-urlencoded',
-                data: values,
-                success: function(data)
-                {
-                   $("#ce_msgs").css({ 'display': "block" });
-                   $('#ce_msgs p').html('Referrals Managed Successfully.'); 
-                   $('#refferals_made').val(''); 
-
-                   //close manage-referals-dialog
-                    $('#manage-referals-dialog').modal('hide');
-                },
-                error: function(e)
-                {
-                    console.log(e)
-                }
-            });
-    }
-    else
-    {
-        $("#referral_event_msgs").css({ 'display': "block" }); 
-        $('#referral_event_msgs p').html('Please fill the missing values for Date Completed');
-    }
-}  
-
 function fnSaveResidentialPlacement(){
     var operation_mode = $('#operation_mode').val(); 
     var crudMsg = 'Residential Placement Saved Successfully.';
@@ -1348,7 +1938,7 @@ function fnSaveResidentialPlacement(){
                     'csrfmiddlewaretoken': csrftoken,
                     'case_id':case_id
                  };
-
+    var case_category_id = $('#placement_case').val();
     var date_of_placement_event = $('#date_of_placement_event').val();
     var placement_notes = $('#placement_notes').val(); 
     var residential_institution = $('#residential_institution').val(); 
@@ -1363,69 +1953,81 @@ function fnSaveResidentialPlacement(){
     if(operation_mode == 'EDIT')
     { 
         crudMsg = 'Residential Placement Updated Successfully.'; 
-        _url = '{% url 'edit_placement' %}';
+        _url = '{% url 'edit_placement' id=0%}';
         values['case_event_id'] = case_event_id;
     }
 
     
     //validation
-    if(date_of_placement_event)
+    if(case_category_id)
     {
-        if(placement_notes)
+        if(date_of_placement_event)
         {
-            if(residential_institution)
+            if(placement_notes)
             {
-                if(current_residential_status)
+                if(residential_institution)
                 {
-                    if(has_court_committal_order)
+                    if(current_residential_status)
                     {
-                        if(free_for_adoption)
+                        if(has_court_committal_order)
                         {
-                            if(admission_date)
+                            if(free_for_adoption)
                             {
-                               values['date_of_placement_event'] = date_of_placement_event;
-                                values['placement_notes'] = placement_notes;
-                                values['residential_institution'] = residential_institution;
-                                values['current_residential_status'] = current_residential_status;
-                                values['has_court_committal_order'] = has_court_committal_order;
-                                values['free_for_adoption'] = free_for_adoption;
-                                values['admission_date'] = admission_date;
-                                values['departure_date'] = departure_date;
+                                if(admission_date)
+                                {
+                                    values['case_category_id'] = case_category_id;
+                                    values['date_of_placement_event'] = date_of_placement_event;
+                                    values['placement_notes'] = placement_notes;
+                                    values['residential_institution'] = residential_institution;
+                                    values['current_residential_status'] = current_residential_status;
+                                    values['has_court_committal_order'] = has_court_committal_order;
+                                    values['free_for_adoption'] = free_for_adoption;
+                                    values['admission_date'] = admission_date;
+                                    values['departure_date'] = departure_date;
 
-                                $.ajax({
-                                        url: _url,
-                                        dataType: 'text',
-                                        method: 'POST',
-                                        contentType: 'application/x-www-form-urlencoded',
-                                        data: values,
-                                        success: function(data)
-                                        {
-                                            $("#ce_msgs").css({ 'display': "block" }); 
-                                            $('#ce_msgs p').html(crudMsg); 
-                                            $('#case-events').load(document.URL +  ' #case-events');
+                                    $.ajax({
+                                            url: _url,
+                                            dataType: 'text',
+                                            method: 'POST',
+                                            contentType: 'application/x-www-form-urlencoded',
+                                            data: values,
+                                            success: function(data)
+                                            {
+                                                $("#ce_msgs").css({ 'display': "block" }); 
+                                                $('#ce_msgs p').html(crudMsg); 
+                                                // $('#case-events').load(document.URL +  ' #case-events');
+                                                LoadCaseEvents();
 
-                                            $('#date_of_placement_event').val('');
-                                            $('#placement_notes').val(''); 
-                                            $('#residential_institution').val(''); 
-                                            $('#current_residential_status').val(''); 
-                                            $('#has_court_committal_order').val(''); 
-                                            $('#free_for_adoption').val(''); 
-                                            $('#admission_date').val(''); 
-                                            $('#departure_date').val(''); 
+                                                $('#date_of_placement_event').val('');
+                                                $('#placement_notes').val(''); 
+                                                $('#residential_institution').val(''); 
+                                                $('#current_residential_status').val(''); 
+                                                $('#has_court_committal_order').val(''); 
+                                                $('#free_for_adoption').val(''); 
+                                                $('#admission_date').val(''); 
+                                                $('#departure_date').val(''); 
 
-                                            //close residential-placement-dialog
-                                            $('#residential-placement-dialog').modal('hide');
-                                            $("#placement_msgs").css({ 'display': "none" }); 
-                                        },
-                                        error: function(e)
-                                        {
-                                            console.log(e)
-                                        }
-                                }); 
+                                                //close residential-placement-dialog
+                                                $('#residential-placement-dialog').modal('hide');
+                                                $("#placement_msgs").css({ 'display': "none" }); 
+                                            },
+                                            error: function(e)
+                                            {
+                                                console.log(e)
+                                            }
+                                    }); 
+                                }
+                                else
+                                {
+                                    $("#placement_msgs7").css({ 'display': "block" }); 
+
+                                    $("#placement_msgs").css({ 'display': "block" }); 
+                                    $('#placement_msgs p').html('Please fill the missing values');
+                                }
                             }
                             else
                             {
-                                $("#placement_msgs7").css({ 'display': "block" }); 
+                                $("#placement_msgs6").css({ 'display': "block" }); 
 
                                 $("#placement_msgs").css({ 'display': "block" }); 
                                 $('#placement_msgs p').html('Please fill the missing values');
@@ -1433,7 +2035,7 @@ function fnSaveResidentialPlacement(){
                         }
                         else
                         {
-                            $("#placement_msgs6").css({ 'display': "block" }); 
+                            $("#placement_msgs5").css({ 'display': "block" }); 
 
                             $("#placement_msgs").css({ 'display': "block" }); 
                             $('#placement_msgs p').html('Please fill the missing values');
@@ -1441,7 +2043,7 @@ function fnSaveResidentialPlacement(){
                     }
                     else
                     {
-                        $("#placement_msgs5").css({ 'display': "block" }); 
+                        $("#placement_msgs4").css({ 'display': "block" }); 
 
                         $("#placement_msgs").css({ 'display': "block" }); 
                         $('#placement_msgs p').html('Please fill the missing values');
@@ -1449,23 +2051,23 @@ function fnSaveResidentialPlacement(){
                 }
                 else
                 {
-                    $("#placement_msgs4").css({ 'display': "block" }); 
+                    $("#placement_msgs3").css({ 'display': "block" }); 
 
                     $("#placement_msgs").css({ 'display': "block" }); 
-                    $('#placement_msgs p').html('Please fill the missing values');
+                    $('#placement_msgs p').html('Please fill the missing values');   
                 }
             }
             else
             {
-                $("#placement_msgs3").css({ 'display': "block" }); 
+                $("#placement_msgs2").css({ 'display': "block" }); 
 
                 $("#placement_msgs").css({ 'display': "block" }); 
-                $('#placement_msgs p').html('Please fill the missing values');   
+                $('#placement_msgs p').html('Please fill the missing values');
             }
         }
         else
         {
-            $("#placement_msgs2").css({ 'display': "block" }); 
+            $("#placement_msgs1").css({ 'display': "block" }); 
 
             $("#placement_msgs").css({ 'display': "block" }); 
             $('#placement_msgs p').html('Please fill the missing values');
@@ -1473,11 +2075,12 @@ function fnSaveResidentialPlacement(){
     }
     else
     {
-        $("#placement_msgs1").css({ 'display': "block" }); 
+        $("#placement_msgs0").css({ 'display': "block" }); 
 
         $("#placement_msgs").css({ 'display': "block" }); 
         $('#placement_msgs p').html('Please fill the missing values');
     }
+
     
 }
 function fnSaveCourtSession(){
@@ -1492,6 +2095,7 @@ function fnSaveCourtSession(){
     var court_notes = $('#court_notes').val();
     var court_orders = $('#court_order').val();
     var workforce_member_court = $('#workforce_member_court').val();
+    var case_category_id = $('#court_session_case').val();
     var case_event_id = $('#case_event_id_court').val();
 
     var values = {  
@@ -1507,64 +2111,78 @@ function fnSaveCourtSession(){
         values['case_event_id'] = case_event_id;
     }
 
-    if(date_of_court_event)
+    if(case_category_id)
     {
-        if(court_notes)
+        if(date_of_court_event)
         {
-            if(court_orders)
+            if(court_notes)
             {
-                values['date_of_court_event'] = date_of_court_event;
-                values['court_notes'] = court_notes;
-                values['court_orders'] = court_orders.toString();
-                values['workforce_member_court'] = workforce_member_court;
-                $.ajax({
-                        url: _url,
-                        dataType: 'text',
-                        method: 'POST',
-                        contentType: 'application/x-www-form-urlencoded',
-                        data: values,
-                        success: function(data)
-                        {
-                            $("#ce_msgs").css({ 'display': "block" });  
-                            $('#ce_msgs p').html(crudMsg);
-                            $('#case-events').load(document.URL +  ' #case-events');
+                if(court_orders)
+                {
+                    values['case_category_id'] = case_category_id;
+                    values['date_of_court_event'] = date_of_court_event;
+                    values['court_notes'] = court_notes;
+                    values['court_orders'] = court_orders.toString();
+                    values['workforce_member_court'] = workforce_member_court;
+                    $.ajax({
+                            url: _url,
+                            dataType: 'text',
+                            method: 'POST',
+                            contentType: 'application/x-www-form-urlencoded',
+                            data: values,
+                            success: function(data)
+                            {
+                                $("#ce_msgs").css({ 'display': "block" });  
+                                $('#ce_msgs p').html(crudMsg);
+                                // $('#case-events').load(document.URL +  ' #case-events');
+                                LoadCaseEvents();
 
-                            $('#date_of_court_event').val(''); 
-                            //$('#case_id').val(''); 
-                            $('#court_notes').val(''); 
-                            $("#court_order").multiselect("clearSelection");
-                            $( "#sel_court_order").html('');
+                                $("#court_session_case").multiselect("clearSelection");
+                                $('#date_of_court_event').val(''); 
+                                //$('#case_id').val(''); 
+                                $('#court_notes').val(''); 
+                                $("#court_order").multiselect("clearSelection");
+                                $('#workforce_member_court').val(''); 
+                                $( "#sel_court_order").html('');
 
-                            //close courtsessions-dialog
-                            $('#court-sessions-dialog').modal('hide');
-                            $("#court_msgs").css({ 'display': "none" });
-                        },
-                        error: function(e)
-                        {
-                            console.log(e)
-                        }
-                });  
+                                //close courtsessions-dialog
+                                $('#court-sessions-dialog').modal('hide');
+                                $("#court_msgs").css({ 'display': "none" });
+                            },
+                            error: function(e)
+                            {
+                                console.log(e)
+                            }
+                    });  
+                }
+                else
+                {
+                    $("#court_msgs3").css({ 'display': "block" }); 
+
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                }
             }
             else
             {
-                $("#court_msgs3").css({ 'display': "block" }); 
+                $("#court_msgs2").css({ 'display': "block" }); 
 
                 $("#court_msgs").css({ 'display': "block" }); 
                 $('#court_msgs p').html('Please fill the missing values');
             }
+
         }
         else
         {
-            $("#court_msgs2").css({ 'display': "block" }); 
+            $("#court_msgs1").css({ 'display': "block" }); 
 
             $("#court_msgs").css({ 'display': "block" }); 
             $('#court_msgs p').html('Please fill the missing values');
         }
-
     }
     else
     {
-        $("#court_msgs1").css({ 'display': "block" }); 
+        $("#court_msgs0").css({ 'display': "block" }); 
 
         $("#court_msgs").css({ 'display': "block" }); 
         $('#court_msgs p').html('Please fill the missing values');
@@ -1581,8 +2199,9 @@ function fnSaveEncounter(){
     var case_id = $('#case_id').val();
     var encounter_notes = $('#encounter_notes').val();
     var workforce_member_svc = $('#workforce_member_svc').val();
-    var services_provided = $('#service_provided').val();
+    // var services_provided = $('#service_provided').val();
     var case_event_id = $('#case_event_id_svc').val();
+    var case_category_id = $('#service_provided_case').val();
     var values = {  
                     'csrfmiddlewaretoken': csrftoken,
                     'case_id':case_id
@@ -1597,63 +2216,48 @@ function fnSaveEncounter(){
     }
 
     //validation
-    if(date_of_encounter_event)
+    if(case_category_id)
     {
         if(encounter_notes)
         {
-            if(services_provided)
-            { 
-                if(workforce_member_svc)
+            values['case_category_id'] = case_category_id;
+            values['workforce_member_svc'] = workforce_member_svc;
+            values['encounter_notes'] = encounter_notes;
+
+            $.ajax({
+                url: _url,
+                dataType: 'text',
+                method: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: values,
+                success: function(data)
                 {
-                    values['workforce_member_svc'] = workforce_member_svc;
-                    values['date_of_encounter_event'] = date_of_encounter_event;
-                    values['encounter_notes'] = encounter_notes;
-                    values['services_provided'] = services_provided.toString();
+                    $("#ce_msgs").css({ 'display': "block" });
+                    $('#ce_msgs p').html(crudMsg);
 
-                    $.ajax({
-                        url: _url,
-                        dataType: 'text',
-                        method: 'POST',
-                        contentType: 'application/x-www-form-urlencoded',
-                        data: values,
-                        success: function(data)
-                        {
-                            $("#ce_msgs").css({ 'display': "block" });
-                            $('#ce_msgs p').html(crudMsg);
+                    $('#operation_mode').val('')
 
-                            $('#operation_mode').val('')
-                            $('#case-events').load(document.URL +  ' #case-events'); 
-                            $('#date_of_encounter_event').val(''); 
-                            $('#encounter_notes').val(''); 
-                            $("#service_provided").multiselect("clearSelection");
-                            $( "#sel_service_provided").html('');
+                    LoadCaseEvents(); 
+                    $('#service_provided_case').multiselect("clearSelection"); 
+                    $('#date_of_encounter_event').val(''); 
+                    $('#encounter_notes').val(''); 
+                    $("#service_provided").multiselect("clearSelection");
+                    $('#workforce_member_svc').val(''); 
+                    $( "#sel_service_provided").html('');
+                    $( "#sel_service_provider").html('');
 
-                            //close services-dialog
-                            $('#services-dialog').modal('hide');
-                            $("#encounters_msgs").css({ 'display': "none" });
-                        },
-                        error: function(e)
-                        {
-                            console.log(e);
-                        }
-                    });
-                }
-                else
+                    // Clear <tbody>
+                    //$("#services_manager_table tbody").html('');
+
+                    //close services-dialog
+                    $('#services-dialog').modal('hide');
+                    $("#encounters_msgs").css({ 'display': "none" });
+                },
+                error: function(e)
                 {
-                    $("#encounters_msgs0").css({ 'display': "block" }); 
-
-                    $("#encounters_msgs").css({ 'display': "block" }); 
-                    $('#encounters_msgs p').html('Please fill the missing values');
+                    console.log(e);
                 }
-                
-            }
-            else
-            {
-                $("#encounters_msgs3").css({ 'display': "block" }); 
-
-                $("#encounters_msgs").css({ 'display': "block" }); 
-                $('#encounters_msgs p').html('Please fill the missing values');
-            }
+            });                  
         }
         else
         {
@@ -1665,7 +2269,7 @@ function fnSaveEncounter(){
     }
     else
     {
-        $("#encounters_msgs1").css({ 'display': "block" }); 
+        $("#encounters_msgs0").css({ 'display': "block" }); 
 
         $("#encounters_msgs").css({ 'display': "block" }); 
         $('#encounters_msgs p').html('Please fill the missing values');
@@ -1676,7 +2280,12 @@ function fnSaveEncounter(){
 $(document).ready(function() 
 {
     /* 
-    Make a Call To getJsonObject001() To Get Case Categories to load to Multiselects;
+    Load CaseEvents From Database
+    */
+    LoadCaseEvents();
+
+    /* 
+     Make a Call To getJsonObject001() To Get Case Categories to load to Multiselects;
      These will be picked when adding Encounters/Court/Placements
     */
     getJsonObject001();
@@ -1709,7 +2318,7 @@ $(document).ready(function()
     });
 
     //multi selects
-    $('#service_provided_case, #court_session_case, #placement_case, #residential_institution, #service_provided, #court_order, #refferals_made').multiselect({
+    $('#refferal_case, #service_provided_case, #court_session_case, #placement_case, #residential_institution, #service_provided, #court_order, #refferals_made, #service_provider').multiselect({
         selectAllValue: 'multiselect-all',
         includeSelectAllOption: true,
         enableCaseInsensitiveFiltering: true,
@@ -1719,8 +2328,8 @@ $(document).ready(function()
         buttonClass: 'btn btn-white'
     }); 
 
-    //bootstrap table - #case-events-data-table
-    $('#case-events-data-table').bootstrapTable(
+    //bootstrap table - #case_events_data_table
+    $('#case_events_data_table').bootstrapTable(
     { 
         toggle: 'table', 
         search: 'true',
@@ -1745,31 +2354,23 @@ $(document).ready(function()
     }); 
 
     //bootstrap table - referrals-data-table
-    $('#referrals_data_table').bootstrapTable(
+    $('#old_refferals_table1').bootstrapTable(
     { 
         toggle: 'table', 
-        search: 'true',
+        // search: 'true',
         locale: 'en-US',
         pagination: 'true',
         pageNumber: 1,
-        pageSize: 10,
-        //showRefresh: true,
-        showToggle: true,
-        //showColumns: true,
-        //singleSelect: true,
-        clickToSelect:true,
+        pageSize: 5,
         maintainSelected: true,
         
         onClickRow: function (row, $element)
         {
-            // row: the record corresponding to the clicked row, 
-            // $element: the tr element
-           
-            //checked = row[3];
-            //alert('Value: ' +checked)
-        }
-        
-    }); 
+        }        
+    });
+
+    $('html,body').scrollTop(0);
+    //FormWizardValidation.init();
 });
 </script>
 <script type="text/javascript">
@@ -1789,9 +2390,62 @@ function displayVals(value)
     $( "#sel_"+value ).html(selections.join( ", " ) );
 }
 
+function displayVals2(value)
+{
+    var selections = [];
+    $("#" + value + " option:selected").each(function () 
+    {
+       var $this = $(this);
+       if ($this.length)
+       {
+            var selText = $this.text();
+            selections.push(selText);
+            //console.log(selText);
+       }
+    });
+    $( "#sel_"+value ).html(selections.join( ", <br>" ) );
+}
+
+function displayVals3(value)
+{
+    var selections = [];
+    $("#" + value + " option:selected").each(function () 
+    {
+       var $this = $(this);
+       if ($this.length)
+       {
+            var selText = $this.text();
+            selections.push(selText);
+            //console.log(selText);
+       }
+    });
+    
+    return selections.join( ", <br>" );
+}
+
+/*()
+$("#refferals_made").change(function(event) 
+{ 
+    $( "#refferals_made_errormsg").html('');
+});
+$('#refferals_made').trigger('change');
+
+$("#refferal_case").change(function(event) 
+{   
+   $( "#refferal_case_errormsg").html('');
+});
+$('#refferal_case').trigger('change');
+*/
+
 $("#service_provided").change(function(event) 
 { 
-    displayVals("service_provided");
+    displayVals2("service_provided");
+});
+$('#service_provided').trigger('change');
+
+$("#service_provider").change(function(event) 
+{ 
+    displayVals2("service_provider");
 });
 $('#service_provided').trigger('change');
 
@@ -1800,27 +2454,25 @@ $("#court_order").change(function(event)
     displayVals("court_order");
 });
 $('#court_order').trigger('change');
-
-
+/*
 $("#refferals_made").change(function(event) 
 { 
     displayVals("refferals_made");
 });
 $('#refferals_made').trigger('change');
+*/
 
 //- - - - - CLEAR ERRORS - - - - //
 
 /* Services/Encounters Dialog */
-$('#workforce_member_svc').keyup(function() {
-    if($(this).val()) // get the current value of the input field    
-    {
-        $("#encounters_msgs0").css({ 'display': "none" }); 
-    }
+$("#service_provided_case").change(function(event) 
+{ 
+    $("#encounters_msgs0").css({ 'display': "none" }); 
 });
 
 $('#date_of_encounter_event').datepicker({ format: 'dd-M-yyyy' });
 $('#date_of_encounter_event').datepicker().on('change.dp', function(e) {
-    $("#encounters_msgs1").css({ 'display': "none" });
+    $("#date_of_encounter_event_errormsg").css({ 'display': "none" });
 });
 
 $('#encounter_notes').keyup(function() {
@@ -1832,15 +2484,32 @@ $('#encounter_notes').keyup(function() {
 
 $("#service_provided").change(function(event) 
 { 
-    $("#encounters_msgs3").css({ 'display': "none" }); 
+    $("#service_provided_errormsg").css({ 'display': "none" }); 
+});
+
+$("#service_provider").change(function(event) 
+{ 
+    $("#service_provider_errormsg").css({ 'display': "none" }); 
+});
+
+$('#place_of_service').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#place_of_service_errormsg").css({ 'display': "none" }); 
+    }
+});
+
+$('#workforce_member_svc').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#encounters_msgs4").css({ 'display': "none" }); 
+    }
 });
 
 /* Court Sessions Dialog */
-$('#workforce_member_court').keyup(function() {
-    if($(this).val()) // get the current value of the input field    
-    {
-        $("#court_msgs0").css({ 'display': "none" }); 
-    }
+$("#court_session_case").change(function(event) 
+{ 
+    $("#court_msgs0").css({ 'display': "none" }); 
 });
 
 $('#date_of_court_event').datepicker({ format: 'dd-M-yyyy' });
@@ -1860,13 +2529,18 @@ $("#court_order").change(function(event)
     $("#court_msgs3").css({ 'display': "none" }); 
 });
 
-
-/* Placement Dialog */
-$('#workforce_member_plcmnt').keyup(function() {
+$('#workforce_member_court').keyup(function() {
     if($(this).val()) // get the current value of the input field    
     {
-        $("#placement_msgs0").css({ 'display': "none" }); 
+        $("#court_msgs4").css({ 'display': "none" }); 
     }
+});
+
+
+/* Placement Dialog */
+$("#placement_case").change(function(event) 
+{ 
+    $("#placement_msgs0").css({ 'display': "none" }); 
 });
 
 $('#date_of_placement_event').datepicker({ format: 'dd-M-yyyy' });
@@ -1900,15 +2574,24 @@ $("#free_for_adoption").change(function(event)
 { 
     $("#placement_msgs6").css({ 'display': "none" }); 
 });
+
 $('#admission_date').datepicker({ format: 'dd-M-yyyy' });
 $("#admission_date").change(function(event) 
 { 
     $("#placement_msgs7").css({ 'display': "none" }); 
 });
+
 $('#departure_date').datepicker({ format: 'dd-M-yyyy' });
 $("#departure_date").change(function(event) 
 { 
     $("#placement_msgs8").css({ 'display': "none" }); 
+});
+
+$('#workforce_member_plcmnt').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#placement_msgs9").css({ 'display': "none" }); 
+    }
 });
 
 /* Closure Dialog */
