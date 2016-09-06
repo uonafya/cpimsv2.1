@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 {% block page_title %} {{block.super}} Register {% endblock page_title%}
 
@@ -21,32 +20,20 @@
 <h1 class="page-header">Persons Registry</h1>
 
 {% if messages %}
-<div id="messages" class="alert alert-info fade in">
-    <span class="close" data-dismiss="alert">×</span>
-    <i class="fa fa-check fa-2x pull-left"></i>
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.info %} class="{{ message.info }}"{% endif %}><b>{{ message }}</b></li>
-        {% endfor %}
-    </ul>
-</div>
+    {% for message in messages %}
+    {% if 'error' in message.tags %}
+        <div id="messages" class="alert alert-danger fade in">
+        <span class="close" data-dismiss="alert">×</span>
+        <i class="fa fa-info fa-2x pull-left"></i>
+    {% else %}
+        <div id="messages" class="alert alert-success fade in">
+        <span class="close" data-dismiss="alert">×</span>
+        <i class="fa fa-check fa-2x pull-left"></i>
+    {% endif %}    
+        <p>{{ message }}</p>
+    </div>
+   {% endfor %}
 {% endif %}
-
-<!--
-<script type="text/javascript">
-function jsSearch()
-{
-    {% if "TBVC" in person_type %}
-       $('#btn_create_account').hide();
-    {% endif %}
-    return location.href='/registry/search_persons/';
-    
-    //console.log()
-}
-</script>
--->
-
-<!-- begin row -->
 <!-- begin row -->
 <div class="row">
         <!-- begin col-12 -->
@@ -58,28 +45,28 @@ function jsSearch()
                                 <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                                 <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
                         </div>                          
-                        <h4 class="panel-title"><b>Search Persons</b></h4>
+                        <h4 class="panel-title">Search Persons</h4>
                     </div>
                     <div class="panel-body">
                     <form class="form-inline" action="{% url 'search_persons' %}" method="POST"  data-parsley-validate="true">
                        {% csrf_token %}
                         <div class="form-group m-r-10">
-                            <b>{{ form.person_type }}</b>
+                            {{ form.person_type }}
                         </div>
                         <div class="form-group m-r-10">
-                            <b>{{ form.search_name }}</b>
+                            {{ form.search_name }}
                         </div>
                         <div class="form-group m-r-10">
-                            <b>{{ form.search_criteria }}</b>
+                            {{ form.search_criteria }}
                         </div>
                         <div class="checkbox m-r-10">
                             <label>
-                                {{ form.person_deceased }} <span><b>Include Deceased</b></span>
+                                {{ form.person_deceased }} <span>Include Deceased</span>
                             </label>
                         </div>
-                        <button type="submit" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-search"></i>&nbsp<b>Search</b></button>
+                        <button type="submit" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-search"></i>&nbspSearch</button>
                         <a href="{% url 'new_person' %}">
-                           <button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-plus"></i>&nbsp<b>Register New</b></button>
+                           <button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-plus"></i>&nbspRegister New</button>
                         </a>
                     </form>     
                     </div>
@@ -97,7 +84,7 @@ function jsSearch()
                                 <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                                 <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
                         </div>                           
-                        <h4 class="panel-title"><b>Persons List &nbsp &nbsp<i class="fa fa-navicon"></i></b></h4>
+                        <h4 class="panel-title">Persons List &nbsp &nbsp<i class="fa fa-navicon"></i></h4>
                     </div>
 
                     {% if resultsets %}
@@ -110,10 +97,11 @@ function jsSearch()
                                         <th style="display:none;">ID</th>
                                         <th>First Name</th>
                                         <th>Surname</th>
-                                        <th>Sex</th>  
+                                        <th>Sex</th>
+                                        <th>Person Type</th>  
                                         <th>Residence</th>
                                         <th>OrgUnit</th>                        
-                                        <th>Actions</th>
+                                        <th width="20%">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -124,31 +112,38 @@ function jsSearch()
                                         <td>{{ result.first_name }}</td>
                                         <td>{{ result.surname }}</td>
                                         <td>{{ result.sex_id|gen_value:vals }}</td>
-
-                                        
+                                        <td>
+                                        {% for ptype in result.ptypes %}
+                                            {{ ptype.person_type_id|gen_value:vals }}
+                                        {% endfor %}
+                                        </td>
+                                        <td>
                                         {% for pgeoloc in result.pgeolocs %}
-                                            <td>{{ pgeoloc.area_name }}</td>
+                                            {{ pgeoloc.area_name }}
                                         {% endfor %}
-                                        
-                                        {% for porg in result.porgs%}
-                                            <td>{{ porg.org_unit_name}}</td>
+                                        </td>
+                                        <td>
+                                        {% for porg in result.porgs %}
+                                            {{ porg.org_unit_name}}
                                         {% endfor %}
-                                        
+                                        </td>
                                         <td>
                                         {% ifequal result.id|gen_value:app_user result.id %}
-                                        <button id="btn_create_account" type="submit" onClick="jsCreateUser()" class="btn  btn-sm btn-primary m-r-5">
-                                        <b>Create Account</b>&nbsp&nbsp<i class="fa fa-lock"></i>
-                                        </button>
+                                            {% ifnotequal result.person_type "TBVC" %}
+                                            <button id="btn_create_account" type="submit" onClick="jsCreateUser()" class="btn  btn-sm btn-primary m-r-5">
+                                            Create Account&nbsp;&nbsp;<i class="fa fa-lock"></i>
+                                            </button>
+                                            {% endifnotequal %}
                                         {% else %}
                                         <button id="btn_edit_details" onClick="window.location.href='{% url 'roles_home' %}{{ result.id|gen_value:app_user|cut:"U" }}'" class="btn  btn-sm btn-primary m-r-5">
-                                            <b> Assign Roles</b>&nbsp&nbsp&nbsp&nbsp <i class="fa fa-edit"></i>
+                                             Assign Roles&nbsp;&nbsp; <i class="fa fa-edit"></i>
                                         </button>
                                         {% endifequal %}
                                         <button id="btn_view_details" onClick="window.location.href='{% url 'view_person' id=result.id %}'" class="btn  btn-sm btn-primary m-r-5">
-                                        <b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i>
+                                        View&nbsp;&nbsp;<i class="fa fa-binoculars"></i>
                                         </button>
                                         <button id="btn_delete_details" class="btn  btn-sm btn-primary m-r-5">
-                                         <b>Delete</b>&nbsp&nbsp<i class="fa fa-trash-o"></i>
+                                         Delete&nbsp;&nbsp;<i class="fa fa-trash-o"></i>
                                         </button>
                                         </td>
                                     </tr>
@@ -161,7 +156,7 @@ function jsSearch()
                 </div>
                 <!-- end panel -->
                 {% else %}
-                    <div class="norecords" align="center"><b>No records found.</b></div>
+                    <div class="norecords" align="center">No records found.</div>
                 {% endif %}
 
             </div>
@@ -182,8 +177,6 @@ function jsSearch()
 	</script>
     <script src="{% static 'js/bootstrap-table.min.js' %}"></script>
     <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>    
-    <script>
-    </script>
     <script>
         $(document).ready(function() 
         {
@@ -220,17 +213,6 @@ function jsSearch()
             });
         });
     </script>
-    
-    <!--
-    <script src="{% static 'plugins/DataTables/js/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'js/table-manage-default.demo.min.js' %}"></script>
-    
-    <script>
-        $(document).ready(function() {
-            TableManageDefault.init();
-        });
-    </script>
-    -->
     <script src="{% static 'js/apps.js' %}"></script>
 
 {% endblock lazy_javascript_code%}

@@ -1,12 +1,11 @@
+"""Print out sql for debugging and sql tuning."""
 import os
 from django.db import connection
 from django.conf import settings
 
 
 def terminal_width():
-    """
-    Function to compute the terminal width.
-    """
+    """Function to compute the terminal width."""
     width = 0
     try:
         import struct
@@ -29,10 +28,13 @@ def terminal_width():
 
 class SqlPrintingMiddleware(object):
     """
-    Middleware which prints out a list of all SQL queries done
+    Middleware which prints out a list of all SQL queries done.
+
     for each view that is processed useful for debugging.
     """
+
     def process_response(self, request, response):
+        """Calculate and print the sql durations."""
         indent = 2
         if len(connection.queries) > 0 and settings.DEBUG:
             width = terminal_width()
@@ -46,5 +48,5 @@ class SqlPrintingMiddleware(object):
                     sql = sql[width - indent:]
                 print "%s%s\n" % (" " * indent, sql)
             replace_tuple = (" " * indent, str(total_time))
-            print "%s[TOTAL TIME: %s seconds]" % replace_tuple
+            print "%s[TOTAL PAGE LOAD TIME: %s seconds]" % replace_tuple
         return response

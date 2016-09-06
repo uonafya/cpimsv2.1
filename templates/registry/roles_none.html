@@ -12,7 +12,7 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h1 class="page-header">Registry <small>Roles home</small></h1>
+<h1 class="page-header">Registry <small> Manage Roles</small></h1>
 <!-- end page-header -->
 {% if messages %}
 <div id="messages" class="alert alert-success fade in">
@@ -33,7 +33,7 @@
         <div class="panel-heading-btn">
             <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
         </div>
-        <h4 class="panel-title">CPIMS - {{ page }}</h4>
+        <h4 class="panel-title">CPIMS Permissions and Roles {{ page }}</h4>
     </div>
     <div class="panel-body">
         
@@ -42,6 +42,14 @@
             You do NOT have permissions to access this page.
             <span class="close" data-dismiss="alert">&times;</span>
         </div>
+
+        <p> This could be due to any of these reasons</p>
+        <ul>
+            <li>This record is from a region you do not have jurisdiction to.</li>
+            <li>Your access rights allows you only to view this record.</li>
+            <li>You did not create this record.</li>
+        </ul>
+        <p> To resolve this please contact your data supervisor or your regional manager.</p>
     </div>
 </div>
 <!-- End content area -->

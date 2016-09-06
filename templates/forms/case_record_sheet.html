@@ -1,949 +1,147 @@
-{% extends 'base.html' %}
+ {% extends 'base.html' %}
+
 {% load app_filters %}
+
 {% load staticfiles %}
+
 {% block page_title %} Case Record Sheet {% endblock %}
+
 {% block style_code %}
-<link href="{% static 'plugins/parsley/src/parsley.css' %}" rel="stylesheet" />
-<link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
-<link href="{% static 'plugins/bootstrap-wizard/css/bwizard.min.css' %}" rel="stylesheet" />
-<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
-<link href="{% static 'css/jquery.tagit.css' %}" rel="stylesheet">
 <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
-<style type="text/css">
-.dialog_paragraph {
-  color: #f00;
-}
-</style>
 {% endblock %}
 
 {% block javascript_code%}
 {% endblock javascript_code%}
 
 {% block primary %}
-<!-- begin breadcrumb -->
-<ol class="breadcrumb pull-right">
-	<li><a href="#">Home</a></li>
-	<li class="active">Forms</li>
-</ol>
-<!-- end breadcrumb -->
-<!-- begin page-header -->
-<h1 class="page-header">Forms <small>Case Record Sheet  | <span id="person_name"></small></h1>
-<!-- end page-header -->
-<div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
-    <span class="close" data-dismiss="alert">×</span>
-    <i class="fa fa-check fa-2x pull-left"></i>
-    <p class="invalid-form-message"></p>
-</div>
+<h1 class="page-header">Forms <small>Search Child</small></h1>
 
-<!-- begin row -->
-<div id='case_details' class="row">
-    <!-- begin col-12 -->
-    <div class="col-md-12">
-        <!-- begin panel -->
-        <div class="panel panel-inverse">
-            <div class="panel-heading">
-                <div class="panel-heading-btn">
-                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-expand"><i class="fa fa-minus"></i></a>
-                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-collapse"><i class="fa fa-times"></i></a>
+{% if messages %}
+    {% for message in messages %}
+    {% if 'error' in message.tags %}
+        <div id="messages" class="alert alert-danger fade in">
+        <span class="close" data-dismiss="alert">×</span>
+        <i class="fa fa-info fa-2x pull-left"></i>
+    {% else %}
+        <div id="messages" class="alert alert-success fade in">
+        <span class="close" data-dismiss="alert">×</span>
+        <i class="fa fa-check fa-2x pull-left"></i>
+    {% endif %}    
+        <p>{{ message }}</p>
+    </div>
+   {% endfor %}
+{% endif %}
+
+<div class="row">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-inverse">
+                <div class="panel-heading">
+                    <div class="panel-heading-btn">
+                            <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                            <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    </div>                          
+                    <h4 class="panel-title"><b>Search Child</b></h4>
                 </div>
-                <h4 class="panel-title"><b>Case Details</b></h4>
-            </div>
-            <div class="panel-body">
-                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true"
-                name="form-wizard3" id="new_case_record">
-                	{% csrf_token %}
-					<div id="wizard3">
-						<ol>
-							<li>
-							    Case Reporting 
-							    <small>Reporter and additional details.</small>
-
-							</li>
-							<li>
-							    About the Child 
-							    <small>Name and additional details.</small>
-
-							</li>
-							<li>
-							    Medical
-							    <small>Medical history and additional details.</small>
-							</li>
-							<li>
-							    Case Data
-							    <small>Case type and additional details.</small>
-							</li>
-							<li>
-							    Referrals / Interventions
-							    <small>Case referrals/interventions and additional details.</small>
-							</li>
-						</ol>
-
-						<!-- begin wizard step-1 -->
-						<div class="wizard-step-1">
-                            <fieldset>
-                                <legend class="pull-left width-full">Case Reporting</legend>
-                                <div class="row"> 
-                                	<!-- Create/Pick FK -->
-									{{ form.person }}
-									{{ form.case_id }}
-									{{ form.case_category_id }}
-									<div class="form-group"> 
-										<label class="control-label col-md-4 col-sm-4" for="case_reporter_first_name">Self-Reported * :</label>
-										<div class="checkboxcol-md-6 col-sm-6">
-				                            <label>
-				                                {{ form.self_reporter }} <span id="checkbox_text">(Please uncheck to capture Reporter)</span>
-				                            </label>
-				                        </div>   
-                                        <a href="#" data-toggle="tooltip" title="Check this for self-reporting"><i class="fa fa-info-circle fa-sm"></i></a>
-                                    </div>               
-                                    <div id="div_reporter_names" class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4" for="case_reporter_first_name">Reporter Name(s) * :</label>
-                                        <div class="col-md-2 col-sm-6">
-                                                <b>{{ form.case_reporter_first_name }}</b>
-                                        </div>
-                                        <div class="col-md-2 col-sm-6">
-                                                <b>{{ form.case_reporter_other_names }}</b>
-                                        </div>  
-                                        <div class="col-md-2 col-sm-6">
-                                                <b>{{ form.case_reporter_surname }}</b>
-                                        </div>
-                                        <a href="#" data-toggle="tooltip" title="Enter reporter names"><i class="fa fa-info-circle fa-sm"></i></a>
-                                    </div>                                  
-                                    <div id="div_reporter_contacts" class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4" for="case_reporter_contacts">Reporter PhoneNumber * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                <b>{{ form.case_reporter_contacts }}</b>
-                                        </div>                                      
-                                        <a href="#" data-toggle="tooltip" title="Enter reporter contacts"><i class="fa fa-info-circle fa-sm"></i></a>
-                                    </div>
-                                    <div id="div_reporter_relationship_to_child" class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4" for="case_reporter_relationship_to_child">Reporter Relationship To Child * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                <b>{{ form.case_reporter_relationship_to_child }}</b>
-                                        </div>                                      
-                                        <a href="#" data-toggle="tooltip" title="Enter reporter relationship to child"><i class="fa fa-info-circle fa-sm"></i></a>
-                                    </div>  
-									<div class="form-group">
-                                        <label class="control-label col-md-4 col-sm-4" for="date_case_opened">Date Case Opened * :</label>
-                                        <div class="col-md-6 col-sm-6">
-                                                <b>{{ form.date_case_opened }}</b>
-                                        </div>
-                                        <a href="#" data-toggle="tooltip" title="Enter date case was opened"><i class="fa fa-info-circle fa-sm"></i></a>
-                                    </div>                                                 
-                                </div>
-                                <!-- end row -->
-							</fieldset>
-						</div>
-						<!-- end wizard step-1 -->
-
-						<!-- begin wizard step-2 -->
-						<div class="wizard-step-2">
-                            <fieldset>
-                                <legend class="pull-left width-full">About the Child</legend>
-                                <div class="row"> 
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="init_data">Initial Details :</label>
-										<div class="col-md-6 col-sm-6">
-												
-												{% for data in init_data %}
-		                                			<p><b>CHILD NAMES: </b><i>{{ data.first_name }} {{ data.surname }}</i></p>
-				                                    <p><b>DATE OF BIRTH: </b><i>{{ data.date_of_birth }}</i></p>
-				                                    <p><b>SEX: </b><i>{{ data.sex_id|gen_value:vals }}</i></p>
-				                                    <p><b>AGE: </b><i>{{ data.date_of_birth|gen_age }} YRS (APPROX)</i></p>
-		                                		{% endfor %}
-												
-										</div>
-									</div>									
-                                    <div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="household_economics">House economic status * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.household_economics }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Describe household economic status"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="family_status">Family status * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.family_status }}</b>
-										</div>										
-										<a href="#" data-toggle="tooltip" title="Describe family status"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="tribe">Close Friends * :</label>
-										<div class="col-md-6 col-sm-6">
-											<b>
-											<ul id="friends_list" class="white" placeholder="type">
-	                                        </ul>
-	                                        </b>
-	                                        {{ form.friends }}
-										</div>
-										<a href="#" data-toggle="tooltip" title="List close friends"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="tribe">Hobbies * :</label>
-										<div class="col-md-6 col-sm-6">
-											<b>
-											<ul id="hobbies_list" class="white" placeholder="type">
-
-	                                        </ul>
-	                                        </b>
-	                                        {{ form.hobbies }}
-										</div>
-										<a href="#" data-toggle="tooltip" title="List hobbies"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-                                </div>
-                                <!-- end row -->
-							</fieldset>
-						</div>
-						<!-- end wizard step-2 -->
-
-						<!-- begin wizard step-3 -->
-						<div class="wizard-step-3">
-							<fieldset>
-                                <legend class="pull-left width-full">Medical</legend>
-                                <div class="row">
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="child_in_school">Mental condition * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.mental_condition }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Select mental condition"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="school_category">Physical condition * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.physical_condition }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Select physical condition"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="school_category">Other condition * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.other_condition }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Select other conditions if any"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-                                </div>
-							</fieldset>
-						</div>
-						<!-- end wizard step-3 -->						
-
-						<!-- begin wizard step-4 -->
-					    <div class="wizard-step-4">
-						    <fieldset>
-                                <!-- end row -->
-								<legend class="pull-left width-full">Case Data</legend>
-                                <!-- begin row -->
-                                <div class="row">
-                                	<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="serial_number">Case Serial Number * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.serial_number }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Serial Number"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="case_category">Case Category * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.case_category }}</b><br>
-												<span id="sel_case_category"></span>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Category"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									-->
-	                            	<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="perpetrator_first_name">Perpetrator/Offender Name(s) * :</label>
-										<div class="col-md-2 col-sm-6">
-												<b>{{ form.perpetrator_first_name }}</b>
-										</div>
-										<div class="col-md-2 col-sm-6">
-												<b>{{ form.perpetrator_other_names }}</b>
-										</div>
-										<div class="col-md-2 col-sm-6">
-												<b>{{ form.perpetrator_surname }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Perpetrator/Offender Name(s)"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="perpetrator_relationship">Relationship to Child * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.perpetrator_relationship }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Relationship to Child"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="place_of_event">Place of Event * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.place_of_event }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Place of Event"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="date_of_event">Date of Event * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.date_of_event }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Date of Event"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-									-->								
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="case_nature">Case Nature * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.case_nature }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Nature"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level">Risk Level * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.risk_level }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Risk Level"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level">Immediate Needs * :</label>
-										<div class="col-md-6 col-sm-6">
-											<b>
-											<ul id="immediate_needs_list" class="white" placeholder="type">
-	                                        </ul>
-	                                        </b>
-	                                        {{ form.immediate_needs }}
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Immediate Needs"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level">Future Needs * :</label>
-										<div class="col-md-6 col-sm-6">
-											<b>
-											<ul id="future_needs_list" class="white" placeholder="type">
-	                                        </ul>
-	                                        </b>
-	                                        {{ form.future_needs }}
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Future Needs"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Intervention(s) * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.intervention }}</b>
-												<span id="sel_intervention"></span>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Intervention(s)"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div>
-									--> 
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Refferal Destination * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.refferal_destination_type }}</b>
-										</div>
-									</div> 
-									-->
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="refferal_to"> Refferal To * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.refferal_to }}</b>
-												<span id="sel_refferal_to"></span>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Refferals"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-									-->
-									<!--
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Refferal Reason * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.refferal_reason }}</b>
-										</div>
-									</div> 
-									--> 									
-									<div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="risk_level"> Case Remarks * :</label>
-										<div class="col-md-6 col-sm-6">
-												<b>{{ form.case_remarks }}</b>
-										</div>
-										<a href="#" data-toggle="tooltip" title="Enter Case Remarks"><i class="fa fa-info-circle fa-sm"></i></a>
-									</div> 
-                                </div>
-                            </fieldset>
+                <div class="panel-body">
+                    <form class="form-inline" action="{% url 'case_record_sheet' %}" method="POST" data-parsley-validate="true">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form.search_name }}
                         </div>
-						<!-- end wizard step-4 -->
-
-						<!-- begin wizard step-5 -->
-						<div class="wizard-step-5">
-							<div id="refferal_intervention_msgs" class="alert alert-danger fade in" style="display:none;">
-                                    <span class="close" data-dismiss="alert">×</span>
-                                    <i class="fa fa-close fa-2x pull-left"></i>
-                                    <ul class="messages">
-                                       <p></p>
-                                    </ul>
-                            </div>
-
-                            <fieldset>
-                                <legend class="pull-left width-full">Referrals/Interventions</legend>                            
-
-                               	<table id="refferals_manager_table" class="table table-striped table-bordered">
-                           	 		<thead>
-	                                    <tr id="id_inputHeaders">
-	                                    	<th>#</th>
-	                                        <th>Case Category(s)</th>
-	                                        <th>Date Of Event</th>
-	                                        <th>Intervention(s)</th>
-	                                        <th>Referral(s)</th>
-	                                        <th>Actions</th> 
-	                                    </tr>
-	                                </thead>
-	                                <tbody>
-		                                <tr id="id_inputElements">
-		                                	<td>#</td>
-			                                <td>
-			                                {{ form.case_category }}
-			                                <span id="sel_case_category"></span>
-			                                <div id="case_category_errormsg" style="display:none;">
-                                                <span><p class="dialog_paragraph">This value is required</p></span>
-                                            </div>
-			                                </td>
-
-			                                <td>
-			                                {{ form.date_of_event }}
-			                                <div id="date_of_event_errormsg" style="display:none;">
-                                                <span><p class="dialog_paragraph">This value is required</p></span>
-                                            </div>
-			                                </td>
-
-			                                <td>
-			                                {{ form.intervention }}
-			                                <span id="sel_intervention"></span>
-			                                <div id="intervention_errormsg" style="display:none;">
-                                                <span><p class="dialog_paragraph">This value is required</p></span>
-                                            </div>
-			                                </td>
-
-			                                <td>
-			                                {{ form.refferal_to }}
-			                                <span id="sel_refferal_to"></span>
-			                                <div id="refferal_to_errormsg" style="display:none;">
-                                                <span><p class="dialog_paragraph">This value is required</p></span>
-                                            </div>
-			                                </td>
-
-			                                <td>
-			                                <button type="button" class="btn btn-sm btn-primary m-r-5" onClick="AddRow()">
-			                                	<i class="fa fa-plus"></i>&nbsp; <b>Add Record</b>
-			                                </button>
-			                                </td>
-			                            <tr>
-	                                </tbody>
-                           	 	</table>
-							</fieldset>
-						</div>
-						<!-- end wizard step-5 -->
-					</div>
-
-					<!-- begin panel -->
-	                <div class="panel panel-inverse" data-sortable-id="form-validation-1">
-	                    <div class="panel-body panel-form">
-							<div class="form-group">
-								<label class="control-label col-md-4 col-sm-4"></label>
-								<div class="col-md-6 col-sm-6">
-								    <p></p>
-									<button id="mysubmit3" type="submit" class="btn btn-primary">Submit</button>
-									<button class="btn btn-default" onClick="fnCancel()">Cancel</button>
-									<p></p>
-								</div>
-							</div>
-	                    </div>
-	                </div>
-				</form>
+                        <div class="form-group">
+                            {{ form.search_criteria }}
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary m-r-5">
+                            <i class="fa fa-search"></i>&nbsp;&nbsp;<b>Search</b>
+                        </button>
+                        <a href="{% url 'new_person' %}" class="btn btn-sm btn-primary m-r-5">
+                            <i class="fa fa-plus"></i>&nbsp;&nbsp;<b>Register New Child</b>
+                        </a>
+                    </form>        
+                </div>
             </div>
         </div>
-        <!-- end panel -->
     </div>
-    <!-- end col-12 -->
+
+    {% if resultsets %}
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table id="data-table" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Surname</th>
+                        <th>Sex</th>  
+                        <th>OrgUnit</th>
+                        <th>Residence</th>
+                        <th>Previous Cases</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in resultsets %}
+                    <tr>                                        
+                        <td>{{ result.id }}</a></td>
+                        <td>{{ result.first_name }}</td>
+                        <td>{{ result.surname }}</td>
+                        <td>{{ result.sex_id|gen_value:vals }}</td>
+                        <td>No OrgUnit Info</td>
+                        <td>{{ result.ovc_persongeos }}</td>
+                        <td><h6>{{ result.case_count }}</h6></td>
+                     
+                        <td>                                  
+                            <button class="btn  btn-sm btn-primary m-r-5" onClick="open_form({{result.id}})" >
+                                <b>New Case Record Sheet</b>&nbsp;&nbsp;<i class="fa fa-file"></i>                          
+                            </button>
+                        </td>
+                    </tr>                              
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        <div align="center" class="norecords">No records found.</div>
+    {% endif %}
 </div>
-<!-- end row -->
-<!-- End content area -->
+
 {% endblock %}
 
 {% block lazy_javascript_code %}
-	<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
-	<script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>	
-	<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
-	<script src="{% static 'js/apps.js' %}"></script>
-	<script src="{% static 'js/form-wizards.js' %}"></script>
-	<script src="{% static 'js/tag-it.js' %}"></script>
-	<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
-	<script type="text/javascript">	
-	function RemoveRow(index)
-	{
-		var data = new Array();
-	    var csrftoken = $.cookie('csrftoken');	    
-	    var index = index
-	    var values = {  
-	                    'csrfmiddlewaretoken': csrftoken,
-	                    'index': index
-	                 };
-	    
-	    $.ajax({
-            url: '{% url 'manage_refferal002' %}',
-            dataType: 'text',
-            method: 'POST',
-            contentType: 'application/x-www-form-urlencoded',
-            data: values,
-            success: function(result)
-            { 
-            				                     
-            },
-            error: function(xhr, status, error)
-            {
-                alert(error);
-            }
-        });	
-		
-
-	    // <tr> id = id_index
-	    var tr_id = "#id_" + index;
-	    $(tr_id).remove();
-	}
-	function AddRow()
-	{
-		var CaseManagementData = new Array();
-		var case_category = $('#case_category').val();
-		var date_of_event = $('#date_of_event').val();
-		var intervention = $('#intervention').val();
-		var refferal_to = $('#refferal_to').val();
-	    var data = new Array();
-	    var csrftoken = $.cookie('csrftoken');
-	    var values = {  
-	                    'csrfmiddlewaretoken': csrftoken
-	                 };
-
-		if(case_category)
-		{
-			if(date_of_event)
-			{
-				if(intervention)
-				{
-					if(refferal_to)
-					{
-						CaseManagementData = {
-			                "case_category" : case_category,
-			                "date_of_event" : date_of_event,
-			                "interventions" : intervention,
-			                "refferals_to" : refferal_to
-			            }
-			            CaseManagementData = JSON.stringify(CaseManagementData);
-			            values['CaseManagementData'] = CaseManagementData;
-
-						$.ajax({
-			                url: '{% url 'manage_refferal001' %}',
-			                dataType: 'text',
-	                        method: 'POST',
-	                        contentType: 'application/x-www-form-urlencoded',
-			                data: values,
-			                success: function(result)
-			                { 
-			                	// Find a <table> element with id="myTable":
-								var table = $('#refferals_manager_table')[0]; //document.getElementById("refferals_manager_table");
-
-								// Create an empty <tr> element with id and add it to the 1st position of the table:
-								var rows_length = refferals_manager_table.rows.length;
-								var row = table.insertRow(rows_length);
-								row.id = "id_" + (rows_length-2);
-
-								//Insert new cells (<td> elements) of the "new" <tr> element:
-								var cell0 = row.insertCell(0);
-								var cell1 = row.insertCell(1);
-								var cell2 = row.insertCell(2);
-								var cell3 = row.insertCell(3);
-								var cell4 = row.insertCell(4);
-								var cell5 = row.insertCell(5);
-
-								// Add some text to the new cells:
-								var index = rows_length - 2;
-								cell0.innerHTML = (index);
-								cell1.innerHTML = displayVals2("case_category");
-								cell2.innerHTML = $('#date_of_event').val();
-								cell3.innerHTML = displayVals2("intervention");
-								cell4.innerHTML = displayVals2("refferal_to");
-
-								var btnDeleteItemId = 'btnDeleteItem' + index;
-								/*
-								cell5.innerHTML = "<button id='" + btnDeleteItemId + "'  type='button' class='btn btn-sm btn-danger m-r-5'><i class='fa fa-trash'></i>&nbsp; <b>Delete</b></button>"
-								*/
-
-								cell5.innerHTML  = "<a id='" + btnDeleteItemId + "' class='btn btn-sm btn-danger m-r-5 href='#'><i class='fa fa-minus'></i>&nbsp; <b>Remove</b></a>"
-
-								// AddClick EVent To Delete Button
-								$("#" + btnDeleteItemId + "").click(function(e)
-								{																    
-									RemoveRow(index);
-
-									$('#refferals_manager_table tr').each(function(row, tr)
-								    {
-								    	var rowIndex = parseInt(tr.rowIndex);
-								    	if(rowIndex > 1)
-								    	{
-								    		$(tr).find('td:eq(0)').text(rowIndex-2);
-								    	}
-								    });
-								});
-
-								// Reset Input Elements/Error Divs
-								$('#date_of_event').val('');
-								$("#date_of_event_errormsg").css({ 'display': "none" }); //clear date_of_event_errormsg
-								$("#refferal_intervention_msgs").css({ 'display': "none" }); //clear refferal_intervention_msgs 
-								$("#case_category").multiselect("clearSelection");
-								$("#intervention").multiselect("clearSelection");
-								$("#refferal_to").multiselect("clearSelection");
-						        $( "#sel_case_category").html('');
-						        $( "#sel_intervention").html('');
-						        $( "#sel_refferal_to").html('');			                     
-			                },
-			                error: function(xhr, status, error)
-			                {
-			                    alert(error);
-			                }
-				        });						
-					}
-					else
-					{
-						$("#refferal_to_errormsg").css({ 'display': "block" });
-						$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            			$('#refferal_intervention_msgs p').html('Please fill the missing values');
-					}	
-				}
-				else
-				{
-					$("#intervention_errormsg").css({ 'display': "block" });
-					$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            		$('#refferal_intervention_msgs p').html('Please fill the missing values');
-				}
-			}
-			else
-			{
-				$("#date_of_event_errormsg").css({ 'display': "block" });
-				$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            	$('#refferal_intervention_msgs p').html('Please fill the missing values');
-			}
-		}
-		else
-		{
-			$("#case_category_errormsg").css({ 'display': "block" });
-			$("#refferal_intervention_msgs").css({ 'display': "block" }); 
-            $('#refferal_intervention_msgs p').html('Please fill the missing values'); 
-		}      
-	}
-	function fnCancel()
-	{
-		return window.location.href='{% url 'forms_registry' %}';
-	}
-	window.onload = function(e)
-	{ 
-	   $('#person').val(localStorage.getItem("person_id"));
-	}
-	</script>
-	<script>
-	jQuery(document).ready(function() 
-	{
-		/* Get Case Owner */
-	    var pfirst_name = localStorage.getItem("person_fname");
-	    var psurname = localStorage.getItem("person_sname");
-	    var person_name = pfirst_name + ' ' + psurname;
-	    $('#person_name')[0].innerHTML = person_name;
-
-		//Default Reporter Divs Behaviour (Hide)
-		$('#div_reporter_names').hide();
-        //$('#div_reporter_contacts').hide();
-        $('#div_reporter_relationship_to_child').hide();
-        $('#case_reporter_first_name').attr('data-parsley-required', 'false');
-        $('#case_reporter_surname').attr('data-parsley-required', 'false');
-        //$('#case_reporter_contacts').attr('data-parsley-required', 'false');
-        $('#case_reporter_relationship_to_child').attr('data-parsley-required', 'false');
-
-		var friends_list = new Array();
-		var hobbies_list = new Array();
-		var immediate_needs_list = new Array();
-		var future_needs_list = new Array();
-
-		//multi selects
-		$('#gliving_in, #case_category, #intervention, #refferal_to').multiselect({
-            selectAllValue: 'multiselect-all',
-            includeSelectAllOption: true,
-            enableCaseInsensitiveFiltering: true,
-            numberDisplayed: 1,
-            maxHeight: 300,
-            buttonWidth: '100%',
-            buttonClass: 'btn btn-white'
-      	});	
-		$('#immediate_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var immediate_needs_list = $("#immediate_needs_list").tagit("assignedTags");
-	        	$("#immediate_needs").val(immediate_needs_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var immediate_needs_list = $("#immediate_needs_list").tagit("assignedTags");
-	        	$("#immediate_needs").val(immediate_needs_list)
-	        	//console.log(friends_list);
-		    }
-		});
-		$('#future_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var future_needs_list = $("#future_needs_list").tagit("assignedTags");
-	        	$("#future_needs").val(future_needs_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var future_needs_list = $("#future_needs_list").tagit("assignedTags");
-	        	$("#future_needs").val(future_needs_list)
-	        	//console.log(friends_list);
-		    }
-		});
-		$('#friends_list').tagit(
-		{
-			placeholderText:'Type names + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var friends_list = $("#friends_list").tagit("assignedTags");
-	        	$("#friends").val(friends_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var friends_list = $("#friends_list").tagit("assignedTags");
-	        	$("#friends").val(friends_list)
-			    //console.log(friends_list);
-		    }
-		});
-		$('#hobbies_list').tagit(
-		{
-			placeholderText:'Type hobby + ENTER',
-
-			afterTagAdded: function(event, ui)
-			{
-	        	// do something special
-	        	var hobbies_list = $("#hobbies_list").tagit("assignedTags");
-	        	$("#hobbies").val(hobbies_list)
-	        	//console.log(friends_list);
-		    },
-
-		    afterTagRemoved : function(event, ui)
-			{
-	        	// do something special
-	        	var hobbies_list = $("#hobbies_list").tagit("assignedTags");
-	        	$("#hobbies").val(hobbies_list)
-			    //console.log(friends_list);
-		    }
-		});
-		$('#immediate_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER'
-		});
-		$('#future_needs_list').tagit(
-		{
-			placeholderText:'Type need + ENTER'
-		});
-
-		$('#data-table1').bootstrapTable(
-        { 
-            toggle: 'table', 
-            search: 'true',
-            locale: 'en-US',
-            pagination: 'true',
-            pageNumber: 1,
-            pageSize: 5,
-            //showRefresh: true,
-            showToggle: true,
-            //showColumns: true,
-            singleSelect: true,
-            clickToSelect:true,
-            maintainSelected: true
-        });
-        $('#data-table2').bootstrapTable(
-        { 
-            toggle: 'table',
-            locale: 'en-US',
-            pagination: 'true',
-            pageNumber: 1,
-            pageSize: 10,
-            singleSelect: true,
-            clickToSelect:true,
-            maintainSelected: true
-        });
-
-        $('#data-table-tbgr').bootstrapTable(
-        { 
-            toggle: 'table', 
-            search: 'true',
-            locale: 'en-US',
-            pagination: 'true',
-            pageNumber: 1,
-            pageSize: 5,
-            //showRefresh: true,
-            showToggle: true,
-            //showColumns: true,
-            singleSelect: true,
-            clickToSelect:true,
-            maintainSelected: true
-        });
-
-		$('html,body').scrollTop(0);
-		FormWizardValidation.init();
-	});
-	</script>
-	<script type="text/javascript">
-	function displayVals(value)
-	{
-		var selections = [];
-		$("#" + value + " option:selected").each(function () 
-		{
-		   var $this = $(this);
-		   if ($this.length)
-		   {
-			    var selText = $this.text();
-			    selections.push(selText);
-			    //console.log(selText);
-		   }
-		});
-		$( "#sel_"+value ).html(selections.join( ", <br>" ) );
-	}
-
-	function displayVals2(value)
-	{
-		var selections = [];
-		$("#" + value + " option:selected").each(function () 
-		{
-		   var $this = $(this);
-		   if ($this.length)
-		   {
-			    var selText = $this.text();
-			    selections.push(selText);
-			    //console.log(selText);
-		   }
-		});
-		
-		return selections.join( ", <br>" );
-	}
-
-	$("#case_category").change(function(event) 
-	{ 
-		displayVals("case_category");
-		$("#case_category_errormsg").css({ 'display': "none" });
+<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>
+<script>
+function register_new()
+{
+    return window.location.href='{% url 'new_person' %}'; 
+}
+function open_form(id)
+{
+    return window.location.href='{% url 'new_case_record_sheet' id=0 %}'.replace("0", id);       
+}
+</script>
+<script>
+$(document).ready(function() 
+{
+    $('#data-table').bootstrapTable(
+    { 
+        toggle: 'table', 
+        search: 'true',
+        locale: 'en-US',
+        pagination: 'true',
+        pageNumber: 1,
+        pageSize: 10,
+        //showRefresh: true,
+        showToggle: true,
+        //showColumns: true,
+        singleSelect: true,
+        clickToSelect:true,
+        maintainSelected: true        
     });
-    $('#case_category').trigger('change');
-
-    $("#intervention").change(function(event) 
-	{ 
-		displayVals("intervention");
-		$("#intervention_errormsg").css({ 'display': "none" });
-    });
-    $('#intervention').trigger('change');
-
-    $("#refferal_to").change(function(event) 
-	{ 
-		displayVals("refferal_to");
-		$("#refferal_to_errormsg").css({ 'display': "none" });
-    });
-	$('#refferal_to').trigger('change');	
-
-	$("#date_case_opened").change(function(event) 
-	{ 
-	    var date_case_opened = $('#date_case_opened').datepicker('getDate');
-	    var new_date_case_opened = date_case_opened.getDate() + '/' 
-	    							+ (date_case_opened.getMonth() + 1) + '/' 
-	    							+ date_case_opened.getFullYear(); 
-
-	    // Reconfigure date_of_event
-	    $('#date_of_event').val('');
-	    $('#date_of_event').datepicker('remove');
-	    $('#date_of_event').datepicker({ 
-			endDate: new_date_case_opened,
-			format: 'dd-M-yyyy'
-		});
-	});
-
-	// handle CheckBox Checked/Unchecked
-	$('#self_reporter').change(function()
-	{
-		//if checked
-		if($(this).is(":checked"))
-		{
-			//Hide reporter Qs and remove parsely
-			$('#checkbox_text')[0].innerHTML = '(Please uncheck to capture Reporter)'
-	        $('#div_reporter_names').hide();
-	        //$('#div_reporter_contacts').hide();
-	        $('#div_reporter_relationship_to_child').hide();
-
-	        // Reset Controls For Reporter
-	        $('#case_reporter_first_name').val('');
-	        $('#case_reporter_other_names').val('');
-	        $('#case_reporter_surname').val('');
-	        //$('#case_reporter_contacts').val('');
-	        $('#case_reporter_relationship_to_child').val('');
-
-	        $('#case_reporter_first_name').attr('data-parsley-required', 'false');
-	        $('#case_reporter_surname').attr('data-parsley-required', 'false');
-	        //$('#case_reporter_contacts').attr('data-parsley-required', 'false');
-	        $('#case_reporter_relationship_to_child').attr('data-parsley-required', 'false');
-		}
-		else
-		{
-			//if not checked
-			//Show reporter Qs and Add parsely 
-			$('#checkbox_text')[0].innerHTML = '(Please check for Self-Reporter)'
-	        $('#div_reporter_names').show();
-	        //$('#div_reporter_contacts').show();
-	        $('#div_reporter_relationship_to_child').show();
-
-	        $('#case_reporter_first_name').attr('data-parsley-required', 'true');
-	        $('#case_reporter_surname').attr('data-parsley-required', 'true');
-	        //$('#case_reporter_contacts').attr('data-parsley-required', 'true');
-	        $('#case_reporter_relationship_to_child').attr('data-parsley-required', 'true');
-	    }
-	});
-	
-	</script>
-	<!--
-    <script type="text/javascript">
-	$(function () {
-	  $('#new_case_record').parsley().on('form:validate', function (formInstance) {
-	    var ok = formInstance.isValid('group0', true) || formInstance.isValid('group1', true) || formInstance.isValid('group2', true) || formInstance.isValid('group3', true) || formInstance.isValid('group4', true) || formInstance.isValid('group5', true);
-	    $(".alert").show();
-	    $('.invalid-form-message')
-	      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
-	      .toggleClass('filled', !ok);
-	    if (!ok){
-	      formInstance.validationResult = false;
-	    }else{
-	    	$(".alert").hide();
-	    }
-	  });
-	});
-	</script>
-	-->
+});
+</script>
+<!--<script src="{% static 'js/apps.js' %}"></script>-->
 {% endblock %}

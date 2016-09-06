@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
-{% block page_title %} Dashboard {% endblock %}
+{% block page_title %} Edit Organization Unit {% endblock %}
 
 {% load crispy_forms_tags %}
 
@@ -20,7 +20,7 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h1 class="page-header">Registry <small>Register Organisational Unit</small></h1>
+<h1 class="page-header">Registry <small>Update Organisational Unit | {{ org_unit.org_unit_id_vis}} - {{ org_unit.org_unit_name}}</small></h1>
 <!-- end page-header -->
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
@@ -49,19 +49,19 @@
 						<ol>
 							<li>
 							    About the Organisation 
-							    <small>Name and registration date.</small>
+							    <small>Name and registration date</small>
 							</li>
 							<li>
 							    Organisation Type
-							    <small>Organisation type and registration details.</small>
+							    <small>Organisation type and registration details</small>
 							</li>
 							<li>
 							    Location
-							    <small>Where located / Providing services.</small>
+							    <small>Where located and/or providing services</small>
 							</li>
 							<li>
 							    Contact
-							    <small>Organisation Unit contact details.</small>
+							    <small>Organisation Unit contact details</small>
 							</li>
 						</ol>
 						<!-- begin wizard step-1 -->
@@ -70,7 +70,7 @@
                                 <legend class="pull-left width-full">About the Organisation</legend>
                                 <div class="row">
                                     <div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="org_unit_name">Name of Organisation Unit * :</label>
+										<label class="control-label col-md-4 col-sm-4" for="org_unit_name">Name of Organisation Unit <span class="asteriskField">*</span> :</label>
 										<div class="col-md-6 col-sm-6">
 												{{ form.org_unit_name }}
 										</div>
@@ -95,10 +95,14 @@
                                 <div class="row">
                                     <!-- begin col-6 -->
                                     <div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="org_unit_type">Type of organisation Unit :</label>
-										<div class="col-md-6 col-sm-6">
+										<label class="control-label col-md-4 col-sm-4" for="org_unit_type">Type and sub-type of organisation Unit <span class="asteriskField">*</span>:</label>
+										<div class="col-md-3 col-sm-3">
+											{{ form.org_unit_category }}
+										</div>
+										<div class="col-md-3 col-sm-3">
 											{{ form.org_unit_type }}
 										</div>
+										<a href="#" data-toggle="tooltip" title="Type and sub-type are mandatory"><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="legal_reg_type">Legal Registration type :</label>
@@ -113,7 +117,7 @@
 										</div>
 									</div>
 			                        <div class="form-group">
-										<label class="control-label col-md-4 col-sm-4" for="parent_unit">Parent Unit :</label>
+										<label class="control-label col-md-4 col-sm-4" for="parent_unit">Parent Unit <span class="asteriskField">*</span> :</label>
 										<div class="col-md-6 col-sm-6">
 											{{ form.parent_org_unit }}
 										</div>
@@ -131,25 +135,30 @@
                                 <!-- begin row -->
                                 <div class="row">
                                     <!-- begin col-4 -->
-                                    <div class="form-group">
+                                    <div class="form-group" id="county_div">
 										<label class="control-label col-md-4 col-sm-4" for="sub_county">County :</label>
 										<div class="col-md-6 col-sm-6">
 											{{ form.county }}
+											<br>
 											<span id="sel_county" class="showlist"></span>
 										</div>
 									</div>
-                                    <div class="form-group">
+                                    <div class="form-group" id="sub_county_div">
 										<label class="control-label col-md-4 col-sm-4" for="sub_county">Sub County :</label>
 										<div class="col-md-6 col-sm-6">
 											{{ form.sub_county }}
+											<br>
 											<span id="sel_sub_county" class="showlist"></span>
+											<div id="county_error"></div>
 										</div>
 									</div>
-									<div class="form-group">
+									<div class="form-group" id="ward_div">
 										<label class="control-label col-md-4 col-sm-4" for="wards">Wards :</label>
 										<div class="col-md-6 col-sm-6">
 											{{ form.ward }}
+											<br>
 											<span id="sel_ward" class="showlist"></span>
+											<div id="ward_error"></div>
 										</div>
 									</div>
 			                        <!-- end col-6 -->
@@ -195,7 +204,9 @@
 								<div class="col-md-6 col-sm-6">
 								    <p></p>
 									<button id="mysubmit" type="submit" class="btn btn-primary">Update</button>
-									<button type="submit" class="btn btn-default">Cancel</button>
+									<a href="{% url 'registry' %}">
+									<button type="button" class="btn btn-default">Cancel</button>
+									</a>
 									<p></p>
 								</div>
 							</div>
@@ -224,23 +235,26 @@
 		      var refs = $(requirement).val();
 		      var reff = $(requirement);
 		      var vals = ["TNRL", "TNRR", "TNRC", "TNCB", "TNCM",
-		                  "TNGS", "TNND", "TNAC", "TNCD", "TNGD"];
+		                  "TNGS", "TNND", "TNAC", "TNCD"]; //, "TNGD"
 		      var cat1 = ["TNRL", "TNRR", "TNRC", "TNCB"];
 		      var cat2 = ["TNCM", "TNGS", "TNND", "TNAC"];
-		      var cat3 = ["TNCD", "TNGD"];
-		      var cat4 = ["TNNM", "TNCP", "TNGB"];
+		      var cat3 = ["TNCD"]; //, "TNGD"
+		      var cat4 = ["TNNM", "TNCP", "TNGB", "TNGD"];
 		      var cat5 = ["TNNH", "TNCN", "TNGN"];
 
 		      if (reff.length){
                 if (value){
                 	if($.inArray(refs, vals) > -1){
-	                	var msg = 'Only one Sub-county required.';
+	                	msg = 'Only one Sub-county required.';
+	                	window.Parsley.addMessage('en', 'chkcounty',  msg);
 	                	if (value.length == 1) return true; else return false;
 	                }else if($.inArray(refs, cat4) > -1){
-	                	var msg = 'One or more Sub-county required.';
+	                	msg = 'One or more Sub-county required.';
+	                	window.Parsley.addMessage('en', 'chkcounty',  msg);
 	                	if (value.length >= 1) return true; else return false;
 	                }else if($.inArray(refs, cat5) > -1){
-	                	var msg = 'Sub-county not required';
+	                	msg = 'Sub-county not required';
+	                	window.Parsley.addMessage('en', 'chkcounty',  msg);
 	                	if (value.length == 0) return true; else return false;
 	                }else{
 	                	return true;
@@ -254,48 +268,7 @@
 		      window.ParsleyValidator.addMessage('en', 'chkcounty',  msg);
 		    }
 		 });
-		window.Parsley
-		  .addValidator('isngo', {
-		    requirementType: 'string',
-		    validateString: function(value, requirement) {
-		      var refs = $(requirement).val();
-		      var reff = $(requirement);
-		      var vals = ["TNND", "TNNM", "TNNH"];
-		      if (reff.length){
-                if($.inArray(refs, vals) > -1){
-                	if (value != '') return true; else return false;
-                }else{
-                	return true;
-                }
-		      }else{
-		      	return false;
-		      }
-		    },
-		    messages: {
-		      en: 'Registration details should be provided for this unit.'
-		    }
-		  });
-		window.Parsley
-		    .addValidator('ishq', {
-		    requirementType: 'string',
-		    validateString: function(value, requirement) {
-		      var refs = $(requirement).val();
-		      var reff = $(requirement);
-		      if (reff.length){
-                if(refs != 'TNGN'){
-                	if (value != '') return true; else return false;
-                }else{
-                	return true;
-                }
-		      }else{
-		      	return false;
-		      }
-		    },
-		    messages: {
-		      en: 'Parent organization unit must be provided.'
-		    }
-		  });
-
+		
 		window.Parsley
 		    .addValidator('notfuturedate', {
 		    requirementType: 'string',
@@ -306,10 +279,15 @@
 	                return false;
 	            }
 	            var todate = new Date(); // today
-	            return (form_date <= todate);
+	            var sdate = new Date(1900, 1, 1, 0, 0, 0, 0);
+	            if (form_date > todate){
+	            	return false;
+	            }else{
+	            	return (form_date >= sdate);
+	            }
 		    },
 		    messages: {
-		      en: 'Please provide a valid date that is not in the future.'
+		      en: 'Please provide a valid date (e.g 01-Jan-2016) that is not in the future.'
 		    }
 		  });
 		</script>
@@ -317,15 +295,60 @@
 		jQuery(document).ready(function() {
 			$('html,body').scrollTop(0);
 			FormWizardValidation.init();
-			$('#id_county, #id_sub_county, #id_ward').multiselect({
+
+			var unit_type = $("#id_org_unit_type").val();
+		    var unit_category = $("#id_org_unit_category").val();
+		    handle_locations(unit_type);
+		    handle_subcat(unit_category);
+
+		    //Overwrite the rules for org units
+		    $('#id_parent_org_unit').empty();
+			$('#id_parent_org_unit').append('{{ units_html|safe }}');
+			$('#id_county').multiselect({
 				enableFiltering: true,
 				filterBehavior: 'both',
 				numberDisplayed: 0,
 				maxHeight: 200,
-				buttonWidth: '75%',
+				buttonWidth: '100%',
+				disableIfEmpty: true,
+				enableClickableOptGroups: true,
+				buttonClass: 'btn btn-white',
+				inheritClass: true,
+				nonSelectedText: 'Please select',
 				enableCaseInsensitiveFiltering: true
 			});
-			$("#id_org_unit_type").attr('disabled', 'disabled');
+			$('#id_sub_county').multiselect({
+				selectAllValue: 'multiselect-all',
+                includeSelectAllOption: true,
+				enableFiltering: true,
+				filterBehavior: 'both',
+				numberDisplayed: 0,
+				maxHeight: 200,
+				buttonWidth: '100%',
+				disableIfEmpty: true,
+				enableClickableOptGroups: true,
+				buttonClass: 'btn btn-white',
+				inheritClass: true,
+				nonSelectedText: 'Please select',
+				enableCaseInsensitiveFiltering: true
+			});
+			$('#id_ward').multiselect({
+				selectAllValue: 'multiselect-all',
+                includeSelectAllOption: true,
+				enableFiltering: true,
+				filterBehavior: 'both',
+				numberDisplayed: 0,
+				maxHeight: 200,
+				buttonWidth: '100%',
+				disableIfEmpty: true,
+				enableClickableOptGroups: true,
+				buttonClass: 'btn btn-white',
+				inheritClass: true,
+				nonSelectedText: 'Please select',
+				enableCaseInsensitiveFiltering: true
+			});
+			$("#id_org_unit_category").attr('disabled', 'disabled');
+			//$("#id_org_unit_type").attr('disabled', 'disabled');
 			$("#id_parent_org_unit").attr('disabled', 'disabled');
 			$(".edit_org").change(function(e) {
 			var edit_org = $('input[name=edit_org]:checked', '#edit_org_unit').val();
@@ -417,42 +440,54 @@
 			       $("#edit_part").hide();
 			       $("#cdate").show();
 			       $("#editdate").prop("readonly", false);
-			       $("#editdate").prop("readonly", false);
 			       $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
+			       $('#edit_org_unit').parsley().destroy();
 			    }else if (res == '1'){
 			       $("#edit_part").show();
 			       $("#cdate").hide();
 			       $("#editdate").prop("readonly", true);
 			       //$("#mysubmit").removeClass( "btn-primary" ).attr("disabled", "disabled");
 			       $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
+			       $('#edit_org_unit').parsley();
 			    }else{
 			       $("#edit_part").hide();
 			       $("#cdate").hide();
 			       $("#editdate").prop("readonly", true);
 			       $("#mysubmit").addClass( "btn-primary" ).removeAttr("disabled");
+			       $('#edit_org_unit').parsley().destroy();
 			   }
 		    });
+		    $('#edit_org_unit').parsley().reset();
 		});
 	</script>
 
     <script type="text/javascript">
-		$(function () {
-		  $('#edit_org_unit').parsley().on('form:validate', function (formInstance) {
-		    var ok = formInstance.isValid('primary', true) || formInstance.isValid('primary1', true) || formInstance.isValid('primary2', true) || formInstance.isValid('primary3', true);
-		    $(".alert").show();
-		    $('.invalid-form-message')
-		      .html(ok ? '' : 'You must correctly fill the mandatory fields.')
-		      .toggleClass('filled', !ok);
-		    if (!ok){
-		      formInstance.validationResult = false;
-		    }else{
-		    	$(".alert").hide();
-		    }
-		  });
-		});
+        function handle_locations(unit_type){
+        	var cat1 = ["TNCD", "TNGD"];
+	        var cat2 = ["TNNM", "TNCP", "TNGB"];
+	        var cat3 = ["TNNH", "TNCN", "TNGN"];
+
+	        if($.inArray(unit_type, cat1) > -1){
+                $("#ward_div").hide();
+                $("#location_info").empty();
+            }else if($.inArray(unit_type, cat2) > -1){
+                $("#ward_div").hide();
+                $("#location_info").empty();
+            }else if($.inArray(unit_type, cat3) > -1){
+            	$("#ward_div").hide();
+                $("#sub_county_div").hide();
+                $("#county_div").hide();
+                $("#location_info").html(' - Not required');
+            }else{
+            	$("#ward_div").show();
+            	$("#sub_county_div").show();
+            	$("#location_info").empty();
+            }
+        }
+
 		function displayVals(area_value) {
 		  var area_name = [];
-		  area_value = (typeof area_value === 'undefined') ? 'default' : area_value;
+		  area_value = (typeof area_value === 'undefined') ? 'county' : area_value;
 		  //var multipleValues = $( "#id_sub_county" ).val() || [];
 		  //var multipleValues = $("#id_sub_county option:selected").text() || [];
 		  $("#id_"+area_value+" option:selected").each(function () {
@@ -465,6 +500,41 @@
 			});
 
 		  $( "#sel_"+area_value ).html(area_name.join( ", " ) );
+		}
+
+		function handle_subcat(area_value){
+            {% for key, values in orgs.items %}
+               var {{ key }} = {{ values|safe }};
+            {% endfor %}
+
+	        if (area_value != ''){
+	            eval(area_value).forEach(function(orgs) {
+	            	var orgs_attribs = orgs.split(",");
+	                $('#id_org_unit_type')
+	                    .append($("<option></option>")
+                        .attr("value", orgs_attribs[0])
+                        .text(orgs_attribs[1]));
+	            });
+	        }else{
+	             $('#id_org_unit_type').append('<option></option>'); 
+	        }
+	        $('#id_org_unit_type').val('{{ unit_type }}');
+	        if (area_value == 'TNGU'){
+            	$("#div_legal_reg_type").hide();
+            	$("#div_legal_reg_number").hide();
+            	$('#id_org_reg_type').attr('data-parsley-required', 'false');
+            	$('#id_legal_reg_number').attr('data-parsley-required', 'false');
+            }else if ((area_value == 'TNNG') || (area_value == 'TNCI')){
+            	$("#div_legal_reg_type").show();
+            	$("#div_legal_reg_number").show();
+            	$('#id_org_reg_type').attr('data-parsley-required', 'true');
+            	$('#id_legal_reg_number').attr('data-parsley-required', 'true');
+            }else{
+            	$("#div_legal_reg_type").show();
+            	$("#div_legal_reg_number").show();
+            	$('#id_org_reg_type').attr('data-parsley-required', 'false');
+            	$('#id_legal_reg_number').attr('data-parsley-required', 'false');
+            }
 		}
 		$('[data-toggle="tooltip"]').tooltip({'placement': 'bottom'});
 		//$( "#id_sub_county" ).change( displayVals );

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Common method for getting related list for dropdowns... e.t.c
+"""Common method for getting related list for dropdowns... e.t.c."""
 import uuid
 import datetime
 import collections
@@ -8,21 +8,28 @@ import jellyfish
 import traceback
 import operator
 from .models import SetupList, SetupGeography
+from django.core.cache import cache
 from django.core.exceptions import FieldError
 from django.db.models import Q
 from cpovc_registry.models import (
     RegPerson, RegPersonsGeo, RegPersonsOrgUnits, RegOrgUnit,
-    RegOrgUnitGeography, RegPersonsTypes)
+    RegOrgUnitGeography, RegPersonsTypes, RegPersonsExternalIds)
+# Added
+from cpovc_forms.models import OVCCaseCategory
+from cpovc_main.models import SetupGeography, SetupList, SchoolList
 
 organisation_id_prefix = 'U'
 benficiary_id_prefix = 'B'
 workforce_id_prefix = 'W'
+form_id_prefix = 'F'
+case_event_id_prefix = 'CE'
+
 
 class Persons:
     id_int = None
     user_id = None
     workforce_id = None
-    national_id =  None
+    national_id = None
     first_name = ''
     other_names = ''
     surname = ''
@@ -134,6 +141,38 @@ class Persons:
     def get_locations_for_display(self):
         return self.locations_for_display
 
+def translate_school(value):
+    item_value = SchoolList.objects.get(school_id=value, is_void=False)
+    return item_value.school_name
+
+def translate_reverse_org(value):
+    item_value = RegOrgUnit.objects.get(org_unit_name=value, is_void=False)
+    return item_value.id
+    
+def translate_case(value):
+    item_value = OVCCaseCategory.objects.get(case_category_id=value, is_void=False)
+    return item_value.case_category
+
+def translate_geo(value):
+    item_value = SetupGeography.objects.get(area_id=value, is_void=False)
+    return item_value.area_name
+
+def translate(value):
+    if value:
+        item_value = SetupList.objects.filter(item_id=value, is_void=False)
+        item_value = item_value[0]
+        return item_value.item_description
+    else:
+        return value
+
+def translate_reverse(value):
+    if value:
+        item_value = SetupList.objects.filter(item_description=value, is_void=False)
+        item_value = item_value[0]
+        return item_value.item_id
+    else:
+        return value
+
 def get_description_for_item_id(item_id):
     return tuple([(l.item_description) for l in SetupList.objects.filter(item_id = item_id)])
 
@@ -200,7 +239,7 @@ def get_vorg_list(org_unit_id):
         return queryset
 
 
-def get_general_list(field_names=[]):
+def get_general_list(field_names=[], item_category=False):
     '''
     Get list general filtered by field_name
     '''
@@ -214,8 +253,8 @@ def get_general_list(field_names=[]):
             queryset = queryset.filter(q_filter)
         else:
             queryset = queryset.filter(field_name=field_names[0])
-        # To do -...............
-        # queryset = queryset.filter(field_name='sex_id')
+        if item_category:
+            queryset = queryset.filter(item_category=item_category)
     except Exception, e:
         error = 'Error getting whole list - %s' % (str(e))
         print error
@@ -224,10 +263,18 @@ def get_general_list(field_names=[]):
         return queryset
 
 
-def get_list(field_name=[], default_txt=False):
+def get_list(field_name=[], default_txt=False, category=False):
     my_list = ()
     try:
-        v_list = get_general_list([field_name])
+        cat_id = '1' if category else '0'
+        cache_key = 'set_up_list_%s_%s' % (field_name, cat_id)
+        cache_list = cache.get(cache_key)
+        if cache_list:
+            v_list = cache_list
+            print 'FROM Cache %s' % (cache_key)
+        else:
+            v_list = get_general_list([field_name], category)
+            cache.set(cache_key, v_list, 300)
         my_list = v_list.values_list('item_id', 'item_description')
         if default_txt:
             initial_list = ('', default_txt)
@@ -249,9 +296,11 @@ def get_org_units_list(default_txt=False):
     all_list = collections.OrderedDict(initial_list)
     try:
         my_list = RegOrgUnit.objects.filter(
-            is_void=False).order_by('org_unit_name')
+            id__gt=1, is_void=False).order_by('org_unit_name')
         for a_list in my_list:
-            all_list[a_list.id] = a_list.org_unit_name
+            unit_names = '%s - %s' % (a_list.org_unit_id_vis,
+                                      a_list.org_unit_name)
+            all_list[a_list.id] = unit_names
     except Exception, e:
         error = 'Error getting list - %s' % (str(e))
         print error
@@ -432,13 +481,14 @@ def search_geo_tags(regpersons_queryset, search_string, as_of_date=None):
 def search_parent_orgs(regpersons_queryset, search_string, as_of_date=None):
     search_strings = tokenize_search_string(search_string)
     q_filter = Q()
-    query_param = "parent_org_unit__org_unit_name__icontains"
+    query_param = "org_unit_name__icontains"
     for search_string in search_strings:
         q_filter |= Q(**{query_param: search_string})
-    parent_org_unit_matches = RegPersonsOrgUnits.objects.filter(q_filter)
-    # parent_org_unit_matches = as_of_date_filter(parent_org_unit_matches,
-    #                                                as_of_date=None)
-    p_param = parent_org_unit_matches.values_list("person__id")
+    parent_orgs_matched = RegOrgUnit.objects.filter(q_filter)
+    orgs_param = parent_orgs_matched.values_list("id")
+    parent_orgs_matches = RegPersonsOrgUnits.objects.filter(
+        org_unit_id__in=orgs_param)
+    p_param = parent_orgs_matches.values_list("person_id")
     parent_org_unit_match_persons = regpersons_queryset.filter(id__in=p_param)
 
     return parent_org_unit_match_persons
@@ -644,41 +694,40 @@ def load_wfc_from_id(wfc_pk,user=None,include_dead=False):
             communities = RegPersonsGdclsu.objects.filter(person=tmp_wfc,is_void=False,date_delinked=None).values_list('gdclsu_id', flat=True)
         """
         org_data_hidden = reconstruct_org_text(org_units)
-        
-        
+
         wfc = WorkforceMember(  
-                        workforce_id = tmp_wfc.workforce_id,
-                        national_id =  tmp_wfc.national_id,
-                        first_name = tmp_wfc.first_name,
-                        surname = tmp_wfc.surname,
-                        other_names = tmp_wfc.other_names,
-                        sex_id = tmp_wfc.sex_id,
-                        date_of_birth = tmp_wfc.date_of_birth,
-                        date_of_death = tmp_wfc.date_of_death,
-                        steps_ovc_number = ovc_id,
-                        man_number = man_id,
-                        ts_number = ts_id,
-                        sign_number = sing_id,
-                        roles = None,
-                        org_units =  org_units,
-                        org_unit_name = org_unit_name,
-                        person_type = person_type_desc, 
-                        gdclsu_details = None, 
-                        contact = contact,
-                        person_type_id = person_type_id,
-                        districts=districts,
-                        wards = wards,
-                        wards_string = get_obj_strings(wards,None,'ward'),
-                        org_units_string = get_obj_strings(org_units,org_unit_name,'org'),
-                        communities_string = get_obj_strings(communities,None,'community'),
-                        communities= communities,
-                        direct_services = '',
-                        edit_mode_hidden = '',
-                        workforce_type_change_date=None,
-                        parent_org_change_date=None,
-                        work_locations_change_date=None,
-                        org_data_hidden = org_data_hidden,
-                        org_unit_id = org_unit_id
+            workforce_id = tmp_wfc.workforce_id,
+            national_id= tmp_wfc.national_id,
+            first_name=tmp_wfc.first_name,
+            surname=tmp_wfc.surname,
+            other_names=tmp_wfc.other_names,
+            sex_id=tmp_wfc.sex_id,
+            date_of_birth=tmp_wfc.date_of_birth,
+            date_of_death=tmp_wfc.date_of_death,
+            steps_ovc_number=ovc_id,
+            man_number=man_id,
+            ts_number=ts_id,
+            sign_number=sing_id,
+            roles=None,
+            org_units= org_units,
+            org_unit_name=org_unit_name,
+            person_type=person_type_desc, 
+            gdclsu_details=None, 
+            contact=contact,
+            person_type_id=person_type_id,
+            districts=districts,
+            wards=wards,
+            wards_string=get_obj_strings(wards,None,'ward'),
+            org_units_string=get_obj_strings(org_units,org_unit_name,'org'),
+            communities_string=get_obj_strings(communities,None,'community'),
+            communities= communities,
+            direct_services='',
+            edit_mode_hidden='',
+            workforce_type_change_date=None,
+            parent_org_change_date=None,
+            work_locations_change_date=None,
+            org_data_hidden=org_data_hidden,
+            org_unit_id = org_unit_id
                     )
         wfc.id_int = tmp_wfc.pk
 
@@ -766,7 +815,7 @@ def search_wfcs(tokens, wfc_type,search_location=True, search_by_org_unit = Fals
             
             #Add Person To Result
             for person in tmp_result:
-                result.add(person)              
+                result.add(person)
             
             if search_location:
                 loc_ids = search_wfc_by_location(tokens)
@@ -787,42 +836,55 @@ def search_wfcs(tokens, wfc_type,search_location=True, search_by_org_unit = Fals
                 org_unit_ids = search_wfc_by_org_unit(tokens)
                 if org_unit_ids:
                     orgstofetch = list(org_unit_ids)
-                    if orgstofetch: 
+                    if orgstofetch:
                         if wfc_type:
-                            persons_by_org_unit = RegPerson.objects.filter(regpersonstypes__person_type_id__icontains=wfc_type,
-                                regpersonsorgunits__org_unit_id__in=orgstofetch, is_void=False,date_of_death=None)
+                            persons_by_org_unit = RegPerson.objects.filter(
+                                regpersonstypes__person_type_id__icontains=wfc_type,
+                                regpersonsorgunits__org_unit_id__in=orgstofetch,
+                                is_void=False, date_of_death=None)
                         else:
-                             persons_by_org_unit = RegPerson.objects.filter(regpersonsorgunits__org_unit_id__in=orgstofetch,
-                             is_void=False,date_of_death=None)
+                            persons_by_org_unit = RegPerson.objects.filter(
+                                regpersonsorgunits__org_unit_id__in=orgstofetch,
+                                is_void=False, date_of_death=None)
 
                     if persons_by_org_unit:
                         for person_by_org_unit in persons_by_org_unit:
                             result.add(person_by_org_unit)
-            
-            
+
         except Exception as e:
             traceback.print_exc()
-            raise Exception('workforce search failed')
+            raise Exception('workforce search failed - %s' % (str(e)))
     else:
-        result = RegPerson.objects.filter(regpersonstypes__person_type_id__in=get_list('person_type_id', 'All Types'), regpersonstypes__date_ended=None, is_void=False,date_of_death=None)
+        result = RegPerson.objects.filter(
+            regpersonstypes__person_type_id__in=get_list(
+                'person_type_id', 'All Types'),
+            regpersonstypes__date_ended=None, is_void=False,
+            date_of_death=None)
     return result
 
-def get_persons_list(user, tokens, wfc_type, getJSON=False, search_location = True, search_wfc_by_org_unit = True):
+
+
+def get_persons_list(user, tokens, wfc_type, getJSON=False,
+                     search_location=True,
+                     search_wfc_by_org_unit=True):
     wfcs = []
-    modelwfcs = search_wfcs(tokens=tokens, wfc_type=wfc_type, search_location = search_location, search_by_org_unit = search_wfc_by_org_unit)
-    
+    modelwfcs = search_wfcs(
+        tokens=tokens, wfc_type=wfc_type,
+        search_location=search_location,
+        search_by_org_unit=search_wfc_by_org_unit)
+
     """
     for wfc in modelwfcs:
         try:
             wfc = load_wfc_from_id(wfc.pk,user)
-            
+
             *** To check later*** [Deals with Role Allocation]
             if getJSON:
                 wfc = wfc_json(wfc,user)
                 wfcs.append(wfc)
             else:
                 wfcs.append(wfc)
-            
+
             wfcs.append(wfc)
         except Exception as e:
             traceback.print_exc()
@@ -834,7 +896,6 @@ def get_persons_list(user, tokens, wfc_type, getJSON=False, search_location = Tr
     return wfcs
 
 
-
 def get_list_of_persons(search_string,
                         search_string_look_in=["names", "core_ids",
                                                "parent_orgs", "geo_tags"],
@@ -842,6 +903,7 @@ def get_list_of_persons(search_string,
                         has_workforce_id=False, as_of_date=None,
                         in_person_types=[], number_of_results=5,
                         include_died=True, sex=None, include_void=False,
+                        search_criteria=None,
                         ):
     """
     search_string: The text the user has entered in the control. Used for
@@ -879,7 +941,7 @@ def get_list_of_persons(search_string,
         TWVL, TWNE, TWGE), if not specified, search in all person types. If
         as_of_date provided, look at records where (date_delinked is null or
         date_delinked > as_of_date)
-    include_void: True or False. If unspecified we assume fals. Whether to
+    include_void: True or False. If unspecified we assume false. Whether to
     include records where tbl_reg_persons.void = true or not
 
     include_died: True or false. If unspecified we assume true. Whether to
@@ -909,25 +971,47 @@ def get_list_of_persons(search_string,
             workforce_id__isnull=False)
 
     field_names = ['first_name', 'other_names', 'surname']
-    name_results = direct_field_search(regpersons_queryset,
-                                       field_names=field_names,
-                                       search_string=search_string)
-
-    core_id_results = search_core_ids(regpersons_queryset,
-                                      search_string=search_string)
-    geo_tag_results = search_geo_tags(regpersons_queryset, search_string)
-    parent_orgs_results = search_parent_orgs(regpersons_queryset,
-                                             search_string)
+    # Take care of criteria this - So useless
+    name_results, core_id_results = {}, {}
+    geo_tag_results, parent_orgs_results = {}, {}
+    rank_order = ['names', 'core_ids', 'geo_tags', 'parent_orgs']
+    if search_criteria == 'PSNM':
+        name_results = direct_field_search(regpersons_queryset,
+                                           field_names=field_names,
+                                           search_string=search_string)
+        '''
+        core_id_results = search_external_ids(regpersons_queryset,
+                                              search_string=search_string)
+        '''
+    elif search_criteria == 'PSRE':
+        rank_order = ['geo_tags', 'parent_orgs', 'names', 'core_ids']
+        geo_tag_results = search_geo_tags(regpersons_queryset, search_string)
+    elif search_criteria == 'PSOG':
+        rank_order = ['parent_orgs', 'names', 'core_ids', 'geo_tags']
+        parent_orgs_results = search_parent_orgs(regpersons_queryset,
+                                                 search_string)
     results_dict = {
         "names": name_results,
         "core_ids": core_id_results,
         "geo_tags": geo_tag_results,
         "parent_orgs": parent_orgs_results,
     }
-    rank_order = ['names', 'core_ids', 'geo_tags', 'parent_orgs']
     ranked_results = rank_results(results_dict, search_string_look_in,
                                   rank_order)
     return ranked_results[:number_of_results]
+
+
+def search_external_ids(queryset, search_string, as_of_date=None):
+    # External ids
+    search_strings = tokenize_search_string(search_string)
+    q_filter = Q()
+    for search_string in search_strings:
+        q_filter |= Q(**{"identifier__icontains": search_string})
+    persons_matched = RegPersonsExternalIds.objects.filter(q_filter)
+    person_param = persons_matched.values_list("person_id")
+    matches = queryset.filter(id__in=person_param)
+
+    return matches
 
 
 def search_geo_org_tags(queryset, search_string, as_of_date=None):
@@ -1021,7 +1105,8 @@ def get_list_of_org_units(search_string, as_of_date=None, in_org_unit_types=[],
     queryset = include_closed_filter(RegOrgUnit.objects.all(), as_of_date,
                                      include_closed)
     if in_org_unit_types:
-        queryset = org_unit_type_filter(queryset, in_org_unit_types)
+        # queryset = org_unit_type_filter(queryset, in_org_unit_types)
+        queryset = queryset.filter(org_unit_type_id__in=in_org_unit_types)
 
     queryset = queryset.filter(is_void=include_void)
     # queryset = include_closed_filter(queryset, as_of_date, include_closed)
@@ -1057,7 +1142,16 @@ def beneficiary_id_generator(modelid):
     checkdigit = calculate_luhn(str(uniqueid))
     return benficiary_id_prefix + str(uniqueid) + str(checkdigit)
 
+def form_id_generator(modelid):
+    uniqueid = '%05d' % modelid
+    checkdigit = calculate_luhn(str(uniqueid))
+    return form_id_prefix + str(uniqueid) + str(checkdigit)
 
+def case_event_id_generator(modelid):
+    uniqueid = '%05d' % modelid
+    checkdigit = calculate_luhn(str(uniqueid))
+    return case_event_id_prefix + str(uniqueid) + str(checkdigit)
+    
 def org_id_generator(modelid):
     uniqueid = '%05d' % modelid
     checkdigit = calculate_luhn(str(uniqueid))
@@ -1093,3 +1187,17 @@ def calculate_luhn(partial_check_number):
     '''
     check_digit = luhn_checksum(int(partial_check_number) * 10)
     return check_digit if check_digit == 0 else 10 - check_digit
+
+
+def convert_date(d_string, fmt='%d-%b-%Y'):
+    try:
+        if isinstance(d_string, datetime.date):
+            new_date = datetime.datetime.strptime(d_string, fmt)
+        else:
+            new_date = datetime.datetime.strptime(d_string, fmt)
+    except Exception, e:
+        error = 'Error converting date -%s' % (str(e))
+        print error
+        return d_string
+    else:
+        return new_date

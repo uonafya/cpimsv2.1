@@ -19,12 +19,22 @@
 			<li><a href="{% url 'search_persons' %}">Persons Registry</a></li>
 		</ul>
 	</li>
+	
 	<li class="has-sub {{ request.path|get_class:'forms' }}">
-		<a href="{% url 'forms' %}">
-		    <!--<b class="caret pull-right"></b>-->
+		<a href="#">
+		    <b class="caret pull-right"></b>
 		    <i class="fa fa-file-o"></i>
-		    <span>Forms</span> 
+		    <span>Forms</span>
 		</a>
+	    <ul class="sub-menu">
+			<li><a href="{% url 'case_record_sheet' %}">Case Record Sheet</a></li>
+			<li><a href="{% url 'residential_placement' %}">Institutional Placement</a></li>
+			<li><a href="{% url 'alternative_family_care' %}">Alternative Family Care</a></li>
+			<li><a href="{% url 'background_details' %}">School and Bursary</a></li>
+			<li><a href="{% url 'forms_registry' %}">Follow-ups</a></li>
+			<li><a href="{% url 'documents_manager' %}">Documents Manager</a></li>
+		</ul>
+		
 	</li>					
 	
 	<li class="has-sub {{ request.path|get_class:'reports' }}">
@@ -34,23 +44,24 @@
 		    <span>Reports</span>
 		</a>
 		<ul class="sub-menu">
-		    <li><a href="{% url 'reports' %}">KNBS Report</a></li>
-		    <li><a href="{% url 'reports' %}">NCCS Report</a></li>
-		    <li><a href="{% url 'reports' %}">SI and CCI Population Returns Report </a></li>
-		    <li><a href="{% url 'reports' %}">Health Report </a></li>
-		    <li><a href="{% url 'reports' %}">Ad Hoc Report </a></li>
+		    <li><a href="{% url 'caseload_reports' %}">Case Load Report</a></li>
+		    <li><a href="{% url 'cpims_reports' id=1 %}">KNBS Report</a></li>
+		    <li><a href="{% url 'cpims_reports' id=3 %}">Institutions Population Returns Report </a></li>
+		    <li><a href="{% url 'cpims_reports' id=4 %}">Health Report </a></li>
+		    <li><a href="{% url 'cpims_reports' id=5 %}">Ad Hoc Report </a></li>
+		    <li><a href="{% url 'document_reports' %}">Document Templates </a></li>
 		</ul>
 	</li>
 	
-	<li class="has-sub">
+	<li class="has-sub {{ request.path|get_class:'gis' }}">
 	    <a href="#">
 	        <b class="caret pull-right"></b>
 	        <i class="fa fa-map-marker"></i>
 	        <span>GIS Module</span>
 	    </a>
 		<ul class="sub-menu">
-			<li><a href="#" >Vector Map</a></li>
-			<li><a href="#" >Google Map</a></li>
+			<li><a href="{% url 'gis_home' %}" >Vector Map</a></li>
+			<li><a href="{% url 'gis_home' %}" >Google Map</a></li>
 		</ul>
 	</li>
 	<li class="has-sub">

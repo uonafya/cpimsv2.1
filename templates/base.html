@@ -12,6 +12,7 @@
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 	<meta content="" name="description" />
 	<meta content="" name="author" />
+	<link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.ico' %}"/>
 	<!-- ================== BEGIN BASE CSS STYLE ================== -->
 	<link href="{% static 'plugins/jquery-ui/themes/base/minified/jquery-ui.min.css' %}" rel="stylesheet" />
 	<link href="{% static 'plugins/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
@@ -19,6 +20,7 @@
 	<link href="{% static 'css/style.css' %}" rel="stylesheet" />
 	<link href="{% static 'css/style-responsive.min.css' %}" rel="stylesheet" />
 	<link href="{% static 'css/theme/default.css' %}" rel="stylesheet" id="theme" />
+	<link href="{% static 'plugins/jquery-countdown/css/style.css' %}" rel="stylesheet" />
 	{% block style_code %}{% endblock %}
 	{% block extra_styling %}
     {% endblock extra_styling %}
@@ -54,18 +56,27 @@
 				<!-- begin header navigation right -->
 				<ul class="nav navbar-nav navbar-right">
 					{% if user.is_authenticated %}
+					<li class="dropdown" id="session_status"></li>
 					<li class="dropdown navbar-user">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 							<img src="{% static 'img/user-2.jpg' %}" alt="" /> 
-							<span class="hidden-xs">{{ request.session.names }}</span> <b class="caret"></b>
+							<span class="hidden-xs">
+							{% if request.session.names %}
+							    {{ request.session.names }}
+							{% else %}
+							    {{ request.user.username }}
+							{% endif %}
+							</span> <b class="caret"></b>
 						</a>
 						<ul class="dropdown-menu animated fadeInLeft">
 							<li class="arrow"></li>
-							<li><a href="#">Edit Profile</a></li>
+							<li><a href="{% url 'view_person' id=request.user.reg_person_id %}">View My Profile</a></li>
+							<li><a href="{% url 'password_change' %}">Change Password</a></li>
 							<li><a href="#"><span class="badge badge-danger pull-right">2</span> Messages</a></li>
-							<li><a href="#">Calendar</a></li>
-							<li><a href="#">Setting</a></li>
 							<li class="divider"></li>
+							{% if request.user.is_superuser %}
+							    <li><a href="/admin/">Administration</a></li>
+							{% endif %}
 							<li><a href="{% url 'logout' %}">Log Out</a></li>
 						</ul>
 					</li>
@@ -77,7 +88,6 @@
 						</a>
 						<ul class="dropdown-menu animated fadeInLeft">
 							<li class="arrow"></li>
-							<li><a href="#">Register</a></li>
 							<li class="divider"></li>
 							<li><a href="{% url 'login' %}">Log in</a></li>
 						</ul>
@@ -121,26 +131,22 @@
 		{{ the_version }}
         <span class="promo"><img src="{% static 'img/usaid.png' %}" height="30"></span>
 		</div>
-		
-        <!-- begin theme-panel -->
-        <div class="theme-panel">
-            <a href="#" data-click="theme-panel-expand" class="theme-collapse-btn"><i class="fa fa-cog"></i></a>
-            <div class="theme-panel-content">
-                <h5 class="m-t-0">Color Theme</h5>
-                <ul class="theme-list clearfix">
-                    <li class="active"><a href="#" class="bg-green" data-theme="default" data-click="theme-selector" data-toggle="tooltip" data-trigger="hover" data-container="body" data-title="Default">&nbsp;</a></li>
-                    <li><a href="#" class="bg-red" data-theme="red" data-click="theme-selector" data-toggle="tooltip" data-trigger="hover" data-container="body" data-title="Red">&nbsp;</a></li>
-                </ul>
-                <div class="divider"></div>
-                
-                <div class="row m-t-10">
-                    <div class="col-md-12">
-                        <a href="#" class="btn btn-inverse btn-block btn-sm" data-click="reset-local-storage"><i class="fa fa-refresh m-r-3"></i> Reset Settings</a>
+        <div class="modal fade" id="modal-session">
+            <div class="modal-dialog">
+                <div class="modal-content form-horizontal form-bordered">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title">CPIMS inactivity warning</h4>
+                    </div>
+                    <div class="modal-body">
+                    <p>You are about to be logged out in <div class='timer' data-seconds-left=120></div></p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- end theme-panel -->
+        </div>        
 		
 		<!-- begin scroll to top btn -->
 		<a href="#" class="btn btn-icon btn-circle btn-success btn-scroll-to-top fade" data-click="scroll-top"><i class="fa fa-angle-up"></i></a>
@@ -163,6 +169,8 @@
 	<script src="{% static 'plugins/sparkline/jquery.sparkline.js' %}"></script>
 	<script src="{% static 'plugins/parsley/dist/parsley.js' %}"></script>
 	<script src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
+	<script src="{% static 'plugins/jquery-idletimer/dist/idle-timer.1.1.0.js' %}"></script>
+	<script src="{% static 'plugins/jquery-countdown/jquery.simple.timer.js' %}"></script>
 	<!-- ================== END LAZY BASE JS ================== -->
 	
 	<!-- ================== BEGIN LAZY PAGE LEVEL JS ================== -->
@@ -173,6 +181,43 @@
 			App.init();
 		});
 	</script>
+	<script type="text/javascript">
+
+      (function($){
+
+          var warning = 780000;// 13 minutes
+          var timeout = 900000; // 15 minutes
+          var msg = '';
+
+          $(document).bind("idle.idleTimer", function(){
+           //$('#modal-session').modal('show');
+           $('.timer').empty();
+           $('.timer').startTimer();
+           var timeout = 120000; // 2 minutes
+          });
+
+          $(document).bind("active.idleTimer", function(){
+               $("#session_status").html(msg);
+          });
+
+          $.idleTimer(warning);
+          //$( "#modal-session" ).idleTimer();
+
+          $("#modal-session").bind("idle.idleTimer", function(){
+          	var dts = $( "form" ).serialize();
+          	var dt = encodeURIComponent(dts);
+            //$(location).attr("href", "{% url 'logout' %}?timeout=1&next={{request.get_full_path}}&d="+dt)
+          });
+
+          //$("#modal-session").bind("active.idleTimer", function(){
+          //     $("#session_status").html(msg);
+          //});
+
+          //$( "#modal-session" ).idleTimer(timeout);
+          //$.idleTimer('getElapsedTime');
+
+      })(jQuery);
+      </script>
 	<!-- ================== END LAZY PAGE LEVEL JS ================== -->
 </body>
 </html>

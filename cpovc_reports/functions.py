@@ -1,0 +1,1763 @@
+"""Reports functions."""
+import re
+import uuid
+import string
+from datetime import datetime, timedelta
+from calendar import monthrange, month_name
+from collections import OrderedDict
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Image, Frame, Table)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch, cm, mm
+from reportlab.pdfbase.pdfmetrics import stringWidth
+from reportlab.lib.pagesizes import A4, letter
+# Security
+from reportlab.graphics.barcode import qr
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics import renderPDF
+
+from cpovc_main.functions import get_general_list, get_dict
+from cpovc_main.models import SetupGeography
+
+from .config import reports
+from cpovc_registry.models import (
+    RegOrgUnitGeography, RegPerson, RegOrgUnit, RegPersonsSiblings,
+    RegPersonsGeo, RegPersonsGuardians)
+
+from cpovc_forms.models import (
+    OVCCaseCategory, OVCCaseGeo, OVCCaseEventServices,
+    OVCAdverseMedicalEventsFollowUp, OVCPlacement,
+    OVCDischargeFollowUp, OVCCaseRecord, OVCAdverseEventsFollowUp)
+
+from django.conf import settings
+from django.db.models import Count
+
+MEDIA_ROOT = settings.MEDIA_ROOT
+STATIC_ROOT = settings.STATICFILES_DIRS[0]
+
+
+class Canvas(canvas.Canvas):
+    """Pagination extention for canvas."""
+
+    def __init__(self, *args, **kwargs):
+        """Constructor for my pagination."""
+        canvas.Canvas.__init__(self, *args, **kwargs)
+        self._saved_page_states = []
+
+    def showPage(self):
+        """Get the pages first."""
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        """To add page info to each page (page x of y)."""
+        num_pages = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self.draw_page_number(num_pages)
+            canvas.Canvas.showPage(self)
+        canvas.Canvas.save(self)
+
+    def draw_page_number(self, page_count):
+        """Draw the final page."""
+        self.setFont("Times-Roman", 7)
+        self.drawRightString(20 * cm, 1 * cm,
+                             "Page %d of %d" % (self._pageNumber, page_count))
+
+
+def get_report_body(params, report='DSCE'):
+    """Method to get report body."""
+    try:
+        fields = OrderedDict()
+        dot_padd = '.' * 170
+        dash_padd = ''
+        # '_' * 70
+        params = child_data(params)
+        values = {'padd_dash': dash_padd, 'padd_dot': dot_padd,
+                  'child_county': '', 'nationality': 'KENYAN',
+                  'religion': '', 'child_sub_county': '', 'source': 'CPIMS',
+                  'child_ward': '', 'child_chief': '', 'child_village': ''}
+        # params = merge_two_dicts(values, rparams)
+        for item in values:
+            if item not in params:
+                params[item] = values[item]
+        report_id = report if report in reports else 'NONE'
+        report_params = reports[report_id]
+        report_data = report_params % params
+        repos = report_data.split('\n')
+        cnt = 0
+        for repo_val in repos:
+            field_values = repo_val.strip()
+            field_vals = field_values.split(':', 1)
+            field_txt = None if len(field_vals) < 2 else field_vals[1]
+            if '<' in field_vals[0] and '>' in field_vals[0]:
+                cnt += 1
+                fields[field_vals[0].replace('>', '_%s>' % cnt)] = field_txt
+            else:
+                fields[field_vals[0]] = field_txt
+        return fields
+    except Exception, e:
+        raise e
+
+
+def get_case_details(field_names):
+    """Method to get only case categories from list general."""
+    try:
+        case_categories = get_general_list(field_names)
+    except Exception, e:
+        print "Error getting case categories - %s" % (str(e))
+        pass
+    else:
+        return case_categories
+
+
+def case_load_header(report_type=1, header=False, ages=True):
+    """Method to generate reports headings."""
+    try:
+        age_ranges = ['0 - 5 yrs', '6 - 10 yrs', '11 - 15 yrs',
+                      '16 - 17 yrs', '18+ yrs', 'Sub-Total']
+        genders = ['M', 'F']
+        html = ""
+        titles = {1: 'Case Category (New Cases)',
+                  2: 'Summary of {period_name}',
+                  3: 'List of Diseases', 4: 'Situation of Children'}
+        report_type_id = report_type if report_type in titles else 1
+        title = titles[report_type_id]
+        if header:
+            html = ("<tr><td colspan='3'>County</td><td colspan='6'>"
+                    "{county}</td><td colspan='3'>Year</td>"
+                    "<td colspan='4'>{years}</td></tr>")
+            html += ("<tr><td colspan='3'>Sub County</td><td colspan='6'>"
+                     "{sub_county}</td><td colspan='3'>Month</td>"
+                     "<td colspan='4'>{month}</td></tr>")
+            if report_type == 4:
+                html = ("<tr><td colspan='3'>Organisation</td><td colspan='6'>"
+                        "{org_unit_name}</td><td colspan='3'>Year</td>"
+                        "<td colspan='4'>{years}</td></tr>")
+                html += ("<tr><td colspan='3'>Unit</td><td colspan='6'>"
+                         "{org_units_name}</td><td colspan='3'>Month</td>"
+                         "<td colspan='4'>{month}</td></tr>")
+            html += ("<tr><td colspan='16'>{period} Case Load Summary"
+                     "</td></tr>")
+        html += "<tr><td colspan='3' rowspan='2'>%s</td>" % (title)
+        for age_range in age_ranges:
+            html += "<td colspan='2'>%s</td>" % (age_range)
+        html += "<td rowspan='2'>TOTAL</td></tr>"
+        html += "<tr>"
+        for age_range in age_ranges:
+            for gender in genders:
+                html += "<td>%s</td>" % (gender)
+        html += "</tr>"
+        return html
+    except Exception, e:
+        raise e
+
+
+def get_data_element(item='case'):
+    """Method to get data elements other than categories and inteventions."""
+    results = {}
+    try:
+        case, params = {}, {}
+        case[1] = 'Total Children'
+        case[2] = 'Total Cases'
+        case[3] = 'Total Interventions'
+        case[4] = 'Percentage Interventions'
+        # dropped out -  (90+ days no intervention)
+        case[5] = 'Dropped Out'
+        case[6] = 'Pending'
+
+        results['case'] = case
+        if item in results:
+            params = results[item]
+    except Exception:
+        pass
+    else:
+        return params
+
+
+def simple_documents(params, document_name='CPIMS', report_name='letter'):
+    """Method to generate simple report."""
+    try:
+        file_name = "%s/%s.pdf" % (MEDIA_ROOT, report_name)
+        doc = SimpleDocTemplate(file_name, pagesize=letter,
+                                rightMargin=48, leftMargin=48,
+                                topMargin=30, bottomMargin=30)
+        story = []
+        logo = "%s/img/gok_logo.jpg" % (STATIC_ROOT)
+        today = datetime.now()
+        d = int(today.strftime('%d'))
+        st_rd = {1: 'st', 2: 'nd', 3: 'rd'}
+        suffix = 'th' if 11 <= d <= 13 else st_rd.get(d % 10, 'th')
+        # formatted_date = today.strftime('%d{S} %B %Y').replace('{S}', suffix)
+        suffix = '<sup>%s</sup>' % (suffix)
+        formatted_date = '{dt.day}{S} {dt:%B}, {dt.year}'.format(
+            dt=today, S=suffix)
+
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(
+            name='Justify', alignment=TA_JUSTIFY, leading=22))
+
+        styles.add(ParagraphStyle(name="Centered", alignment=TA_CENTER,
+                                  leading=22))
+        heading = 'Ministry of Labour and East African Community Affairs'
+        sub_heading = 'DEPARTMENT OF CHILDREN SERVICES'
+        ptext = '<font size=16><b>%s</b></font>' % heading.upper()
+        story.append(Paragraph(ptext, styles["Centered"]))
+        # story.append(Spacer(1, 12))
+        ptext = '<font size=13><b>%s</b></font>' % sub_heading
+        story.append(Paragraph(ptext, styles["Centered"]))
+        story.append(Spacer(1, 12))
+
+        sst = getSampleStyleSheet()
+        tgram = '.' * 34
+        ref = '.' * 36
+
+        p0 = Paragraph('''
+            <font size=9>Telegram %s <br/>
+            Telephone: 020 2077160<br/>
+            When replying please quote<br/><br/>
+            Ref. No. %s</font>
+            ''' % (tgram, ref), sst["BodyText"])
+
+        org_unit = params['org_unit']
+        address = params['address']
+        p1 = Paragraph('''
+               <font size=9>%s<br/>
+               %s<br/><br/>
+               Date. %s</font>
+               ''' % (org_unit, address, formatted_date), sst["BodyText"])
+        im = Image(logo, 1.2 * inch, 1.0 * inch)
+        # story.append(im)
+
+        data = [[p0, im, p1]]
+
+        t = Table(data, style=[('ALIGN', (0, 0), (2, 0), 'CENTER'),
+                               ('VALIGN', (0, 0), (2, 0), 'MIDDLE'), ])
+
+        story.append(t)
+        story.append(Spacer(1, 12))
+
+        # Create return address
+        ptext = ('<para align=center spaceb=3><font size=12>'
+                 '<b>%s</b></font></para>') % document_name.upper()
+        story.append(Paragraph(ptext, styles["Normal"]))
+        story.append(Spacer(1, 24))
+        vals = get_report_body(params, report_name)
+        ptext = '%s' % (vals)
+        story.append(Paragraph(ptext, styles["Justify"]))
+        story.append(Spacer(1, 12))
+        doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page,
+                  canvasmaker=Canvas)
+    except Exception, e:
+        raise e
+
+
+def coord(x, y, unit=1):
+    """Get my size."""
+    width, height = A4
+    x, y = x * unit, height - y * unit
+    return x, y
+
+
+def get_style(style=False):
+    """Get the style required."""
+    try:
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(
+            name='Justify', alignment=TA_JUSTIFY, leading=22))
+        styles.add(ParagraphStyle(
+            name="Centered", alignment=TA_CENTER, leading=22))
+        width, height = letter
+        my_style = styles["Normal"]
+        if style and style in styles:
+            my_style = styles[style]
+        return my_style
+    except Exception:
+        pass
+
+
+def create_paragraph(c, text, x, y, style=False):
+    """Method to do paragraphing."""
+    try:
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(
+            name='Justify', alignment=TA_JUSTIFY, leading=22))
+        styles.add(ParagraphStyle(
+            name="Centered", alignment=TA_CENTER, leading=22))
+        width, height = letter
+        my_style = styles["Normal"]
+        if style and style in styles:
+            my_style = styles[style]
+        p = Paragraph(text, style=my_style)
+        p.wrapOn(c, width, height)
+        p.drawOn(c, *coord(x, y, mm))
+    except Exception:
+        pass
+
+
+def date_suffix(theday):
+    """Show date suffix."""
+    d = int(theday.strftime('%d'))
+    st_rd = {1: 'st', 2: 'nd', 3: 'rd'}
+    suffix = 'th' if 11 <= d <= 13 else st_rd.get(d % 10, 'th')
+    return suffix
+
+
+def simple_document(params, document_name='CPIMS', report_name='letter'):
+    """Method to write forms."""
+    from reportlab.pdfgen import canvas
+    try:
+        a4width, a4height = A4
+        file_name = "%s/%s.pdf" % (MEDIA_ROOT, report_name)
+        width, height = A4
+        sst = getSampleStyleSheet()
+        tgram = '.' * 34
+        ref = '.' * 36
+        if 'case_serial' in params:
+            ref = str(params['case_serial'])
+
+        logo = "%s/img/gok_logo.jpg" % (STATIC_ROOT)
+        today = datetime.now()
+        dt_suffix = date_suffix(today)
+        suffix = '<sup>%s</sup>' % (dt_suffix)
+        formatted_date = '{dt.day}{S} {dt:%B}, {dt.year}'.format(
+            dt=today, S=suffix)
+
+        p0 = Paragraph('''
+            <font size=9>Telegram %s <br/>
+            Telephone: 020 2077160<br/>
+            When replying please quote<br/><br/>
+            Ref. No. %s</font>
+            ''' % (tgram, ref), sst["BodyText"])
+
+        org_unit = params['org_unit']
+        address = params['address']
+        p1 = Paragraph('''
+               <font size=9>%s<br/>
+               %s<br/><br/>
+               Date. %s</font>
+               ''' % (org_unit, address, formatted_date), sst["BodyText"])
+        im = Image(logo, 1.2 * inch, 1.0 * inch)
+        data = [[p0, im, p1]]
+
+        t = Table(data, style=[('ALIGN', (0, 0), (2, 0), 'CENTER'),
+                               ('VALIGN', (0, 0), (2, 0), 'MIDDLE'), ])
+
+        canvas = canvas.Canvas(file_name, pagesize=letter)
+        fontname, fontsize = 'Times-Roman', 12
+        # print canvas.getAvailableFonts()
+        canvas.setLineWidth(.4)
+        canvas.setFont(fontname, fontsize)
+        # print canvas.getAvailableFonts()
+        canvas.setAuthor('CPIMS')
+        canvas.setTitle('CPIMS - %s' % (document_name))
+        canvas.setSubject('Department of Children Services Official %s' % (
+            document_name))
+        story = []
+        normal_style = get_style("Normal")
+        center_style = get_style("Centered")
+        heading = 'Ministry of Labour and East African Community Affairs'
+        sub_heading = 'DEPARTMENT OF CHILDREN SERVICES'
+        ptext = '<font size=14><b>%s</b></font>' % heading.upper()
+        story.append(Paragraph(ptext, center_style))
+        ptext = '<font size=13><b>%s</b></font>' % sub_heading
+        story.append(Paragraph(ptext, center_style))
+        story.append(Spacer(1, 12))
+        story.append(t)
+        story.append(Spacer(1, 12))
+
+        # Create return address
+        ptext = ('<para align=center spaceb=3><font size=12>'
+                 '<b>%s</b></font></para>') % document_name.upper()
+        story.append(Paragraph(ptext, normal_style))
+        # story.append(Spacer(1, 24))
+
+        f = Frame(0.7 * inch, inch, 7.0 * inch, 9.2 * inch, showBoundary=0)
+        f.addFromList(story, canvas)
+
+        # create_paragraph(canvas, ptext, 10, 48, 'Centered')
+        report_id = report_name.split('_')[0]
+        fields = get_report_body(params, report=report_id)
+
+        row_num = height - 280
+        child_name = params['child_name']
+        params = child_data(params)
+        siblings = params['siblings']
+        parents = params['guardians']
+        p_count = len(parents)
+        print "guardians count", p_count, parents
+        p_counts = p_count if p_count >= 2 else 3
+
+        for field in fields:
+            s_field = ''
+            field_value = fields[field]
+            myfont = 'Times-Bold' if field.isupper() else 'Times-Roman'
+            canvas.setFont(myfont, 12)
+            twidth = stringWidth(field, fontname, fontsize)
+            if '<sibling' in field:
+                for i in range(1, 9):
+                    sib_id = '%s.' % (i)
+                    canvas.drawString(50, row_num + 3, sib_id)
+                    if i == 1:
+                        canvas.drawString(twidth, row_num + 3, child_name)
+                    else:
+                        if i in siblings:
+                            sib_name = siblings[i]
+                            canvas.drawString(twidth, row_num + 3, sib_name)
+                        else:
+                            canvas.line(twidth, row_num, width - 40, row_num)
+                    row_num -= 20
+                    row_num = paginate(row_num, canvas, myfont, height)
+            if '<parents' in field:
+                for i in range(1, p_counts):
+                    sib_id = '%s.' % (i)
+                    canvas.drawString(50, row_num + 3, sib_id)
+                    if i in parents:
+                        par_name = parents[i]
+                        canvas.drawString(twidth, row_num + 3, par_name)
+                    else:
+                        canvas.line(twidth, row_num, width - 40, row_num)
+                    row_num -= 20
+                    row_num = paginate(row_num, canvas, myfont, height)
+            if field_value or field_value == '':
+                fd = unicode(str(field), 'utf-8')
+                s_field = '.' if fd.isnumeric() else ':'
+                if '<line' in field:
+                    twidth = -20
+                canvas.line(70 + twidth, row_num, width - 40, row_num)
+                canvas.drawString(70 + twidth, row_num + 3, field_value)
+            fid = s_field if '<blank' in field else '%s%s' % (field, s_field)
+            chk_sib = '<sibling' not in field
+            if '<line' not in field and chk_sib and '<parents' not in field:
+                if field.startswith('<title_'):
+                    ttext = re.sub(r'(?i)^<title_+\d+>', '', fid)
+                    canvas.drawCentredString(width / 2, row_num + 3, ttext)
+                else:
+                    canvas.drawString(50, row_num + 3, fid)
+                    # create_paragraph(canvas, 'ptext', 10, 48, 'Centered')
+            row_num = paginate(row_num, canvas, myfont, height)
+            row_num -= 20
+        report_uid = uuid.uuid4()
+        # Save in audit trail id,user_id,child_id,doc_id,org_id,datetime
+        report_url = 'www.childprotection.go.ke/verify/%s' % (report_uid)
+        qr_code = qr.QrCodeWidget(report_url)
+        bounds = qr_code.getBounds()
+        width = bounds[2] - bounds[0]
+        height = bounds[3] - bounds[1]
+        d = Drawing(45, 45, transform=[45. / width, 0, 0, 45. / height, 0, 0])
+        d.add(qr_code)
+        renderPDF.draw(d, canvas, a4width - (width), height)
+        if report_id != 'DSUM':
+            canvas.line(40, height, a4width - 40, height)
+
+        canvas.save()
+    except Exception, e:
+        print 'error - %s' % (str(e))
+        pass
+
+
+def paginate(row_num, canvas, myfont, height):
+    """Method to move to next page."""
+    if row_num <= 80:
+        canvas.showPage()
+        canvas.setLineWidth(.4)
+        canvas.setFont(myfont, 12)
+        row_num = height - 100
+    return row_num
+
+
+def word_document(params, name):
+    """Method to write to word - .docx."""
+    try:
+        from docx import Document
+        from docx.shared import Inches
+
+        document = Document()
+
+        logo = "%s/img/gok_logo.jpg" % (STATIC_ROOT)
+
+        document.add_heading('Document Title', level=0)
+
+        p = document.add_paragraph('A plain paragraph having some ')
+        p.add_run('bold').bold = True
+        p.add_run(' and some ')
+        p.add_run('italic.').italic = True
+
+        document.add_paragraph(
+            'first item in ordered list', style='List Number'
+        )
+
+        document.add_picture(logo, width=Inches(1.1))
+
+        table = document.add_table(rows=1, cols=3)
+        table.rows[0].style = "border:0;"
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'Qty'
+        hdr_cells[1].text = 'Id'
+        hdr_cells[2].text = 'Desc'
+
+        document.add_page_break()
+        document.save('demo.docx')
+
+    except Exception, e:
+        raise e
+
+
+def draw_page(canvas, doc):
+    """Method to format my pdfs."""
+    title = "CPIMS"
+    author = "CPIMS"
+    canvas.setTitle(title)
+    canvas.setSubject(title)
+    canvas.setAuthor(author)
+    canvas.setCreator(author)
+
+    footer = []
+    # Put some data into the footer
+    Frame(2 * cm, 0, 17 * cm, 4 * cm).addFromList(footer, canvas)
+
+
+def get_sub_county_info(sub_county_ids, a_type='GDIS', icounty=None):
+    """Get selected sub-counties info and attached counties."""
+    area_ids, counties = {}, {}
+    try:
+        county_set = SetupGeography.objects.filter(
+            area_type_id='GPRV', is_void=False)
+        for county in county_set:
+            counties[county.area_id] = county.area_name
+        if icounty:
+            sub_county_ids = SetupGeography.objects.filter(
+                parent_area_id=icounty, area_type_id='GDIS',
+                is_void=False).values_list('area_id', flat=True)
+        if sub_county_ids:
+            areas = SetupGeography.objects.filter(
+                area_id__in=sub_county_ids, is_void=False)
+            for area in areas:
+                area_id = area.area_id
+                area_type = area.area_type_id
+                area_name = area.area_name
+                parent_area_id = area.parent_area_id
+                if parent_area_id in counties:
+                    parent_area_id = counties[parent_area_id]
+                if area_type == a_type:
+                    area_ids[area_id] = {'county': parent_area_id,
+                                         'sub_county_id': area_id,
+                                         'sub_county': area_name}
+    except Exception, e:
+        print 'error getting sub-county ids - %s' % (str(e))
+        raise e
+    else:
+        return area_ids
+
+
+def get_geo_locations(org_id, a_type='GDIS'):
+    """Get specific Organisational units location based on org id."""
+    ext_ids = []
+    try:
+        areas = RegOrgUnitGeography.objects.select_related().filter(
+            org_unit_id=org_id, is_void=False)
+        for area in areas:
+            area_type = area.area.area_type_id
+            area_name = area.area.area_name
+            if area_type == a_type:
+                ext_ids.append(area_name)
+    except Exception, e:
+        raise e
+    else:
+        return ext_ids
+
+
+def get_period(report_type='M', month='', year='', period='F'):
+    """
+    Method to generate date ranges in preparation for the query.
+
+    The report types include M, Q1, Q2, Q3 and Y
+    period should be a calculated month range given an end date.
+    """
+    try:
+        days = 30
+        reports_qs = {'Q1': 9, 'Q2': 12, 'Q3': 3, 'Q4': 6}
+        other_yr = ['Q3', 'Q4', 'Y']
+        yr_add = 1 if report_type in other_yr else 0
+        if period == 'C':
+            yr_add = 0
+            reports_qs = {'Q1': 3, 'Q2': 6, 'Q3': 9, 'Q4': 12}
+        if not month and not year:
+            today = datetime.now()
+            year = today.strftime('%Y')
+            month = today.strftime('%m')
+        if report_type in reports_qs:
+            days = 89 if report_type == 'Q3' else 90
+            if period == 'C':
+                days = 89 if report_type == 'Q1' else 90
+            month = reports_qs[report_type]
+        elif report_type == 'Y':
+            # Days in year intentionally made < 365.25 by a day
+            # for using timedelta replace day=1
+            days = 364
+            month = 12 if period == 'C' else 6
+        year = int(year) + yr_add
+        start_day_week, end_day = monthrange(int(year), int(month))
+        end_date = '%s-%s-%s' % (end_day, month, year)
+        end_date_obj = datetime.strptime(end_date, '%d-%m-%Y')
+        # print (end_date_obj - timedelta(days=days))
+        start_date_obj = (end_date_obj - timedelta(days=days)).replace(day=1)
+        params = {}
+        params['end_date'] = end_date_obj
+        params['start_date'] = start_date_obj
+        # Period name for the report
+        report_name = 'Quarterly' if report_type in reports_qs else 'Monthly'
+        report_name = 'Annual' if report_type == 'Y' else report_name
+        # Months names for the report
+        mon_name = month_name[int(month)]
+        sheet_name = '%s-%s' % (mon_name[:3], (str(year))[-2:])
+        if report_type in reports_qs:
+            s_mon = month_name[reports_qs[report_type] - 2][:3]
+            mon_name = '%s-%s' % (s_mon, mon_name[:3])
+            sheet_name = report_type.replace('Q', 'Qtr')
+        mon_name = 'Jul-Jun' if report_type == 'Y' else mon_name
+        if period == 'C':
+            mon_name = 'Jan-Dec' if report_type == 'Y' else mon_name
+        sheet_name = 'YEAR' if report_type == 'Y' else sheet_name
+        # Start year
+        s_year = year - yr_add
+        year_name = '%s/%s' % (s_year, year) if report_type == 'Y' else year
+        # Report label
+        report_label = mon_name if report_type == 'M' else sheet_name
+        params['period'] = report_name
+        p_name = report_name[:-2] if report_name.endswith('ly') else 'Year'
+        params['period_name'] = p_name
+        params['month'] = mon_name
+        params['year'] = year
+        params['years'] = year_name
+        params['sheet'] = sheet_name
+        params['label'] = report_label
+        return params
+    except Exception, e:
+        raise e
+
+
+def age_data(age, sex, vals, cat, summ=False):
+    """Age set data - Upper value using range so its x-1."""
+    ranges = [(0, 6), (6, 11), (11, 16), (16, 18)]
+    for i, (lval, uval) in enumerate(ranges):
+        if (lval <= age <= uval):
+            val = i + 1
+    if age >= 18:
+        val = 5
+    age_set = 'age_%d_%s' % (val, sex[1].lower())
+    if summ:
+        val = vals[cat][age_set]
+        val.append(str(summ))
+    else:
+        val = vals[cat][age_set] + 1
+    return age_set, val
+
+
+def initial_values(cat, val, age, sex, intv=False):
+    """Assign initial values - zeros."""
+    age_sets = OrderedDict()
+    for i in range(1, 6):
+        age_sets['age_%s_m' % (i)] = 0
+        age_sets['age_%s_f' % (i)] = 0
+    if intv:
+        cat = '%s_%s' % (intv, cat)
+    val[cat] = age_sets
+    age_set, dt = age_data(age, sex, val, cat)
+    val[cat][age_set] = dt
+    if intv:
+        val[cat]['cat'] = intv
+
+
+def sum_values(summary, cat, val, age, sex):
+    """Get values."""
+    age_sets = OrderedDict()
+    for i in range(1, 6):
+        age_sets['age_%s_m' % (i)] = []
+        age_sets['age_%s_f' % (i)] = []
+    val[summary] = age_sets
+    age_set, dt = age_data(age, sex, val, summary, cat)
+    val[summary][age_set] = dt
+
+
+def data_from_results(datas, gid='D', intv=False):
+    """Method to generate data set from result set.
+
+    This has cat, sex, age
+    """
+    try:
+        val, itv = {}, False
+        for data in datas:
+            cat = str(data['cat'])
+            if intv:
+                itv = cat
+                cat = str(data['itv'])
+            cid = str(data['cid'])
+            kid = data['kid']
+            age = data['age']
+            sex = data['sex']
+            if cat not in val:
+                initial_values(cat, val, age, sex, itv)
+            else:
+                age_set, dt = age_data(age, sex, val, cat)
+                val[cat][age_set] = dt
+            # Summary values for unique cases and children
+            if 'CASE' not in val:
+                sum_values('CASE', cid, val, age, sex)
+            else:
+                age_set, dt = age_data(age, sex, val, 'CASE', cid)
+                val['CASE'][age_set] = dt
+            if gid == 'D':
+                if 'CHILD' not in val:
+                    sum_values('CHILD', kid, val, age, sex)
+                else:
+                    age_set, dt = age_data(age, sex, val, 'CHILD', kid)
+                    val['CHILD'][age_set] = dt
+        return val
+
+    except Exception, e:
+        raise e
+
+
+def filter_org_unit(params, sub_county_case_ids):
+    """Method to filter by org unit."""
+    try:
+        if 'org_unit' in params:
+            org_unit = params['org_unit']
+            if org_unit:
+                org_unit_id = int(org_unit)
+                sub_county_case_ids = sub_county_case_ids.filter(
+                    report_orgunit_id=org_unit_id)
+    except Exception:
+        return sub_county_case_ids
+    else:
+        return sub_county_case_ids
+
+
+def get_data(params, report='CASE_LOAD'):
+    """
+    Method to do actual query from the db.
+
+    For now lets do case data only.
+    """
+    try:
+        data = []
+        print 'Case Load params', params
+        cl_queryset = OVCCaseCategory.objects.all()
+        cl_queryset = cl_queryset.filter(is_void=False).exclude(
+            case_id__is_void=True)
+        # Date ranges
+        org_unit = params['org_unit'] if 'org_unit' in params else False
+        sc = params['sub_county_id'] if 'sub_county_id' in params else False
+        # Date filters
+        # cl_queryset = filter_by_date(params, cl_queryset)
+        case_ids = get_case_ids(params)
+        cl_queryset = cl_queryset.filter(case_id_id__in=case_ids)
+        # Now check for Region and org unit
+        if sc:
+            sub_county = params['sub_county_id']
+            # Get all case ids for this sub_county
+            sub_county_case_ids = OVCCaseGeo.objects.filter(
+                report_subcounty_id__in=sub_county,
+                is_void=False).values_list('case_id_id', flat=True)
+        else:
+            sub_county_case_ids = OVCCaseGeo.objects.filter(
+                is_void=False).values_list('case_id_id', flat=True)
+            if org_unit:
+                sub_county_case_ids = filter_org_unit(params,
+                                                      sub_county_case_ids)
+        cl_queryset = cl_queryset.filter(
+            case_id_id__in=(sub_county_case_ids))
+
+        for cl in cl_queryset:
+            item = {}
+            item['cat'] = cl.case_category
+            item['sex'] = cl.person.sex_id
+            item['age'] = cl.person.years
+            # For generating summaries
+            item['kid'] = cl.person.id
+            item['cid'] = cl.case_id_id
+            data.append(item)
+        pending = get_pending(params)
+        interventions = get_intervention(params, pending)
+        raw_data = data_from_results(data)
+        raw_pending = data_from_results(pending, gid='P')
+        raw_interven = data_from_results(interventions, gid='I')
+        intvs = data_from_results(interventions, gid='I', intv=True)
+        raw_vals = {'data': raw_data, 'pending': raw_pending,
+                    'interventions': raw_interven, 'itv': intvs}
+        return raw_vals
+    except Exception, e:
+        print 'Get data error - %s' % (str(e))
+        raise e
+
+
+def data_category(data):
+    """Method to show my category."""
+    try:
+        pass
+    except Exception, e:
+        raise e
+
+
+def filter_by_date(params, queryset, field='date_of_event'):
+    """Method to filter by dates provided."""
+    try:
+        if 'start_date' in params and 'end_date' in params:
+            start_date = params['start_date']
+            end_date = params['end_date']
+            print "Filter by dates", str(start_date), str(end_date)
+            kwargs = {'{0}__range'.format(field): (start_date, end_date)}
+            queryset = queryset.filter(**kwargs)
+    except Exception, e:
+        print "Error applying date filter - %s" % (str(e))
+        return queryset
+    else:
+        return queryset
+
+
+def get_pending(params):
+    """To get all pending within the same reporting period."""
+    try:
+        data = []
+        pen_queryset = OVCCaseCategory.objects.all()
+        pen_queryset = pen_queryset.filter(is_void=False)
+        # Has interventions
+        cats_itvs = OVCCaseEventServices.objects.filter(
+            is_void=False).values_list('case_category_id', flat=True)
+        pen_queryset = pen_queryset.exclude(case_category_id__in=cats_itvs)
+        # Date ranges
+        org_unit = params['org_unit'] if 'org_unit' in params else False
+        sc = params['sub_county_id'] if 'sub_county_id' in params else False
+        # Date filter
+        # pen_queryset = filter_by_date(params, pen_queryset)
+        case_ids = get_case_ids(params)
+        pen_queryset = pen_queryset.filter(case_id_id__in=case_ids)
+        # Missing filters
+        if sc:
+            sub_county = params['sub_county_id']
+            # Get all case ids for this sub_county
+            sub_county_case_ids = OVCCaseGeo.objects.filter(
+                report_subcounty_id__in=sub_county,
+                is_void=False).values_list('case_id_id', flat=True)
+        else:
+            sub_county_case_ids = OVCCaseGeo.objects.filter(
+                is_void=False).values_list('case_id_id', flat=True)
+            if org_unit:
+                sub_county_case_ids = filter_org_unit(params,
+                                                      sub_county_case_ids)
+        pen_queryset = pen_queryset.filter(
+            case_id_id__in=(sub_county_case_ids))
+        for pen in pen_queryset:
+            item = {}
+            item['cat'] = pen.case_category
+            item['sex'] = pen.person.sex_id
+            item['age'] = pen.person.years
+            # For generating summaries
+            item['kid'] = pen.person.id
+            item['cid'] = pen.case_id_id
+            data.append(item)
+        return data
+    except Exception, e:
+        print 'Get pending error - %s' % (str(e))
+        raise e
+
+
+def get_case_ids(params):
+    """Method to filter cases that needs to be followed up."""
+    try:
+        period_qs = OVCCaseRecord.objects.filter(is_void=False)
+        period_qs = filter_by_date(params, period_qs, 'date_case_opened')
+        period_qs = period_qs.values_list('case_id', flat=True)
+        print "case filters for ids by date"
+        return period_qs
+    except Exception, e:
+        print "Error getting case -%s" % (str(e))
+        return []
+
+
+def get_intervention(params, pending=False):
+    """To get all interventions within the same reporting period."""
+    try:
+        data = []
+        itv_queryset = OVCCaseEventServices.objects.all()
+        itv_queryset = itv_queryset.filter(is_void=False)
+        # Start filtering , date_of_encounter_event__range
+        org_unit = params['org_unit'] if 'org_unit' in params else False
+        sc = params['sub_county_id'] if 'sub_county_id' in params else False
+        if pending:
+            pending_list = []
+            for vals in pending:
+                pending_list.append(vals['cid'])
+            itv_queryset = itv_queryset.exclude(
+                case_category__case_id_id__in=pending_list)
+        case_ids = get_case_ids(params)
+        itv_queryset = itv_queryset.filter(
+            case_category__case_id_id__in=case_ids)
+        # Missing filters
+        if sc:
+            sub_county = params['sub_county_id']
+            # Get all case ids for this sub_county
+            sub_county_case_ids = OVCCaseGeo.objects.filter(
+                report_subcounty_id__in=sub_county,
+                is_void=False).values_list('case_id_id', flat=True)
+        else:
+            sub_county_case_ids = OVCCaseGeo.objects.filter(
+                is_void=False).values_list('case_id_id', flat=True)
+            if org_unit:
+                sub_county_case_ids = filter_org_unit(params,
+                                                      sub_county_case_ids)
+        itv_queryset = itv_queryset.filter(
+            case_category__case_id__in=sub_county_case_ids)
+        for res in itv_queryset:
+            item = {}
+            item['itv'] = res.service_provided
+            item['cat'] = res.case_category.case_category
+            item['kid'] = res.case_category.person_id
+            item['age'] = res.case_category.person.years
+            item['sex'] = res.case_category.person.sex_id
+            item['cid'] = res.case_category.case_id_id
+            data.append(item)
+        return data
+    except Exception, e:
+        print 'Get intervention error - %s' % (str(e))
+        raise e
+
+
+def child_data(data):
+    """Method to get child data from id."""
+    try:
+        parent_id = 0
+        areas = {}
+        areas['GPRV'] = 'child_county'
+        areas['GDIS'] = 'child_sub_county'
+        areas['GWRD'] = 'child_ward'
+
+        sibs, guards = {}, {}
+        child_id = data['child_id']
+        child_info = RegPerson.objects.get(pk=child_id)
+        data['name'] = (str(child_info.full_name)).upper()
+        data['age'] = (child_info.age).upper()
+        # Get siblings
+        siblings = RegPersonsSiblings.objects.filter(
+            is_void=False, date_delinked=None, child_person_id=child_id)
+        cnt = 2
+        for sibling in siblings:
+            sib_name = sibling.sibling_person.full_name
+            sibs[cnt] = sib_name.upper()
+            cnt += 1
+        data['siblings'] = sibs
+        # Get Guardians and parents
+        guardians = RegPersonsGuardians.objects.filter(
+            is_void=False, date_delinked=None, child_person_id=child_id)
+        gcnt = 1
+        for guardian in guardians:
+            guard_name = guardian.guardian_person.full_name
+            guards[gcnt] = guard_name.upper()
+            gcnt += 1
+        data['guardians'] = guards
+
+        # Get child Geos
+        geos = RegPersonsGeo.objects.filter(
+            is_void=False, date_delinked=None, person_id=child_id,
+            area_type='GLTL')
+        for geo in geos:
+            geo_type = geo.area.area_type_id
+            if geo_type == 'GDIS':
+                parent_id = int(geo.area.parent_area_id)
+            area_name = geo.area.area_name
+            data[areas[geo_type]] = area_name.upper()
+        # Get county from list geo
+        if 'child_county' not in data and parent_id != 0:
+            county = SetupGeography.objects.get(area_id=parent_id)
+            county_name = county.area_name
+            data[areas['GPRV']] = county_name.upper()
+        return data
+    except Exception, e:
+        print 'Error getting child - %s' % (str(e))
+        data['siblings'] = {}
+        return data
+
+
+def get_raw_data(params, data_type=1):
+    """Method to filter which report user wants."""
+    # class="table table-bordered"
+    data = None
+    raw_data = []
+    td_zeros = '<td>0</td>' * 12
+    tblanks = ['M', 'F'] * 6
+    blanks = ['0'] * 13
+    try:
+        report_type = int(params['report_id'])
+        if report_type == 5:
+            data, raw_data = get_raw_values(params)
+        elif report_type == 4:
+            # Other values
+            otherd, vls_ids = {}, {}
+            idata, idatas = {}, {}
+            otherd[1] = 'ALL OTHER DISEASES'
+            otherd[2] = 'FIRST ATTENDANCES'
+            otherd[3] = 'RE-ATTENDANCES'
+            otherd[4] = 'REFERRALS IN'
+            otherd[5] = 'REFERRALS OUT'
+            vals = get_dict(field_name=['new_condition_id'])
+            for vls in vals:
+                vls_ids[vls] = vls
+            if 'NCOD' in vals:
+                del vals['NCOD']
+            r_title = "{period_name}ly Health Report {unit_type}"
+            dt = '<table class="table table-bordered"><thead>'
+            dt += "<tr><th colspan='16'>%s" % (r_title)
+            dt += '</th></tr>'
+            dt += "<tr><th colspan='16'>{cci_si_name}</th></tr></thead>"
+            dt += case_load_header(report_type=3)
+            # Fetch raw data
+            rdatas = get_institution_data(params, report_type)
+            rdata = get_totals(rdatas['data'], vls_ids)
+            if rdata:
+                idata = write_row(rdata)
+                idatas = write_row(rdata, is_raw=True)
+            # Get totals
+            itotals = col_totals(rdata)
+            itotal = write_row([itotals])
+            # Show the values
+            total_h = 0
+            diss_vals = {}
+            hel_head = ['', 'Health Report'] + [''] * 13
+            hel_title = ['', 'List of Diseases'] + tblanks + ['Total']
+            if rdata:
+                raw_data.append(hel_head)
+                raw_data.append(hel_title)
+            cnt = 1
+            other_items = {1: 'NCOD'}
+            for val in vals:
+                val_name = vals[val]
+                val_data = diss_vals[val] if val in diss_vals else 0
+                total_h += val_data
+                dt += '<tr><td>%s</td><td>%s</td>' % (cnt, val_name)
+                if val in idata:
+                    dt += '%s' % (idata[val])
+                else:
+                    dt += '<td></td>%s<td>0</td></tr>' % (td_zeros)
+                if val in idatas:
+                    rd = idatas[val]
+                    del rd[0:2]
+                else:
+                    rd = blanks
+                if rdata:
+                    raw_data.append([cnt, val_name] + rd)
+                cnt += 1
+            for oval in otherd:
+                oval_name = otherd[oval]
+                sval = other_items[oval] if oval in other_items else oval
+                dt += '<tr><td>%s</td><td>%s</td>' % (cnt, oval_name)
+                if sval in idata:
+                    dt += '%s' % (idata[sval])
+                else:
+                    dt += '<td></td>%s<td>0</td></tr>' % (td_zeros)
+                if sval in idatas:
+                    rd = idatas[sval]
+                    del rd[0:2]
+                else:
+                    rd = blanks
+                if rdata:
+                    raw_data.append([cnt, oval_name] + rd)
+                cnt += 1
+            if rdata:
+                del itotals[1]
+                raw_data.append([''] + itotals)
+            dt += '<tr><td></td><td>Total</td>'
+            dt += '%s' % (itotal['TOTAL'])
+            dt += '<table>'
+            data = dt
+        elif report_type == 1:
+            # KNBS List
+            ids = {}
+            ids['CSAB'] = 'Child offender'
+            ids['CCIP'] = 'Children on the streets'
+            ids['CSIC'] = 'Neglect'
+            ids['CIDC'] = 'Orphaned Child'
+            ids['CCIP'] = 'Children on the streets'
+            ids['CDIS'] = 'Abandoned'
+            ids['CHCP'] = 'Lost and found children'
+            ids['CSDS'] = 'Drug and Substance Abuse'
+            ids['CSNG'] = 'Physical abuse/violence'
+            ids['CDSA'] = 'Abduction'
+            ids['CCDF'] = 'Defilement'
+            ids['CTRF'] = 'Child Labour'
+            # Query just like case load
+            all_datas = get_data(params)
+            all_data = all_datas['data']
+            knb_ids, rdata, rdatas = {}, {}, {}
+            # Just send ids as ids for easier rendering later
+            # Have to get all ids else errors
+            case_categories = get_categories()
+            for knb_id in ids:
+                knb_ids[knb_id] = knb_id
+            data = get_totals(all_data, case_categories)
+            if data:
+                rdata = write_row(data)
+                rdatas = write_row(data, is_raw=True)
+            rtotals = col_totals(data)
+            print 'ROWS', rdatas
+            rtotal = write_row([rtotals])
+            rtitle = 'KNBS ECONOMIC SURVEY %s %s' % (
+                params['month'], params['year'])
+            # Just add title whether there is data or not
+            knb_head = ['', rtitle.upper(), ''] + [''] * 13
+            knb_title = ['', 'Case Category', ''] + tblanks + ['Total']
+            if data:
+                raw_data.append(knb_head)
+                raw_data.append(knb_title)
+            dt = '<table class="table table-bordered"><thead>'
+            dt += '<tr><th colspan="16">%s</th></tr>' % (rtitle.upper())
+            dt += '</thead>'
+            dt += case_load_header(report_type=4)
+            knbcnt = 1
+            if data:
+                for val in ids:
+                    val_name = ids[val]
+                    dt += '<tr><td>%s</td><td>%s</td>' % (knbcnt, val_name)
+                    if val in rdata:
+                        dt += '%s' % (rdata[val])
+                    else:
+                        dt += '<td></td>%s<td>0</td></tr>' % (td_zeros)
+                    if val in rdatas:
+                        rd = rdatas[val]
+                        del rd[0:2]
+                    else:
+                        rd = blanks
+                    raw_data.append([knbcnt, val_name, ''] + rd)
+                    knbcnt += 1
+                raw_data.append([''] + rtotals)
+            dt += '<tr><td colspan="2"><b>Total</b></td>'
+            dt += '%s' % (rtotal['TOTAL'])
+            dt += '<table>'
+            data = dt
+        elif report_type == 3:
+            discs = {}
+            dvals = {2: 'TANA', 4: 'TARR', 5: 'TRIN', 6: 'TARE'}
+            rvals = {4: 'TARR', 5: 'TRIN', 6: 'TARE'}
+            evals = {8: 'AEES', 9: 'AEAB', 10: 'TDER',
+                     11: 'TDTR', 12: 'TDEX', 13: 'DTSI', 15: 'AEDE'}
+            svals = {8: 'AEES', 9: 'AEAB', 10: 'TDER',
+                     11: 'TDTR', 12: 'TDEX', 13: 'DTSI', 14: '14'}
+            death_vals = {15: 'AEDE'}
+            # Get all types of discharges
+            discharges = get_dict(field_name=['discharge_type_id'])
+            for disc in discharges:
+                discs[disc] = disc
+            # This is it
+            pdatas = get_institution_data(params, report_type)
+            devals = {}
+            for dval in dvals:
+                deq = dvals[dval]
+                devals[deq] = deq
+            pdata = get_totals(pdatas['data'], devals)
+            odata = get_totals(pdatas['odata'], devals)
+            ddata = get_totals(pdatas['ddata'], discs)
+            edata = get_totals(pdatas['death'], death_vals)
+            ids = {2: 'New Admissions',
+                   3: 'Returnees',
+                   4: ' - Relapse',
+                   5: ' - Transfer in',
+                   6: ' - Return after escape',
+                   7: 'Exits',
+                   8: ' - Escapee',
+                   9: ' - Abducted',
+                   10: ' - Early Release',
+                   11: ' - Released on License',
+                   12: ' - Released on Expiry of Order',
+                   13: ' - Transfer to another Institution',
+                   14: ' - Other exits',
+                   15: 'Death'}
+            r_title = "{cci_si_title} {period_name}ly Returns {unit_type}"
+            dt = '<table class="table table-bordered"><thead>'
+            dt += "<tr><th colspan='16'>%s" % (r_title)
+            dt += "</th></tr><tr><th colspan='16'>{cci_si_name}</th></tr>"
+            dt += "</thead>"
+            dt += case_load_header(report_type=2)
+            # This is it
+            popdata, popdatas = {}, {}
+            opdata, opdatas = {}, {}
+            dopdata, dopdatas = {}, {}
+            depdata, depdatas = {}, {}
+            osdata = []
+            if pdata:
+                all_returnees = get_others(pdata, rvals, 3, True)
+                pdata.append(all_returnees)
+                popdata = write_row(pdata)
+                popdatas = write_row(pdata, is_raw=True)
+            # Old data
+            if odata:
+                p1 = col_totals(odata)
+                osdata.append(p1)
+                opdata = write_row(osdata)
+                opdatas = write_row(osdata, is_raw=True)
+            # Discharge data
+            if ddata:
+                all_other = get_others(ddata, evals, 14)
+                ddata.append(all_other)
+                all_exits = get_others(ddata, svals, 7, True)
+                ddata.append(all_exits)
+                dopdata = write_row(ddata)
+                dopdatas = write_row(ddata, is_raw=True)
+            # Deaths as a type of discharge
+            if edata:
+                depdata = write_row(edata)
+                depdatas = write_row(edata, is_raw=True)
+            # Just add title whether there is data or not
+            pop_head = ['Institution Population'] + [''] * 14
+            pop_title = ['Category', 'Sub-category'] + tblanks + ['Total']
+
+            all_var = merge_two_dicts(popdata, dopdata)
+            all_rvar = merge_two_dicts(popdatas, dopdatas)
+            all_vars = merge_two_dicts(all_var, depdata)
+            all_rvars = merge_two_dicts(all_rvar, depdatas)
+            if pdata:
+                raw_data.append(pop_head)
+                raw_data.append(pop_title)
+            si_total = 0
+            # All totals
+            final_totals = get_final_totals(osdata, pdata, ddata)
+            ptotal = write_row([final_totals])
+            ptotal_raw = write_row([final_totals], is_raw=True)
+            td_pad = '</td><td>'
+            s_text = '<b>Total Children by End of Previous {period_name}</b>'
+            dt += '<tr><td colspan="3">%s' % (s_text)
+            if opdata:
+                o_data = opdata['TOTAL'].replace('<td></td>', '')
+                dt += o_data
+                raw_ol = opdatas['TOTAL']
+                del raw_ol[0:2]
+                raw_data.append(['From previous period', ''] + raw_ol)
+            else:
+                dt += '</td>%s<td>0</td></tr>' % (td_zeros)
+            ftotal = ptotal['TOTAL'].replace('<td></td>', '')
+            for val in ids:
+                vname = ids[val]
+                v_name = vname.replace(' - ', td_pad)
+                r_name = vname.replace(' - ', '')
+                val_name = v_name + td_pad if '<td>' not in v_name else v_name
+                vraw = [r_name, ''] if '<td>' not in v_name else ['', r_name]
+                val_data = 0
+                if val in dvals:
+                    vd = dvals[val]
+                elif val in evals:
+                    vd = evals[val]
+                else:
+                    vd, val_data = str(val), 0
+                dt += '<tr><td width="1px"></td><td>%s</td>' % (val_name)
+                if vd in all_rvars:
+                    rd = all_rvars[vd]
+                    del rd[0:2]
+                else:
+                    rd = blanks
+                if all_vars:
+                    raw_data.append(vraw + rd)
+                if vd in all_vars:
+                    my_val = all_vars[vd].replace('<td></td>', '')
+                    dt += '%s' % (my_val)
+                else:
+                    dt += '%s<td>0</td></tr>' % (td_zeros)
+                si_total += val_data
+            t_text = '<b>Total Children by End of Reporting {period_name}</b>'
+            dt += '<tr><td colspan="3">%s</td>' % (t_text)
+            dt += '%s' % (ftotal)
+            dt += '</table>'
+            if all_vars:
+                raw_data.append(ptotal_raw['TOTAL'])
+            data = dt
+    except Exception, e:
+        raise e
+    else:
+        return data, raw_data
+
+
+def get_raw_values(params, data_type=1):
+    """Method to query summaries."""
+    data = []
+    print 'Ad hoc', params
+    try:
+        adhoc_type = int(params["adhoc_type"])
+        check_fields = ['org_unit_type_id', 'committee_unit_type_id',
+                        'adoption_unit_type_id', 'si_unit_type_id',
+                        'cci_unit_type_id', 'ngo_unit_type_id',
+                        'government_unit_type_id']
+        vals = get_dict(field_name=check_fields)
+        orgs = RegOrgUnit.objects.all()
+        orgs = orgs.filter(is_void=False)
+        orgs = filter_by_date(params, orgs, 'created_at').values(
+            'org_unit_type_id').annotate(
+                unit_count=Count('org_unit_type_id')).order_by('-unit_count')
+        dt = '<table class="table table-bordered">'
+        if adhoc_type == 1:
+            dt += '<thead><tr><th width="40%">Organisation Unit</th>'
+            dt += '<th>TOTAL</th></tr></thead>'
+            total_ou = 0
+            if orgs:
+                data.append(['Organisation Type', 'Count'])
+            for org in orgs:
+                unit_id = org['org_unit_type_id']
+                unit_name = vals[unit_id] if unit_id in vals else unit_id
+                unit_cnt = org['unit_count']
+                total_ou += unit_cnt
+                dt += '<tr><td>%s</td>' % (unit_name)
+                dt += '<td>%s</td></tr>' % (unit_cnt)
+                data.append([unit_name, unit_cnt])
+            dt += '<tr><td>Total</td><td>%s</td></tr>' % (total_ou)
+            if orgs:
+                data.append(['Total', total_ou])
+
+        elif adhoc_type == 2:
+            cnt = 0
+            org_unit_name = params['org_unit_name']
+            org_unit_id = params['org_unit']
+            start_date = params['start_date'].strftime('%d-%b-%y')
+            end_date = params['end_date'].strftime('%d-%b-%y')
+            dates = '%s to %s' % (start_date, end_date)
+            inst_regs = OVCPlacement.objects.all().order_by("-admission_date")
+            inst_regs = inst_regs.filter(
+                is_void=False, residential_institution_name=org_unit_id)
+            inst_regs = filter_by_date(params, inst_regs, 'admission_date')
+            dt += '<thead><tr><th colspan="6">%s</th></tr>' % (org_unit_name)
+            dt += '<tr><th colspan="6">Date from %s</th></tr>' % (dates)
+            dt += '<tr><th></th><th width="40%">Names</th><th>Sex</th>'
+            dt += '<th>Age (years)</th><th>Admission date</th>'
+            dt += '<th>Status</th></tr></thead>'
+            if inst_regs:
+                data.append([org_unit_name, '', '', '', ''])
+                data.append(['Date from %s' % (dates), '', '', '', ''])
+                data.append(['#', 'Names', 'Sex', 'Age', 'Adm Date', 'Status'])
+            for inst_pop in inst_regs:
+                cnt += 1
+                dt += '<tr>'
+                name = inst_pop.person.full_name
+                age = inst_pop.person.years
+                gender_id = inst_pop.person.sex_id
+                gender = "Male" if gender_id == 'SMAL' else 'Female'
+                is_active = inst_pop.is_active
+                active_status = 'Active' if is_active else 'Not Active'
+                place_status = inst_pop.current_residential_status
+                admission_date = inst_pop.admission_date
+                adm_date = admission_date.strftime('%d-%b-%y')
+                status = place_status if place_status else active_status
+                dt += '<td>%s</td>' % (cnt)
+                dt += '<td>%s</td><td>%s</td>' % (name, gender)
+                dt += '<td>%s</td><td>%s</td>' % (age, adm_date)
+                dt += '<td>%s</td>' % (status)
+                dt += '</tr>'
+                data.append([cnt, name, gender, age, adm_date, status])
+        dt += '<table>'
+
+    except Exception, e:
+        raise e
+    else:
+        return dt, data
+
+
+def get_institution_data(params, report_id=4):
+    """Method to get all insititution data."""
+    try:
+        data = {}
+        if report_id == 4:
+            data = get_health_data(params)
+        elif report_id == 3:
+            data = get_population_data(params)
+    except Exception, e:
+        print "Error getting institution data - %s" % (str(e))
+        return {}
+    else:
+        return data
+
+
+def get_population_data(params):
+    """
+    Method to do actual query from the db.
+
+    For now lets do institution values
+    """
+    try:
+        data = []
+        print 'Institution Pop params', params
+        # Get institution filters - TNCI - charitable
+        report_region = params['report_region']
+        org_unit = params['org_unit']
+        org_type = params['org_type']
+        inst_type = params['institution_type']
+        if org_type == 'ALL':
+            si_list = ['TNRH', 'TNRB', 'TNRR', 'TNRS', 'TNAP']
+            inst_list = ['TNRC'] if inst_type == 'TNCI' else si_list
+        else:
+            inst_list = [str(inst_type)]
+        # Get all org units under this category
+        if report_region == 4:
+            org_list = [int(org_unit)]
+        else:
+            org_qs = RegOrgUnit.objects.filter(
+                is_void=False, org_unit_type_id__in=inst_list)
+            if report_region in [2, 3]:
+                sub_ids = params['sub_county_id']
+                orgs_geos = RegOrgUnitGeography.objects.filter(
+                    is_void=False, area_id__in=sub_ids)
+                orgs_geo = orgs_geos.values_list('org_unit_id', flat=True)
+                uniq_orgs = list(set(orgs_geo))
+                org_qs = org_qs.filter(org_unit_type_id__in=uniq_orgs)
+            orgs_list = org_qs.values_list('id', flat=True)
+            # This is a hack since Danet put this field as char and not int
+            org_list = [str(o_list) for o_list in orgs_list]
+        # Filter by date only first
+        start_date = params['start_date']
+        end_date = params['end_date']
+        ip_queryset = OVCPlacement.objects.filter(
+            residential_institution_name__in=org_list,
+            is_void=False, admission_date__range=(start_date, end_date))
+        for cl in ip_queryset:
+            item = {}
+            item['cat'] = cl.admission_type
+            item['sex'] = cl.person.sex_id
+            item['age'] = cl.person.years
+            # For generating summaries
+            item['kid'] = cl.person.id
+            item['cid'] = cl.placement_id
+            data.append(item)
+        # Last period population data
+        dis_lists = OVCDischargeFollowUp.objects.filter(
+            is_void=False, date_of_discharge__lt=start_date)
+        dis_list = dis_lists.values_list('placement_id_id', flat=True)
+        old_queryset = OVCPlacement.objects.filter(
+            residential_institution_name__in=org_list,
+            is_void=False, admission_date__lt=start_date)
+        old_queryset = old_queryset.exclude(placement_id__in=dis_list)
+        old_data = []
+        for ol in old_queryset:
+            oitem = {}
+            oitem['cat'] = ol.admission_type
+            oitem['sex'] = ol.person.sex_id
+            oitem['age'] = ol.person.years
+            oitem['kid'] = ol.person.id
+            oitem['cid'] = ol.placement_id
+            old_data.append(oitem)
+        # All discharges
+        dis_queryset = OVCDischargeFollowUp.objects.filter(
+            is_void=False, date_of_discharge__range=(start_date, end_date))
+        dis_data = []
+        for dl in dis_queryset:
+            ditem = {}
+            ditem['cat'] = dl.type_of_discharge
+            ditem['sex'] = dl.person.sex_id
+            ditem['age'] = dl.person.years
+            ditem['kid'] = dl.person.id
+            ditem['cid'] = dl.placement_id_id
+            dis_data.append(ditem)
+        # Get all deaths within this period
+        death_qs = OVCAdverseEventsFollowUp.objects.filter(
+            is_void=False, adverse_condition_description='AEDE',
+            adverse_event_date__range=(start_date, end_date))
+        death_data = []
+        for ds in death_qs:
+            eitem = {}
+            eitem['cat'] = ds.adverse_condition_description
+            eitem['sex'] = ds.person.sex_id
+            eitem['age'] = ds.person.years
+            eitem['kid'] = ds.person.id
+            eitem['cid'] = ds.placement_id_id
+            death_data.append(eitem)
+        raw_data = data_from_results(data)
+        raw_old = data_from_results(old_data)
+        raw_dis = data_from_results(dis_data)
+        raw_death = data_from_results(death_data)
+        raw_vals = {'data': raw_data, 'odata': raw_old,
+                    'ddata': raw_dis, 'death': raw_death}
+        return raw_vals
+    except Exception, e:
+        print 'Get institution data error - %s' % (str(e))
+        raise e
+
+
+def get_health_data(params):
+    """
+    Method to do actual query from the db.
+
+    For now lets do institution values
+    """
+    try:
+        data = []
+        print 'Institution params', params
+        # Get institution filters - TNCI - charitable
+        report_region = params['report_region']
+        org_unit = params['org_unit']
+        org_type = params['org_type']
+        inst_type = params['institution_type']
+        if org_type == 'ALL':
+            si_list = ['TNRH', 'TNRB', 'TNRR', 'TNRS', 'TNAP']
+            inst_list = ['TNRC'] if inst_type == 'TNCI' else si_list
+        else:
+            inst_list = [str(inst_type)]
+        # Get all org units under this category
+        if report_region == 4:
+            org_list = [int(org_unit)]
+        else:
+            org_qs = RegOrgUnit.objects.filter(
+                is_void=False, org_unit_type_id__in=inst_list)
+            if report_region in [2, 3]:
+                print 'Filter further by county / sub-county'
+                sub_ids = params['sub_county_id']
+                orgs_geos = RegOrgUnitGeography.objects.filter(
+                    is_void=False, area_id__in=sub_ids)
+                orgs_geo = orgs_geos.values_list('org_unit_id', flat=True)
+                uniq_orgs = list(set(orgs_geo))
+                org_qs = org_qs.filter(org_unit_type_id__in=uniq_orgs)
+            orgs_list = org_qs.values_list('id', flat=True)
+            # This is a hack since Danet put this field as char
+            org_list = [str(o_list) for o_list in orgs_list]
+        # Filter by date only first
+        start_date = params['start_date']
+        end_date = params['end_date']
+        ae_queryset = OVCAdverseEventsFollowUp.objects.filter(
+            placement_id__residential_institution_name__in=org_list,
+            is_void=False, adverse_event_date__range=(start_date, end_date))
+        ae_lists = ae_queryset.values_list('adverse_condition_id', flat=True)
+        ip_queryset = OVCAdverseMedicalEventsFollowUp.objects.all()
+        ip_queryset = ip_queryset.filter(
+            is_void=False, adverse_condition_id_id__in=ae_lists)
+        for cl in ip_queryset:
+            item = {}
+            person = cl.adverse_condition_id.person
+            item['cat'] = cl.adverse_medical_condition
+            item['sex'] = person.sex_id
+            item['age'] = person.years
+            # For generating summaries
+            item['kid'] = person.id
+            item['cid'] = cl.adverse_medical_condition
+            data.append(item)
+        raw_data = data_from_results(data)
+        raw_vals = {'data': raw_data}
+        return raw_vals
+    except Exception, e:
+        print 'Get institution data error - %s' % (str(e))
+        raise e
+
+
+def get_totals(all_data, categories, summ=False):
+    """Method to get totals for case load."""
+    data, cat = [], None
+    cases, children = {}, {}
+    try:
+        if not summ:
+            if 'CASE' in all_data:
+                cases = all_data['CASE']
+                del all_data['CASE']
+            if 'CHILD' in all_data:
+                children = all_data['CHILD']
+                del all_data['CHILD']
+        for dt in all_data:
+            vls = all_data[dt]
+            if 'cat' in vls:
+                cat = vls['cat']
+                del vls['cat']
+            c_data = []
+            sc, mc, fc = 0, 0, 0
+            for vl in vls:
+                sc += 1
+                col_val = vls[vl]
+                if dt == summ:
+                    col_val = len(list(set(vls[vl])))
+                c_data.append(col_val)
+                if sc % 2:
+                    mc += col_val
+                else:
+                    fc += col_val
+            totals = [mc, fc, mc + fc]
+            if dt == summ:
+                vals = c_data + totals
+                data.append(vals)
+            else:
+                if cat and '_' in cat:
+                    dt, cat = cat.split('_')
+                if '_' in dt:
+                    dt, cat = dt.split('_')
+                case_name = categories[dt]
+                cat_name = categories[cat] if cat else ''
+                vals = [case_name, cat_name] + c_data + totals
+                data.append(vals)
+        # Return the values
+        if not summ:
+            if cases:
+                all_data['CASE'] = cases
+            if children:
+                all_data['CHILD'] = children
+    except Exception, e:
+        print 'error - %s' % (str(e))
+        pass
+    else:
+        return data
+
+
+def col_totals(flist):
+    """Method to get bottom totals."""
+    ttls = ['TOTAL', '']
+    try:
+        sums = {}
+        for i, fls in enumerate(flist):
+            for x, fl in enumerate(fls):
+                if x > 1:
+                    if x in sums:
+                        sums[x] = sums[x] + fl
+                    else:
+                        sums[x] = fl
+        if sums:
+            for tval in sums:
+                tvalue = sums[tval]
+                ttls.insert(tval, tvalue)
+            ttotals = ttls
+        else:
+            ttotals = ttls + [0] * 13
+        return ttotals
+    except Exception, e:
+        print 'Error get totals - %s' % (str(e))
+        return ttls + [0] * 13
+
+
+def get_final_totals(odata, pdata, ddata):
+    """Method to now add up all totals."""
+    try:
+        my_totals = []
+        # print 'OLD', odata
+        data_old = get_others(odata, {1: 'TOTAL'}, 'OLD', True)
+        my_totals.append(data_old)
+        # print 'IN', pdata
+        data_new = get_others(pdata, {1: 'TANA', 3: '3'}, 'IN', True)
+        my_totals.append(data_new)
+        # print 'OUT', ddata
+        data_out = get_others(ddata, {1: 'AEDE', 7: '7'}, 'OUT', True)
+        # Change this values to negatives
+        new_data_out = prep_totals(data_out)
+        my_totals.append(new_data_out)
+        cal_sum = col_totals(my_totals)
+        return cal_sum
+    except Exception, e:
+        raise e
+    else:
+        return []
+
+
+def prep_totals(totals_list, exits=True):
+    """Method to prepare list of addition."""
+    try:
+        new_list = []
+        for x, fl in enumerate(totals_list):
+            if exits:
+                fll = fl * -1 if x > 1 else fl
+            else:
+                # Make this values positives
+                fll = fl * -1 if x > 1 and fl < 0 else fl
+            new_list.append(fll)
+    except Exception:
+        return totals_list
+    else:
+        return new_list
+
+
+def get_others(ddata, evals, new_key=7, is_sum=False):
+    """Method to do others."""
+    try:
+        flat_vars = []
+        other_vars = []
+        for ev in evals:
+            flat_vars.append(evals[ev])
+        for i, fls in enumerate(ddata):
+            row_id = str(fls[0])
+            if is_sum:
+                if row_id in flat_vars:
+                    other_vars.append(fls)
+            else:
+                if row_id not in flat_vars:
+                    other_vars.append(fls)
+        cal_sum = col_totals(other_vars)
+        cal_sum[0] = new_key
+        return cal_sum
+    except Exception, e:
+        print "error flattening other -%s" % (str(e))
+        return []
+
+
+def write_row(data, is_raw=False):
+    """Method to write html rows given data."""
+    try:
+        row_dict = {}
+        for val in data:
+            row = [str(t) for t in val]
+            cat_id = str(row[0])
+            tmp_td = '<td>%s</td>' % (cat_id)
+            table_string = "<td>" + \
+                string.join(row, "</td><td>") + \
+                "</td></tr>\n"
+            if is_raw:
+                row_dict[cat_id] = row
+            else:
+                row_dict[cat_id] = table_string.replace(tmp_td, '')
+        return row_dict
+    except Exception, e:
+        print 'Row error - %s' % (str(e))
+        return {}
+
+
+def create_year_list(year_type='F'):
+    """Method to create year list for drop downs."""
+    year_choices = []
+    try:
+        for yr in range(2015, (datetime.now().year + 1)):
+            yr_text = '%d/%d' % (yr, yr + 1) if year_type == 'F' else yr
+            year_choices.append((yr, yr_text))
+        return year_choices
+    except Exception:
+        return []
+
+
+def get_categories(ids=True):
+    """Method to get case categories."""
+    try:
+        case_categories = get_case_details(['case_category_id'])
+        categories = {}
+        for case_category in case_categories:
+            case_id = case_category.item_id
+            case_name = case_category.item_description
+            if ids:
+                categories[case_id] = case_id
+            else:
+                categories[case_id] = case_name
+        return categories
+    except Exception, e:
+        print 'Error getting category - %s' % (str(e))
+        return {}
+
+
+def get_case_data(params):
+    """Method to get case data."""
+    try:
+        case_id = params['case_id']
+        case_info = {}
+        # Case geo and serial
+        case_reports = OVCCaseGeo.objects.filter(
+            is_void=False, case_id_id=case_id)
+        for case_report in case_reports:
+            case_info['case_geo'] = case_report.report_subcounty.area_name
+            case_info['case_serial'] = case_report.case_id.case_serial
+        return case_info
+    except Exception, e:
+        print 'Get case error - %s' % (str(e))
+        raise {}
+
+
+def merge_two_dicts(x, y):
+    """Given two dicts, merge them."""
+    z = x.copy()
+    z.update(y)
+    return z
+
+if __name__ == '__main__':
+    pass

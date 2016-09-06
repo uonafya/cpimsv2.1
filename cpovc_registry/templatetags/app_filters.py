@@ -1,14 +1,20 @@
+"""Custom template filter for non-expensive queries."""
 from django import template
 from django.utils import timezone
+from django.contrib.auth.models import Group
 from dateutil.relativedelta import relativedelta
 from cpovc_main.functions import get_dict
-from cpovc_registry.models import AppUser
+from cpovc_registry.models import AppUser, RegOrgUnit
+from cpovc_main.models import SetupGeography, SchoolList
+from cpovc_auth.models import CPOVCRole
 
 register = template.Library()
 
 # Declare Constants For Lookups
 check_fields = ['intervention_id',
                 'case_category_id',
+                'event_place_id',
+                'case_nature_id',
                 'core_item_id']
 vals = get_dict(field_name=check_fields)
 
@@ -70,7 +76,7 @@ def gen_refferal(value):
     # Generate HtmlMarkUp
     mark_up = ''
     for v in value_list:
-        mark_up += '%s<br>' %v
+        mark_up += '%s<br>' % v
     return mark_up
 
 
@@ -86,7 +92,7 @@ def gen_intervention(value):
     # Generate HtmlMarkUp
     mark_up = ''
     for v in value_list:
-        mark_up += '%s<br>' %v
+        mark_up += '%s<br>' % v
     return mark_up
 
 
@@ -97,10 +103,57 @@ def gen_date_of_event(value):
         values = value['date_of_event']
     return values
 
+
 @register.filter(name='gen_case_grouping_id')
 def gen_case_grouping_id(value):
     value = value[0]
-    values= None
+    values = None
     if type(value) is dict:
         values = value['case_grouping_id']
     return values
+
+@register.filter(name='gen_referral_grouping_id')
+def gen_referral_grouping_id(value):
+    value = value[0]
+    values = None
+    if type(value) is dict:
+        values = value['referral_grouping_id']
+    return values
+
+
+@register.filter(name='gen_areaname')
+def gen_areaname(value):
+    if value:
+        item_value = SetupGeography.objects.get(area_id=value, is_void=False)
+        return item_value.area_name
+    else:
+        return value
+
+@register.filter(name='gen_orgunitname')
+def gen_orgunitname(value):
+    if value:
+        item_value = RegOrgUnit.objects.get(pk=int(value), is_void=False)
+        return item_value.org_unit_name
+    else:
+        return value
+
+@register.filter(name='gen_schoolname')
+def gen_schoolname(value):
+    print 'gen_schoolname : %s' %value
+    if value:
+        item_value = SchoolList.objects.get(pk=value, is_void=False)
+        return item_value.school_name
+    else:
+        return value
+
+@register.filter(name='has_group')
+def has_group(user, group_name):
+    """For checking roles by Group id."""
+    if user.is_superuser:
+        return True
+    user_group = CPOVCRole.objects.get(group_id=group_name)
+    group = Group.objects.get(name=user_group.group_name)
+    print 'GCHECK', group_name, group, user.groups.all()
+    response = True if group in user.groups.all() else False
+    print response
+    return response

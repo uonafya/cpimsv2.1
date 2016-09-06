@@ -54,7 +54,6 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     password_changed_timestamp = models.DateTimeField(null=True)
 
     # For admin so remove if you don't want to use admin
-    email = False
     first_name = False
     last_name = False
     date_joined = False
@@ -63,14 +62,25 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['reg_person']
 
-    class Meta:
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
-        db_table = 'auth_user'
+    def _get_email(self):
+        return self.reg_person.email
 
-    def _get_users_data(self):
-        _reg_users_data = AppUser.objects.all()
-        return _reg_users_data
+    email = property(_get_email)
+
+    def _get_first_name(self):
+        return self.reg_person.first_name
+
+    first_name = property(_get_first_name)
+
+    def _get_surname(self):
+        return self.reg_person.surname
+
+    surname = property(_get_surname)
+
+    def _get_last_name(self):
+        return self.reg_person.other_names
+
+    last_name = property(_get_last_name)
 
     def get_full_name(self):
         """
@@ -99,6 +109,11 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+        db_table = 'auth_user'
 
 
 class CPOVCPermission(Permission):

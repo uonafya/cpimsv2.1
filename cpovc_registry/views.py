@@ -1,116 +1,131 @@
+# -*- coding: utf-8 -*-
+"""Registry views for CPIMS."""
+from datetime import datetime
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from cpovc_main.functions import (
-    get_list_of_org_units, get_dict, get_vgeo_list, get_vorg_list,
-    get_persons_list)
+    get_list_of_org_units, get_dict, convert_date, get_list_of_persons)
 from .forms import FormRegistry, FormRegistryNew, FormContact
-from .models import RegOrgUnitGeography
+from .models import RegOrgUnitGeography, RegPersonsAuditTrail
 from .functions import (
     org_id_generator, save_contacts, save_external_ids, close_org_unit,
     save_geo_location, get_external_ids, get_geo_location, get_contacts,
-    get_geo_selected, get_specific_geos, search_org_units)
+    get_geo_selected, search_org_units, delete_org_unit, save_locations,
+    extract_post_params, auto_suggest_person, merge_two_dicts,
+    set_person_dead, delete_person, names_from_ids, remove_locations,
+    save_person_extids, save_person_type, remove_person_type, save_sibling,
+    save_audit_trail, create_geo_list, counties_from_aids, get_user_details,
+    get_list_types, geos_from_aids, person_duplicate, copy_locations,
+    unit_duplicate, get_temp)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
-    RegPersonsTypes, RegPersonsGuardians, RegPersonsGeo, RegPersonsExternalIds)
+    RegPersonsTypes, RegPersonsGuardians, RegPersonsGeo, RegPersonsExternalIds,
+    RegPersonsSiblings)
 from cpovc_registry.forms import (
-    RegistrationForm, RegistrationSearchForm, NewUser, UserSearchForm)
+    RegistrationForm, RegistrationSearchForm, NewUser)
 from cpovc_main.functions import (
     workforce_id_generator, beneficiary_id_generator, get_org_units_dict)
 from cpovc_main.models import SetupGeography
 from cpovc_auth.decorators import is_allowed_groups
 
 from django.contrib.auth.models import Group
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_control
+
+from cpovc_main.country import COUNTRIES
 
 
+now = timezone.now()
+
+
+@login_required(login_url='/')
+@is_allowed_groups(['RGM', 'RGU', 'DSU', 'STD'])
 def home(request):
-    '''
-    Search page for Organisation Unit / Default page
-    '''
+    """Search page for Organisation Unit / Default page."""
     try:
+        orgs = get_list_types()
         if request.method == 'POST':
             form = FormRegistry(data=request.POST)
-            if form.is_valid():
-                search_string = form.cleaned_data['org_unit_name']
-                org_type = form.cleaned_data['org_type']
-                org_closed = form.cleaned_data['org_closed']
+            search_string = request.POST.get('org_unit_name')
+            org_type = request.POST.get('org_type')
+            org_category = request.POST.get('org_category')
+            org_closed = request.POST.get('org_closed')
 
-                closed_org = True if org_closed == 'True' else False
-                unit_type = [org_type] if org_type else []
-                if search_string:
-                    results = get_list_of_org_units(
-                        search_string=search_string,
-                        include_closed=closed_org,
-                        in_org_unit_types=unit_type,
-                        number_of_results=50)
-                else:
-                    results = search_org_units(unit_type, closed_org)
-                items = 'result' if len(results) == 1 else 'results'
-                ids = []
-                for result in results:
-                    ids.append(result.id)
-                geos = get_specific_geos(ids)
-                orgs = {}
-                print geos
-                for geo in geos:
-                    org_id = geo.org_unit_id
-                    area_name = geo.area.area_name
-                    if org_id not in orgs:
-                        orgs[org_id] = [area_name]
-                    else:
-                        orgs[org_id].append(area_name)
-                orgs_name = {}
-                print orgs
-                for geo in ids:
-                    if geo in orgs:
-                        gname = orgs[geo]
-                        orgs_name[geo] = ' ,'.join(gname)
-                    else:
-                        orgs_name[geo] = None
-                print orgs_name
-                message = "Search for %s returned %d %s" % (search_string,
-                                                            len(results),
-                                                            items)
-                check_fields = ['org_unit_type_id']
-                val = get_dict(field_name=check_fields)
-                # All existing org units
-                org_units_list = get_org_units_dict()
-                vals = val.copy()
-                vals.update(org_units_list)
-                return render(request, 'registry/org_units_index.html',
-                              {'form': form, 'results': results,
-                               'geos': orgs_name,
-                               'message': message, 'vals': vals})
+            closed_org = True if org_closed == 'on' else False
+            unit_type = [org_type] if org_type else []
+            if org_category and not org_type:
+                this_orgs = orgs[org_category]
+                unit_type = []
+                for org in this_orgs:
+                    unit_type.append(org.split(',', 1)[0])
+            if search_string:
+                results = get_list_of_org_units(
+                    search_string=search_string,
+                    include_closed=closed_org,
+                    in_org_unit_types=unit_type,
+                    number_of_results=50)
             else:
-                print 'Not Good %s' % (form.errors)
+                results = search_org_units(unit_type, closed_org)
+            items = 'result' if len(results) == 1 else 'results'
+            ids = []
+            for result in results:
+                ids.append(result.id)
+            geo_names = names_from_ids(ids)
+            msg_text = 'for %s' % (search_string) if search_string else ''
+            message = "Search %s returned %d %s" % (msg_text,
+                                                    len(results),
+                                                    items)
+            check_fields = ['org_unit_type_id', 'committee_unit_type_id',
+                            'adoption_unit_type_id', 'si_unit_type_id',
+                            'cci_unit_type_id', 'ngo_unit_type_id',
+                            'government_unit_type_id']
+            val = get_dict(field_name=check_fields)
+            # All existing org units
+            org_units_dict = get_org_units_dict()
+            vals = merge_two_dicts(val, org_units_dict)
+            return render(request, 'registry/org_units_index.html',
+                          {'form': form, 'results': results,
+                           'geos': geo_names, 'orgs': orgs,
+                           'org_category': org_type,
+                           'message': message, 'vals': vals})
         form = FormRegistry()
-        # groups = request.user.groups.values_list('', flat=True)
-        # print groups
+        query = request.GET.get('q')
+        query_id = request.GET.get('id')
+        if query:
+            qid = int(query_id) if str(query_id) else 0
+            results = auto_suggest_person(request, query, qid)
+            return JsonResponse(results, content_type='application/json',
+                                safe=False)
         return render(request, 'registry/org_units_index.html',
-                      {'form': form})
+                      {'form': form, 'orgs': orgs})
     except Exception, e:
         print str(e)
         raise e
 
 
-@is_allowed_groups(['RGM', 'RGU'])
+@login_required
+@is_allowed_groups(['RGM', 'RGU', 'DSU'])
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def register_new(request):
-    '''
-    Create page for New Organisation Unit
-    '''
+    """Create page for New Organisation Unit."""
     try:
         if request.method == 'POST':
             form = FormRegistry(data=request.POST)
             cform = FormContact(data=request.POST)
-            print request.POST
+            # print request.POST
             org_unit_type = request.POST.get('org_unit_type')
             org_unit_name = request.POST.get('org_unit_name')
             reg_date = request.POST.get('reg_date')
             if not reg_date:
                 reg_date = None
+            else:
+                reg_date = convert_date(reg_date)
+            county = request.POST.getlist('county')
             sub_county = request.POST.getlist('sub_county')
             ward = request.POST.getlist('ward')
             parent_org_unit = request.POST.get('parent_org_unit')
@@ -119,10 +134,11 @@ def register_new(request):
             org_reg_type = request.POST.get('org_reg_type')
             legal_reg_number = request.POST.get('legal_reg_number')
             org_new = RegOrgUnit(org_unit_id_vis='NXXXXXX',
-                                 org_unit_name=org_unit_name,
+                                 org_unit_name=org_unit_name.upper(),
                                  org_unit_type_id=org_unit_type,
                                  date_operational=reg_date,
                                  parent_org_unit_id=parent_org_unit,
+                                 created_by_id=request.user.id,
                                  is_void=False)
             org_new.save()
             org_unit_id = org_new.pk
@@ -136,56 +152,85 @@ def register_new(request):
                 save_external_ids(org_reg_type, legal_reg_number, org_unit_id)
             # Save geo units
             geo_locs = ward + sub_county
+            if not geo_locs and county:
+                geo_locs = geos_from_aids(county, area_type='GDIS')
             save_geo_location(geo_locs, org_unit_id)
             # Save contacts
             if cform.is_valid():
                 for (form_id, form_value) in cform.extra_contacts():
                     if form_value:
-                        print form_id, form_value, org_unit_id
                         save_contacts(form_id, form_value, org_unit_id)
-            # Perform audit trail - TO DO
+            # Perform audit trail for new org unit
+            if org_new:
+                params = {}
+                params['transaction_type_id'] = 'REGU'
+                params['interface_id'] = 'INTW'
+                params['org_unit_id'] = org_unit_id
+                save_audit_trail(request, params, 'Unit')
             return HttpResponseRedirect(reverse(home))
-        form = FormRegistryNew()
+        form = FormRegistryNew(request.user)
         cform = FormContact()
+        orgs = get_list_types()
         return render(request, 'registry/org_units_new.html',
-                      {'form': form, 'cform': cform})
+                      {'form': form, 'cform': cform, 'orgs': orgs})
     except Exception, e:
         raise e
 
 
+@login_required
 @is_allowed_groups(['RGM', 'RGU', 'DSU'])
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def register_edit(request, org_id):
-    '''
-    Edit page for Organisation Unit with id - org_id
-    '''
+    """Edit page for Organisation Unit with id - org_id."""
     resp = ''
     try:
-        units = RegOrgUnit.objects.get(pk=org_id)
+        units = RegOrgUnit.objects.get(pk=org_id, is_void=False)
+        unit_parent = units.parent_org_unit_id
+        all_units = RegOrgUnit.objects.filter(is_void=False)
+        units_html = '<option value="">Select Org unit</option>'
+        for my_unit in all_units:
+            u_id = my_unit.id
+            u_safe_name = my_unit.org_unit_name.replace("'", "\\'")
+            u_name = '%s %s' % (my_unit.org_unit_id_vis, u_safe_name)
+            sel_txt = 'selected' if u_id == unit_parent else ''
+            units_html += '<option value="%s" %s>%s</option>' % (
+                u_id, sel_txt, u_name)
+        name = units.org_unit_name
         # Geo location ids
+        if units.date_closed:
+            closed_msg = ("Closed Organisation unit (%s) is "
+                          "not editable." % (name))
+            messages.error(request, closed_msg)
+            return HttpResponseRedirect(reverse(home))
         area_ids = get_geo_location(org_id)
         area_list = []
         for area_id in area_ids:
             area_list.append(area_id['area_id'])
+        county_list = counties_from_aids(area_list)
         if request.method == 'POST':
+            units = RegOrgUnit.objects.get(pk=org_id, is_void=False)
             form = FormRegistry(data=request.POST)
             cform = FormContact(data=request.POST)
             edit_type = int(request.POST.get('edit_org'))
             org_unit_name = request.POST.get('org_unit_name')
             org_unit_type = request.POST.get('org_unit_type')
             reg_date = request.POST.get('reg_date')
+            if reg_date:
+                reg_date = convert_date(reg_date)
             parent_org_unit = request.POST.get('parent_org_unit')
+            county = request.POST.getlist('county')
             sub_county = request.POST.getlist('sub_county')
             ward = request.POST.getlist('ward')
-            print edit_type
             if edit_type == 1:
                 # This is a normal edit
                 print 'Normal edit'
                 # Update changed fields in main table
-                units.org_unit_name = org_unit_name
+                units.org_unit_name = org_unit_name.upper()
                 units.org_unit_type_id = org_unit_type
                 units.date_operational = reg_date
-                units.parent_org_unit_id = parent_org_unit
-                units.save(update_fields=["org_unit_name"])
+                #units.parent_org_unit_id = parent_org_unit
+                units.save(update_fields=["org_unit_name", "org_unit_type_id",
+                                          "date_operational"])
                 # Update registration details
                 org_reg_type = request.POST.get('org_reg_type')
                 reg_number = request.POST.get('legal_reg_number')
@@ -193,6 +238,8 @@ def register_edit(request, org_id):
                     save_external_ids(org_reg_type, reg_number, org_id)
                 # Update Geo locations
                 geo_locs = ward + sub_county
+                if not geo_locs and county:
+                    geo_locs = geos_from_aids(county, area_type='GDIS')
                 save_geo_location(geo_locs, org_id, area_list)
                 # Update contacts
                 if cform.is_valid():
@@ -203,27 +250,43 @@ def register_edit(request, org_id):
                 # This is a close with date provided
                 close_date = request.POST.get('close_date')
                 if close_date:
+                    close_date = convert_date(close_date)
                     close_org_unit(close_date, org_id)
                 resp = 'Closed with given date - %s' % (close_date)
             else:
                 # This is a close without date - use today
-                close_org_unit(None, org_id)
-                resp = 'Closed due to error / duplicate'
+                # Check first that is no a parent to any unit
+                parent_count = RegOrgUnit.objects.filter(
+                    parent_org_unit_id=org_id, is_void=False).count()
+                if parent_count == 0:
+                    delete_org_unit(org_id)
+                    resp = 'Deleted due to error / duplicate'
+                else:
+                    resp = ('This unit can not be deleted as it is a parent '
+                            'to other sub-units.')
+            # Perform audit trail for this edit transaction
+            if edit_type:
+                params = {}
+                params['transaction_type_id'] = 'UPDU'
+                params['interface_id'] = 'INTW'
+                params['org_unit_id'] = org_id
+                save_audit_trail(request, params, 'Unit')
             msg = 'Organisation Unit (%s) edit success.' % (org_unit_name)
             msg += '\n%s' % (resp)
+            if not edit_type:
+                msg = 'Edit cancelled'
             messages.info(request, msg)
-            # org_unit_name = form.cleaned_data['org_unit_name']
-            '''
-            # results = {'message': msg, 'value': org_unit_type}
-            # return JsonResponse(results, content_type='application/json')
-            '''
             return HttpResponseRedirect(reverse(home))
         # f = ContactForm(request.POST, initial=data)
         # f.has_changed()
-        name = units.org_unit_name
+        date_op, date_closed = None, None
+        if units.date_operational:
+            the_date = convert_date(units.date_operational, '%Y-%m-%d')
+            date_op = the_date.strftime('%d-%b-%Y')
+        if units.date_closed:
+            close_date = convert_date(units.date_closed, '%Y-%m-%d')
+            date_closed = close_date.strftime('%d-%b-%Y')
         unit_type = units.org_unit_type_id
-        date_op = units.date_operational
-        date_closed = units.date_closed
         parent_unit = units.parent_org_unit_id
         # External ids
         ext_ids = get_external_ids(org_id)
@@ -233,52 +296,82 @@ def register_edit(request, org_id):
             reg_number = ext_ids[0]['identifier_value']
             external['org_reg_type'] = reg_type
             external['legal_reg_number'] = reg_number
-        data_dict = external.copy()
+        orgs = get_list_types()
+        org_cat = None
+        for org in orgs:
+            org_vals = orgs[org]
+            for org_val in org_vals:
+                if unit_type and org_val.startswith(unit_type):
+                    org_cat = org
         # Final data
         data = {'org_unit_name': name, 'org_unit_type': unit_type,
                 'reg_date': date_op, 'sub_county': area_list,
                 'ward': area_list, 'close_date': date_closed,
-                'parent_org_unit': parent_unit}
-        data_dict.update(data)
-        form = FormRegistryNew(data_dict)
+                'parent_org_unit': parent_unit, 'county': county_list,
+                'org_unit_category': org_cat}
+        data_dict = merge_two_dicts(external, data)
+        form = FormRegistryNew(request.user, data_dict)
         # Get contact details
         contacts = get_contacts(org_id)
-        print contacts
         cform = FormContact(contacts)
         return render(request,
-                      'registry/org_units_edit.html', {'form': form,
-                                                       'cform': cform})
+                      'registry/org_units_edit.html',
+                      {'form': form, 'cform': cform, 'org_unit': units,
+                       'org_units': all_units, 'units_html': units_html,
+                       'orgs': orgs, 'unit_type': unit_type})
     except RegOrgUnit.DoesNotExist:
         form = FormRegistry()
         msg = 'Organisation Unit does not exist'
-        messages.add_message(request, messages.INFO, msg)
+        messages.add_message(request, messages.ERROR, msg)
         return render(request, 'registry/org_units_index.html',
                       {'form': form})
     except Exception, e:
-        # raise e
         form = FormRegistry()
-        msg = 'Organisation Unit does not exist - %s' % (str(e))
-        messages.add_message(request, messages.INFO, msg)
+        msg = 'Organisation Unit edit error - %s' % (str(e))
+        print msg
+        messages.add_message(request, messages.ERROR, msg)
         return render(request, 'registry/org_units_index.html',
                       {'form': form})
 
 
+@login_required
+@is_allowed_groups(['RGM', 'RGU', 'DSU', 'STD'])
 def register_details(request, org_id):
-    '''
-    Some default page for the home page / Dashboard
+    """
+    Some default page for the home page / Dashboard.
+
     vals - All possible list_general used on this page
-    '''
+    """
     try:
         # All my filters
         check_fields = ['contact_detail_type_id', 'org_unit_type_id',
-                        'identifier_type_id']
-        val = get_dict(field_name=check_fields)
+                        'identifier_type_id', 'government_unit_type_id',
+                        'committee_unit_type_id', 'adoption_unit_type_id',
+                        'si_unit_type_id', 'cci_unit_type_id',
+                        'ngo_unit_type_id']
+        db_vals = get_dict(field_name=check_fields)
         # All existing org units
-        org_units_list = get_org_units_dict()
-        vals = val.copy()
-        vals.update(org_units_list)
+        org_units_dict = get_org_units_dict()
+        vals = merge_two_dicts(db_vals, org_units_dict)
         org_unit = RegOrgUnit.objects.get(pk=org_id)
-        org_contact = RegOrgUnitContact.objects.filter(org_unit_id=org_id)
+        org_contact = RegOrgUnitContact.objects.filter(
+            org_unit_id=org_id).order_by("-contact_detail_type_id")
+        org_lat = None
+        org_long = None
+        for con_org in org_contact:
+            con_org_type = con_org.contact_detail_type_id
+            if con_org_type == "CPLT":
+                org_lat = con_org.contact_detail
+            if con_org_type == "CPLG":
+                org_long = con_org.contact_detail
+        if not org_lat and not org_long:
+            org_map = {'lat': -1.290211, 'long': 36.812137}
+            org_map['map'] = 'Coordinates not available - Showing head office'
+        else:
+            # lat: -1.290211, lng: 36.812137
+            org_map = {'lat': org_lat, 'long': org_long}
+            org_map['map'] = 'Coordinates (%s, %s)' % (org_lat, org_long)
+        org_unit.maps = org_map
         org_unit.contacts = org_contact
         # Geo details
         inner_qs = RegOrgUnitGeography.objects.filter(
@@ -294,6 +387,9 @@ def register_details(request, org_id):
                 wards.append(area_name)
         show_wards = ' ,'.join(wards)
         show_county = ' ,'.join(sub_counties)
+        # Get units where this is parent
+        child_units = RegOrgUnit.objects.filter(
+            is_void=False, parent_org_unit_id=org_id).order_by("org_unit_name")
         # External ids
         ext_ids = get_external_ids(org_id)
         if ext_ids:
@@ -304,37 +400,62 @@ def register_details(request, org_id):
         org_unit.sub_county = show_county
         org_unit.wards = show_wards
         return render(request, 'registry/org_units_details.html',
-                      {'org_details': org_unit, 'vals': vals})
+                      {'org_details': org_unit, 'vals': vals,
+                       'child_units': child_units})
     except Exception, e:
         # raise e
         error = 'Org unit view error - %s' % (str(e))
         print error
         form = FormRegistry()
         msg = 'Organisation Unit does not exist - %s' % (str(e))
-        messages.add_message(request, messages.INFO, msg)
+        messages.add_message(request, messages.ERROR, msg)
         return render(request, 'registry/org_units_index.html',
                       {'form': form})
 
 
-@is_allowed_groups(['RGM'])
+@login_required
+@is_allowed_groups(['RGM', 'RGU', 'DSU'])
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def new_person(request):
+    """
+    For creating all types of persons page.
+
+    The persons include Government, NGO, volunteer, child and
+    also caregivers.
+    """
     operation_msg = None
-
-    if request.method == 'POST':
-        form = RegistrationForm(data=request.POST)
-
-        try:
+    today = datetime.now()
+    todate = today.strftime('%d-%b-%Y')
+    try:
+        my_params = get_temp(request)
+        list_types = ['person_type_id', 'title_type_id', 'ngo_title_type_id']
+        person_titles = get_list_types(list_type=list_types)
+        unused_titles = {'TBVC': [], 'TBGR': [], 'TWVL': []}
+        titles = merge_two_dicts(person_titles, unused_titles)
+        # We handle POST request
+        if request.method == 'POST':
+            form = RegistrationForm(request.user, data=request.POST)
+            # Extract Caregivers, Org Units, Siblings
+            attached_cg = extract_post_params(request)
+            attached_ou = extract_post_params(request, 'ou_')
+            attached_sb = extract_post_params(request, 'sb_')
             designation = request.POST.get('cadre_type')
-            person_type = request.POST.getlist('person_type')
-            first_name = request.POST.get('first_name')
-            other_names = request.POST.get('other_names')
-            surname = request.POST.get('surname')
+            person_type = request.POST.get('person_type')
+            first_name = request.POST.get('first_name').strip()
+            other_names = request.POST.get('other_names').strip()
+            surname = request.POST.get('surname').strip()
             sex_id = request.POST.get('sex_id')
-            des_phone_number = request.POST.get('des_phone_number')
-            email = request.POST.get('email')
-            living_in = request.POST.get('living_in')
-            org_units = request.POST.getlist('org_unit_id')
-            relationships = request.POST.getlist('relationship_type_id')
+            des_phone_number = request.POST.get('des_phone_number').strip()
+            email = request.POST.get('email').strip()
+            working_in_region = request.POST.get('working_in_region')
+            working_in_county = request.POST.getlist('working_in_county')
+            living_in = request.POST.get('living_in_subcounty')
+            working_in = request.POST.getlist('working_in_subcounty')
+
+            living_in_ward = request.POST.get('living_in_ward')
+            working_in_ward = request.POST.getlist('working_in_ward')
+
+            is_caregiver = request.POST.get('is_caregiver')
 
             national_id = request.POST.get('national_id')
             staff_id = request.POST.get('staff_id')
@@ -342,249 +463,304 @@ def new_person(request):
             caregiver_id = request.POST.get('caregiver_id')
 
             date_of_birth = request.POST.get('date_of_birth')
-            date_of_death = request.POST.get('date_of_death')
+            child_services = request.POST.get('child_services')
+
+            other_phone_no = request.POST.get('other_phone_number').strip()
+            physical_address = request.POST.get('physical_address').strip()
+
+            tribe = request.POST.get('tribe')
+            religion = request.POST.get('religion')
+            country = request.POST.get('country')
+            given_name = request.POST.get('given_name')
+
+            audit_date = request.POST.get('audit_date')
+            audit_workforce_id = request.POST.get('workforce_id')
+
+            dob = convert_date(date_of_birth) if date_of_birth else None
+
+            if not des_phone_number:
+                des_phone_number = None
+
+            person_types = [person_type]
+            if 'TBGR' != person_type and is_caregiver:
+                person_types.append('TBGR')
 
             # Capture RegPerson Model
             person = RegPerson(
-                designation=designation.upper(),
+                designation=designation,
                 first_name=first_name.upper(),
                 other_names=other_names.upper(),
-                surname=surname.upper(),
-                sex_id=sex_id,
+                surname=surname.upper(), sex_id=sex_id,
                 des_phone_number=des_phone_number,
-                email=email,
-                date_of_birth=date_of_birth,
-                date_of_death=None,
-                is_void=False)
+                email=email, date_of_birth=dob,
+                created_by_id=request.user.id,
+                date_of_death=None, is_void=False)
 
             person.save()
 
             reg_person_pk = int(person.pk)
+            now = timezone.now()
 
             # Capture RegPersonTypes Model
-            if person_type:
-                now = timezone.now()
-                for i, _person_type in enumerate(person_type):
-                    RegPersonsTypes(
-                        person=RegPerson.objects.get(pk=int(reg_person_pk)),
-                        person_type_id=_person_type,
-                        date_began=now,
-                        date_ended=None,
-                        is_void=False).save()
+            if person_types:
+                save_person_type(person_types, reg_person_pk)
 
-            # Capture RegPersonsOrgUnits Model
-            if org_units:
-                for i, _org_unit in enumerate(org_units):
+            # Capture attached Organisation units
+            if attached_ou:
+                for unid in attached_ou:
+                    org_unit_id = int(unid)
+                    pri_unit = attached_ou[unid]['pri']
+                    reg_ass = attached_ou[unid]['reg']
+                    is_pri_unit = True if pri_unit == 'AYES' else False
+                    is_reg_ass = True if reg_ass == 'AYES' else False
                     RegPersonsOrgUnits(
                         person=RegPerson.objects.get(pk=int(reg_person_pk)),
-                        org_unit_id=RegOrgUnit.objects.get(pk=int(_org_unit)),
+                        org_unit_id=org_unit_id,
                         date_linked=now,
                         date_delinked=None,
+                        primary_unit=is_pri_unit,
+                        reg_assistant=is_reg_ass,
                         is_void=False).save()
 
             # Capture RegPersonsGeo Model
+            area_ids = {}
             if living_in:
-                area_id = living_in
-                RegPersonsGeo(
-                    person=RegPerson.objects.get(
-                        pk=int(reg_person_pk)),
-                    area_id=area_id,
-                    date_linked=now,
-                    date_delinked=None,
-                    is_void=False).save()
+                area_ids[living_in] = 'GLTL'
+            if living_in_ward:
+                area_ids[living_in_ward] = 'GLTL'
+            # Working in is a list so handle differently
+            create_geo_list(area_ids, working_in)
+            create_geo_list(area_ids, working_in_ward)
+
+            # This is to handle Roles National/County/Sub-county
+            region_role_id = int(working_in_region) if working_in_region else 0
+            if region_role_id == 1:
+                create_geo_list(area_ids, working_in_county)
+                scids = geos_from_aids(working_in_county, area_type='GDIS')
+                create_geo_list(area_ids, scids)
+            elif region_role_id == 2:
+                # Working in values are multi so handle differently
+                create_geo_list(area_ids, working_in)
+                create_geo_list(area_ids, working_in_ward)
+
+            save_locations(area_ids, int(reg_person_pk))
+
+            # Capture Siblings
+            if attached_sb:
+                save_sibling(request, attached_sb, int(reg_person_pk))
 
             # Capture RegPersonsGuardians Model
-            if relationships:
-                for i, _relationship in enumerate(relationships):
+            if attached_cg:
+                for ccid_id in attached_cg:
+                    is_adult = attached_cg[ccid_id]['adult']
+                    caregiver_id = int(attached_cg[ccid_id]['cpid'])
+                    relationship = attached_cg[ccid_id]['ctype']
+                    child_headed = True if is_adult == 'No' else False
                     RegPersonsGuardians(
-                        child_person=RegPerson.objects.get(
-                            pk=int(reg_person_pk)),
+                        child_person_id=reg_person_pk,
                         guardian_person_id=caregiver_id,
-                        relationship=_relationship,
+                        relationship=relationship,
                         date_linked=now,
                         date_delinked=None,
+                        child_headed=child_headed,
                         is_void=False).save()
 
             # Capture RegPersonsExternalIds Model
-            identifier = None
-            identifier_type_id = None
-            wfc_list = []
-            workforce_id = None
-            beneficiary_id = None
-            identifier_types = []
+            workforce_id, beneficiary_id = None, None
+            identifier_types = {}
 
-            if person_type:
-                wfc_list = person_type
-                if any(['TWGE' in wfc_list, 'TWNE' in wfc_list, 'TWVL' in wfc_list]):
+            if child_services:
+                print 'Create WF', child_services
+                if child_services == 'AYES':
                     workforce_id = workforce_id_generator(reg_person_pk)
-                if ('TBGR' in wfc_list):
+            if 'TBGR' in person_types:
                     beneficiary_id = beneficiary_id_generator(reg_person_pk)
-                if national_id:
-                    identifier_types.append('INTL')
-                if staff_id:
-                    identifier_types.append('IMAN')
-                if workforce_id:
-                    identifier_types.append('IWKF')
-                if beneficiary_id:
-                    identifier_types.append('ISCG')
-                if birth_reg_id:
-                    identifier_types.append('ISOV')
+            if national_id:
+                identifier_types['INTL'] = national_id
+            if staff_id:
+                identifier_types['IMAN'] = staff_id
+            if workforce_id:
+                identifier_types['IWKF'] = workforce_id
+            if beneficiary_id:
+                identifier_types['ISCG'] = beneficiary_id
+            if birth_reg_id:
+                identifier_types['ISOV'] = birth_reg_id
+            if other_phone_no:
+                identifier_types['CPHM'] = other_phone_no
+            if physical_address:
+                identifier_types['CPHA'] = physical_address
+            if tribe and person_type == 'TBVC':
+                identifier_types['ITRB'] = tribe
+            if religion and person_type == 'TBVC':
+                identifier_types['IREL'] = religion
+            if country and person_type == 'TBVC':
+                    identifier_types['ICOU'] = country
+            if given_name and person_type == 'TBVC':
+                    identifier_types['IGNM'] = given_name
 
-                for i, identifier_type in enumerate(identifier_types):
-                    if identifier_type == 'INTL':
-                        identifier = national_id
-                    if identifier_type == 'IMAN':
-                        identifier = staff_id
-                    if identifier_type == 'IWKF':
-                        identifier = workforce_id
-                    if identifier_type == 'ISCG':
-                        identifier = beneficiary_id
-                    if identifier_type == 'ISOV':
-                        identifier = birth_reg_id
+            save_person_extids(identifier_types, int(reg_person_pk))
 
-                    RegPersonsExternalIds(
-                        person=RegPerson.objects.get(pk=int(reg_person_pk)),
-                        identifier_type_id=identifier_type,
-                        identifier=identifier,
-                        is_void=False).save()
-
-        except Exception, e:
-            operation_msg = 'An error occured when saving data -  %s' % (
-                str(e))
+            # Perform audit trail here for all
+            if person_type:
+                params = {}
+                params['transaction_type_id'] = 'REGS'
+                params['interface_id'] = 'INTW'
+                params['date_recorded_paper'] = audit_date
+                params['paper_person_id'] = audit_workforce_id
+                params['person_id'] = int(reg_person_pk)
+                save_audit_trail(request, params)
+            operation_msg = 'Person (%s) save success.' % first_name.upper()
             messages.add_message(request, messages.INFO, operation_msg)
-            return render(request, 'registry/new_person.html', {'form': form},)
+            return HttpResponseRedirect(
+                '%s?id=%d' % (reverse(persons_search), reg_person_pk))
+        else:
+            # Not request.POST
+            form = RegistrationForm(request.user, data=my_params)
+            return render(request, 'registry/person_new.html',
+                          {'form': form, 'titles': titles, 'todate': todate},)
 
-        operation_msg = 'Person (%s) save success.' % first_name.upper()
-        messages.add_message(request, messages.INFO, operation_msg)
-        return HttpResponseRedirect(reverse(persons_search))
-    else:
-        # Not request.POST
-        form = RegistrationForm()
-        return render(request, 'registry/new_person.html', {'form': form},)
+    except Exception, e:
+        operation_msg = 'Error occured when saving person -  %s' % (str(e))
+        print operation_msg
+        form = RegistrationSearchForm()
+        messages.add_message(request, messages.ERROR, operation_msg)
+        return render(request, 'registry/person_search.html',
+                      {'form': form},)
 
 
+@login_required
+@is_allowed_groups(['RGM', 'RGU', 'DSU', 'STD'])
 def persons_search(request):
-    '''
-    Some default page for the home page / Dashboard
-    '''
-    res = None
-    resultsets = None
-    resultset = None
-    results = None
+    """For persons search results page - put on data grid."""
     result = None
-    wfc_type = None
     person_type = None
-    search_location = False
-    search_wfc_by_org_unit = False
     app_user = {}
-
     try:
+        form = RegistrationSearchForm()
+        check_fields = ['sex_id', 'cadre_type_id', 'person_type_id',
+                        'relationship_type_id', 'identifier_type_id']
+        vals = get_dict(field_name=check_fields)
         if request.method == 'POST':
             form = RegistrationSearchForm(data=request.POST)
             if form.is_valid():
-
-                check_fields = [
-                    'sex_id', 'cadre_type_id', 'person_type_id', 'relationship_type_id', 'identifier_type_id']
-                vals = get_dict(field_name=check_fields)
-
                 person_type = form.cleaned_data['person_type']
-                search_string = form.cleaned_data['search_name']
+                search_string = form.cleaned_data['search_name'].strip()
                 person_deceased = form.cleaned_data['person_deceased']
                 search_criteria = form.cleaned_data['search_criteria']
 
-                deceased_person = True if person_deceased == 'True' else False
+                include_dead = True if person_deceased == 'True' else False
                 type_of_person = [person_type] if person_type else []
 
-                # Make PersonType selection mandatory
-                if person_type:
-                    wfc_type = person_type
+                """
+                resultsets = get_persons_list(
+                    user=request.user, tokens=search_string,
+                    wfc_type=wfc_type, search_location=search_location,
+                    search_wfc_by_org_unit=search_wfc_by_org_unit)
+                """
+                results = get_list_of_persons(
+                    search_string=search_string, number_of_results=50,
+                    in_person_types=type_of_person, include_died=include_dead,
+                    search_criteria=search_criteria)
 
-                # Filter Location Searches
-                if search_criteria == 'ORG':
-                    search_wfc_by_org_unit = True
-                if search_criteria == 'RES':
-                    search_location = True
+                # Alternative for removing select query inside a for loop
+                ids = []
+                for result in results:
+                    ids.append(result.pk)
 
-                resultsets = get_persons_list(user=request.user, tokens=search_string, wfc_type=wfc_type,
-                                              search_location=search_location, search_wfc_by_org_unit=search_wfc_by_org_unit)
+                geo_names = names_from_ids(ids, registry='persons')
+                org_names = names_from_ids(ids, registry='person_orgs')
+                p_types = names_from_ids(ids, registry='person_types')
 
-                check_fields = [
-                    'sex_id', 'cadre_type_id', 'person_type_id', 'relationship_type_id', 'identifier_type_id']
-                vals = get_dict(field_name=check_fields)
-
-                result_pk = None
-                pgeolocs_ = None
-                porgs_ = None
-                if resultsets:
-                    for resultset in resultsets:
-                        if resultset:
-                            for result in resultset:
-                                result_pk = result.pk
-
-                                person_types = RegPersonsTypes.objects.filter(
-                                    person=result_pk)
-                                person_geos = RegPersonsGeo.objects.filter(
-                                    person=result_pk)
-                                person_orgs = RegPersonsOrgUnits.objects.filter(
-                                    person=result_pk)
-
-                                result.ptypes = person_types
-                                result.pgeos = person_geos
-                                result.porgs = person_orgs
-
-                                for person_geo in person_geos:
-                                    pgeolocs_ = get_vgeo_list(
-                                        person_geo.area_id)
-
-                                for person_org in person_orgs:
-                                    porgs_ = get_vorg_list(
-                                        person_org.org_unit_id_id)
-
-                                result.pgeolocs = pgeolocs_
-                                result.porgs = porgs_
-                        accounts = AppUser.objects.all().values(
-                            'id', 'reg_person_id')
-                        for account in accounts:
-                            account_id = 'U%s' % (account['id'])
-                            app_user[account['reg_person_id']] = account_id
-                        print accounts
-                    return render(request, 'registry/persons_search.html',
-                                  {'form': form, 'resultsets': resultsets,
-                                   'vals': vals, 'person_type': person_type,
-                                   'app_user': app_user})
-                else:
-                    messages.add_message(
-                        request, messages.ERROR, 'Person not found!')
-                    return HttpResponseRedirect(reverse(persons_search))
+                # Person accounts
+                accounts = AppUser.objects.all().values('id', 'reg_person_id')
+                for account in accounts:
+                    account_id = 'U%s' % (account['id'])
+                    app_user[account['reg_person_id']] = account_id
+                return render(request, 'registry/person_search.html',
+                              {'form': form, 'results': results,
+                               'vals': vals, 'person_type': person_type,
+                               'app_user': app_user, 'geos': geo_names,
+                               'orgs': org_names, 'person_types': p_types})
             else:
                 print 'Not Good %s' % (form.errors)
-        form = RegistrationSearchForm()
-        return render(request, 'registry/persons_search.html',
-                      {'form': form, 'result': result, 'person_type': person_type})
+        else:
+            search_id = request.GET.get('id')
+            if search_id and search_id.isdigit():
+                sid = int(search_id)
+                account_id, person_type = sid, ''
+                results = RegPerson.objects.filter(id=sid)
+                try:
+                    accounts = AppUser.objects.get(reg_person_id=sid)
+                    account_id = 'U%s' % (accounts.id)
+                except Exception:
+                    pass
+                # person types
+                person_types = RegPersonsTypes.objects.filter(
+                    person_id=sid, is_void=False, date_ended=None)
+                for ptype in person_types:
+                    person_type = ptype.person_type_id
+                # Other
+                appuser = {sid: account_id}
+                ids = [int(search_id)]
+                geo_names = names_from_ids(ids, registry='persons')
+                org_names = names_from_ids(ids, registry='person_orgs')
+                p_types = names_from_ids(ids, registry='person_types')
+                return render(request, 'registry/person_search.html',
+                              {'form': form, 'results': results, 'vals': vals,
+                               'app_user': appuser, 'person_type': person_type,
+                               'geos': geo_names, 'orgs': org_names,
+                               'person_types': p_types})
+        return render(request, 'registry/person_search.html',
+                      {'form': form, 'result': result,
+                       'person_type': person_type})
     except Exception, e:
         raise e
 
 
+@login_required
+@is_allowed_groups(['RGM', 'RGU', 'DSU', 'STD'])
 def view_person(request, id):
-    '''
-    Some default page for the home page / Dashboard
-    '''
+    """Page for viewing person details in full."""
     try:
         # All my filters
-        #check_fields = ['cadre_type_id', 'person_type_id', area_id, org_unit_id, 'relationship_type_id']
         check_fields = ['sex_id', 'cadre_type_id', 'person_type_id',
-                        'relationship_type_id', 'identifier_type_id']
+                        'relationship_type_id', 'identifier_type_id',
+                        'tribe_category_id', 'religion_type_id',
+                        'contact_detail_type_id']
         vals = get_dict(field_name=check_fields)
-        pgeolocs_ = None
-
         person = RegPerson.objects.get(pk=id)
-        person_types = RegPersonsTypes.objects.filter(person=person)
-        person_geos = RegPersonsGeo.objects.filter(person=person)
-        person_orgs = RegPersonsOrgUnits.objects.filter(person=person)
-        person_extids = RegPersonsExternalIds.objects.filter(person=person)
+        person_types = RegPersonsTypes.objects.filter(
+            person=person, is_void=False, date_ended=None)
+        person_geos = RegPersonsGeo.objects.select_related().filter(
+            person=person, is_void=False, date_delinked=None)
+        person_orgs = RegPersonsOrgUnits.objects.select_related().filter(
+            person=person, is_void=False, date_delinked=None)
+        person_extids = RegPersonsExternalIds.objects.filter(
+            person=person, is_void=False)
+        person_appuser = get_user_details(person)
+        # This will be used for children and Guardians ONLY
+        guardians = RegPersonsGuardians.objects.select_related().filter(
+            child_person=person, is_void=False, date_delinked=None)
+        siblings = RegPersonsSiblings.objects.select_related().filter(
+            child_person=person, is_void=False, date_delinked=None)
+        # Reverse relationship
+        osiblings = RegPersonsSiblings.objects.select_related().filter(
+            sibling_person=person, is_void=False, date_delinked=None)
+        oguardians = RegPersonsGuardians.objects.select_related().filter(
+            guardian_person=person, is_void=False, date_delinked=None)
 
         # Check if has an account
-        user_id = None
+        workforce_id = None
+        for pextids in person_extids:
+            identity_id = pextids.identifier_type_id
+            if identity_id == 'IWKF':
+                workforce_id = pextids.identifier
+            if identity_id == 'ICOU':
+                country_id = pextids.identifier
+                if country_id in COUNTRIES:
+                    vals[country_id] = COUNTRIES[country_id]
+        user_id, orgs, geos = None, None, None
+        geo_county, geo_wards = None, None
         try:
             users = AppUser.objects.get(reg_person=person)
             user_id = users.pk
@@ -592,318 +768,455 @@ def view_person(request, id):
             pass
 
         person.ptypes = person_types
-        person.pgeos = person_geos
         person.porgs = person_orgs
         person.pextids = person_extids
+        all_ptypes, all_geos, all_orgs = [], [], []
+        person_type_names = []
+        all_geos_county, all_geos_wards = [], []
+        pers_types, person_type_name = '', ''
+
+        # This is for handling person types
+        for person_type in person_types:
+            type_id = person_type.person_type_id
+            all_ptypes.append(type_id)
+            if type_id in vals:
+                person_type_names.append(vals[type_id])
+        if all_ptypes:
+            pers_types = ', '.join(all_ptypes)
+        if person_type_names:
+            person_type_name = ', '.join(person_type_names)
 
         for person_geo in person_geos:
-            pgeolocs_ = get_vgeo_list(person_geo.area_id)
+            geo_name = person_geo.area.area_name
+            geo_type = person_geo.area.area_type_id
+            if geo_type == 'GPRV':
+                all_geos_county.append(geo_name)
+            elif geo_type == 'GDIS':
+                all_geos.append(geo_name)
+            else:
+                all_geos_wards.append(geo_name)
+        if all_geos:
+            geos = ', '.join(all_geos)
+        if all_geos_wards:
+            geo_wards = ', '.join(all_geos_wards)
+        if all_geos_county:
+            geo_county = ', '.join(all_geos_county)
 
         for person_org in person_orgs:
-            porgs_ = get_vorg_list(person_org.org_unit_id_id)
-
-        person.pgeolocs = pgeolocs_
-        person.porgs = porgs_
+            org_name = person_org.org_unit.org_unit_name
+            all_orgs.append(org_name)
+        if all_orgs:
+            orgs = ', '.join(all_orgs)
+        person.pgeos = geos
+        person.geo_wards = geo_wards
+        person.geo_county = geo_county
+        person.porgs = orgs
         person.person_id = user_id
-
+        person.person_types = pers_types
+        person.person_type_name = person_type_name
+        # Workforce ID
+        person.workforce_id = workforce_id
         return render(request, 'registry/view_person.html',
-                      {'person_details': person,
-                       'vals': vals})
+                      {'person_details': person, 'vals': vals,
+                       'appuser': person_appuser, 'guardians': guardians,
+                       'siblings': siblings, 'osiblings': osiblings,
+                       'oguardians': oguardians})
     except Exception, e:
         # raise e
-        msg = 'Person does not exist - %s' % (str(e))
-        messages.add_message(request, messages.INFO, msg)
+        msg = 'Persons error - %s' % (str(e))
+        messages.add_message(request, messages.ERROR, msg)
         return HttpResponseRedirect(reverse(persons_search))
 
-    form = RegistrationForm()
-    return render(request, 'registry/view_person.html', {'form': form},)
 
-
-@is_allowed_groups(['RGM'])
+@login_required
+@is_allowed_groups(['RGM', 'RGU', 'DSU'])
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def edit_person(request, id):
-    '''
-    Some default page for the home page / Dashboard
-    '''
-    if request.method == 'POST':
-        try:
-            form = RegistrationForm(data=request.POST)
-            person_type = request.POST.getlist('person_type')
-            first_name = request.POST.get('first_name')
-            other_names = request.POST.get('other_names')
-            surname = request.POST.get('surname')
+    """
+    For editing persons details.
+
+    The page implements modal for creating / removing siblings and
+    also caregivers. It has 3 sections edit mode -
+    - Normal - editing all information
+    - Marking person as dead
+    - Marking as void for duplicates or mistakes
+    """
+    today = datetime.now()
+    todate = today.strftime('%d-%b-%Y')
+    try:
+        if request.method == 'POST':
+            form = RegistrationForm(request.user, data=request.POST)
+            designation = request.POST.get('cadre_type')
+            person_type = request.POST.get('person_type')
+            first_name = request.POST.get('first_name').strip()
+            other_names = request.POST.get('other_names').strip()
+            surname = request.POST.get('surname').strip()
             sex_id = request.POST.get('sex_id')
-            des_phone_number = request.POST.get('des_phone_number')
-            email = request.POST.get('email')
-            living_in = request.POST.get('living_in')
+            des_phone_number = request.POST.get('des_phone_number').strip()
+            email = request.POST.get('email').strip()
+            living_in = request.POST.get('living_in_subcounty')
+            working_in_region = request.POST.get('working_in_region')
+            working_in_county = request.POST.getlist('working_in_county')
+            working_in = request.POST.getlist('working_in_subcounty')
+
+            living_in_ward = request.POST.get('living_in_ward')
+            working_in_ward = request.POST.getlist('working_in_ward')
+
+            is_caregiver = request.POST.get('is_caregiver')
             date_of_birth = request.POST.get('date_of_birth')
-            org_units = request.POST.getlist('org_unit_id')
-            relationships = request.POST.getlist('relationship_type_id')
+            child_services = request.POST.get('child_services')
+
+            # org_units = request.POST.getlist('org_unit_id')
             national_id = request.POST.get('national_id')
             staff_id = request.POST.get('staff_id')
             birth_reg_id = request.POST.get('birth_reg_id')
-            caregiver_id = request.POST.get('caregiver_id')
             date_of_birth = request.POST.get('date_of_birth')
-            date_of_death = request.POST.get('date_of_death')
 
-            now = timezone.now()
+            other_phone_no = request.POST.get('other_phone_number').strip()
+            physical_address = request.POST.get('physical_address').strip()
 
+            tribe = request.POST.get('tribe')
+            religion = request.POST.get('religion')
+            country = request.POST.get('country')
+            given_name = request.POST.get('given_name')
+
+            audit_date = request.POST.get('audit_date')
+            audit_workforce_id = request.POST.get('workforce_id')
+            edit_type = int(request.POST.get('edit_person'))
+            dob = convert_date(date_of_birth) if date_of_birth else None
             # Update RegPerson
-            operson = RegPerson.objects.get(pk=id)
-            operson.first_name = first_name
-            operson.other_names = other_names
-            operson.surname = surname
-            operson.sex_id = sex_id
-            operson.des_phone_number = des_phone_number
-            operson.email = email
-            operson.date_of_birth = date_of_birth
-            operson.save(update_fields=['first_name', 'other_names', 'surname', 'sex_id',
-                                        'des_phone_number', 'email', 'date_of_birth'])
+            eperson_id = int(id)
+            if edit_type == 1:
+                person_types = [str(person_type)]
+                if 'TBGR' != person_type and is_caregiver:
+                    person_types.append('TBGR')
+                phone_number = des_phone_number if des_phone_number else None
+                operson = RegPerson.objects.get(pk=id)
+                operson.designation = designation
+                operson.first_name = first_name
+                operson.other_names = other_names
+                operson.surname = surname
+                operson.sex_id = sex_id
+                operson.des_phone_number = phone_number
+                operson.email = email
+                operson.date_of_birth = dob
+                operson.save(update_fields=['first_name', 'other_names',
+                                            'surname', 'sex_id', 'email',
+                                            'des_phone_number', 'designation',
+                                            'date_of_birth'])
+                # Update Persons Geography
+                person_geos_all = RegPersonsGeo.objects.filter(
+                    person_id=eperson_id, is_void=False,
+                    date_delinked=None).values(
+                        'id', 'area_id', 'area_type')
 
-            # Update RegPersonsGeo
-            opersongeos = RegPersonsGeo.objects.filter(pk=id)
-            for opersongeo in opersongeos:
-                opersongeo.is_void = True
-                opersongeo.save(update_fields=['is_void'])
-                RegPersonsGeo(
-                    person=RegPerson.objects.get(
-                        pk=int(id)),
-                    area_id=living_in,
-                    date_linked=now,
-                    date_delinked=None,
-                    is_void=False).save()
+                area_ids, area_ids_remove = {}, {}
+                check_list, new_list = [], {}
+                if living_in:
+                    area_ids[int(living_in)] = 'GLTL'
+                if living_in_ward:
+                    area_ids[int(living_in_ward)] = 'GLTL'
+                # This is to handle Roles National/County/Sub-county
+                reg_role = int(working_in_region) if working_in_region else 0
+                if reg_role == 1:
+                    create_geo_list(area_ids, working_in_county)
+                    scids = geos_from_aids(working_in_county, area_type='GDIS')
+                    create_geo_list(area_ids, scids)
+                elif reg_role == 2:
+                    # Working in values are multi so handle differently
+                    create_geo_list(area_ids, working_in)
+                    create_geo_list(area_ids, working_in_ward)
 
-            # Update RegPersonsOrgUnits Model
-            if org_units:
-                opersonorgus = RegPersonsOrgUnits.objects.filter(person=id)
+                for pgeo in person_geos_all:
+                    pgeo_id = pgeo['id']
+                    pgeo_aid = pgeo['area_id']
+                    pgeo_type = pgeo['area_type']
+                    check_list.append(pgeo_aid)
+                    if pgeo_aid not in area_ids:
+                        area_ids_remove[pgeo_id] = pgeo_type
+                for area_new in area_ids:
+                    area_type = area_ids[area_new]
+                    if area_new not in check_list:
+                        new_list[area_new] = area_type
+                save_locations(new_list, eperson_id)
+                remove_locations(area_ids_remove, eperson_id)
 
-                for opersonorgu in opersonorgus:
-                    if not str(opersonorgu.org_unit_id_id) in org_units:
-                        opersonorgu.is_void = True
-                        opersonorgu.date_delinked = now
-                        opersonorgu.save(
-                            update_fields=['is_void', 'date_delinked'])
-                for i, _org_unit in enumerate(org_units):
-                    opersonorgu_ = RegPersonsOrgUnits.objects.filter(
-                        pk=id, org_unit_id_id=_org_unit)
-                    if not opersonorgu_:
-                        RegPersonsOrgUnits(
-                            person=RegPerson.objects.get(pk=int(id)),
-                            org_unit_id=RegOrgUnit.objects.get(
-                                pk=int(_org_unit)),
-                            date_linked=now,
-                            date_delinked=None,
-                            is_void=False).save()
+                # Update Person types
+                person_type_all = RegPersonsTypes.objects.filter(
+                    person_id=eperson_id, is_void=False).values(
+                    'id', 'person_type_id')
+                new_ptypes, remove_ptypes, type_check_list = [], [], []
+                for db_ptype in person_type_all:
+                    db_type_id = db_ptype['person_type_id']
+                    db_id = db_ptype['id']
+                    type_check_list.append(db_type_id)
+                    if db_type_id not in person_types:
+                        remove_ptypes.append(db_id)
+                for new_ptype in person_types:
+                    if new_ptype not in type_check_list:
+                        new_ptypes.append(new_ptype)
+                save_person_type(new_ptypes, eperson_id)
+                remove_person_type(remove_ptypes, eperson_id)
 
-            # Capture RegPersonsExternalIds Model
-            """ To factor external ids update on persontype changed """
-            pk = None
-            identifier = None
-            identifier_type_id = None
-            wfc_list = []
-            workforce_id = None
-            beneficiary_id = None
-            identifier_types = []
-            personids = RegPersonsExternalIds.objects.filter(person=id)
+                # External IDs - factor external ids update on persons
+                workforce_id = None
+                beneficiary_id = None
+                identifier_types = {}
+                personids = RegPersonsExternalIds.objects.filter(
+                    person_id=eperson_id, is_void=False).values_list(
+                        'identifier_type_id', flat=True)
 
-            if national_id:
-                identifier_types.append('INTL')
-            if staff_id:
-                identifier_types.append('IMAN')
-            if workforce_id:
-                identifier_types.append('IWKF')
-            if beneficiary_id:
-                identifier_types.append('ISCG')
-            if birth_reg_id:
-                identifier_types.append('ISOV')
+                if child_services and 'IWKF' not in personids:
+                    print 'Create WF', child_services
+                    if child_services == 'AYES':
+                        workforce_id = workforce_id_generator(eperson_id)
+                if 'TBGR' in person_types and 'ISCG' not in personids:
+                        beneficiary_id = beneficiary_id_generator(eperson_id)
+                if national_id:
+                    identifier_types['INTL'] = national_id
+                if staff_id:
+                    identifier_types['IMAN'] = staff_id
+                if workforce_id:
+                    identifier_types['IWKF'] = workforce_id
+                if beneficiary_id:
+                    identifier_types['ISCG'] = beneficiary_id
+                if birth_reg_id:
+                    identifier_types['ISOV'] = birth_reg_id
+                if other_phone_no:
+                    identifier_types['CPHM'] = other_phone_no
+                if physical_address:
+                    identifier_types['CPHA'] = physical_address
+                if tribe and person_type == 'TBVC':
+                    identifier_types['ITRB'] = tribe
+                if religion and person_type == 'TBVC':
+                    identifier_types['IREL'] = religion
+                if country and person_type == 'TBVC':
+                    identifier_types['ICOU'] = country
+                if given_name and person_type == 'TBVC':
+                    identifier_types['IGNM'] = given_name
 
-            print identifier_types
+                save_person_extids(identifier_types, eperson_id)
 
-            for personid in personids:
-                pk = personid.pk
-                if person_type:
-                    wfc_list = person_type
-                if any(['TWGE' in wfc_list, 'TWNE' in wfc_list, 'TWVL' in wfc_list]):
-                    workforce_id = workforce_id_generator(pk)
-                if ('TBGR' in wfc_list):
-                    beneficiary_id = beneficiary_id_generator(pk)
+                msg = 'Update of Person (%s) was successful.' % first_name
+            elif edit_type == 2:
+                date_of_death = request.POST.get('date_of_death')
+                if date_of_death:
+                    date_of_death = convert_date(date_of_death)
+                    set_person_dead(date_of_death, id)
+                msg = 'Update of (%s) to dead was successful.' % (first_name)
+            elif edit_type == 3:
+                delete_person(id)
+                msg = 'Person (%s) deleted successfully.' % (first_name)
 
-                for i, identifier_type in enumerate(identifier_types):
-                    if identifier_type == 'INTL':
-                        identifier = national_id
-                    if identifier_type == 'IMAN':
-                        identifier = staff_id
-                    if identifier_type == 'IWKF':
-                        identifier = workforce_id
-                    if identifier_type == 'ISCG':
-                        identifier = beneficiary_id
-                    if identifier_type == 'ISOV':
-                        identifier = birth_reg_id
+            # Perform audit trail here for all
+            if edit_type:
+                params = {}
+                params['transaction_type_id'] = 'UPDS'
+                params['interface_id'] = 'INTW'
+                params['date_recorded_paper'] = audit_date
+                params['paper_person_id'] = audit_workforce_id
+                params['person_id'] = eperson_id
+                save_audit_trail(request, params)
 
-                    personid.identifier_type_id = identifier_type
-                    personid.identifier = identifier
-                    personid.save(
-                        update_fields=['identifier_type_id', 'identifier'])
-
-                    identifier_types.remove(identifier_type)
-
-            msg = 'Update of Person(%s) successful.' % first_name
             messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect(reverse(persons_search))
-
-        except Exception, e:
-            # raise e
-            msg = 'Person update error - %s' % (str(e))
-            messages.add_message(request, messages.INFO, msg)
-        return HttpResponseRedirect(reverse(persons_search))
-    else:
-        person = None
-        person_type_id = None
-        try:
+            url = reverse(persons_search)
+            if edit_type == 1:
+                url = '%s?id=%d' % (reverse(persons_search), eperson_id)
+            return HttpResponseRedirect(url)
+        else:
+            person, living_in = None, None
+            is_workforce = None
+            person_type_id = None
             person = RegPerson.objects.get(pk=id)
-            person_types = RegPersonsTypes.objects.filter(person=person)
-            person_geos = RegPersonsGeo.objects.filter(person=person)
-            person_orgs = RegPersonsOrgUnits.objects.filter(person=person)
-            person_extids = RegPersonsExternalIds.objects.filter(person=person)
+            if person.date_of_death:
+                person_msg = ("This person is dead and not editable.")
+                messages.error(request, person_msg)
+                return HttpResponseRedirect(reverse(persons_search))
+            person_types = RegPersonsTypes.objects.filter(
+                person=person, is_void=False, date_ended=None).values_list(
+                    'person_type_id', flat=True)
+            person_geos = RegPersonsGeo.objects.select_related().filter(
+                person=person, is_void=False, date_delinked=None)
+            person_orgs = RegPersonsOrgUnits.objects.select_related().filter(
+                person=person, is_void=False, date_delinked=None)
+            person_extids = RegPersonsExternalIds.objects.filter(
+                person=person, is_void=False)
+            # These are for children
+            siblings = RegPersonsSiblings.objects.select_related().filter(
+                child_person=person, is_void=False, date_delinked=None)
+            guardians = RegPersonsGuardians.objects.select_related().filter(
+                child_person=person, is_void=False, date_delinked=None)
 
-            person.ptypes = person_types
-            person.pgeos = person_geos
-            person.porgs = person_orgs
-            person.pextids = person_extids
+            audits = RegPersonsAuditTrail.objects.select_related().filter(
+                person=person)[:3]
 
-            for ptype in person.ptypes:
-                person_type_id = ptype.person_type_id
+            # Get person types
+            is_caregiver, person_type_id = '', ''
+            if len(person_types) == 1:
+                is_caregiver = ''
+                person_type_id = person_types[0]
+            elif len(person_types) == 2:
+                is_caregiver = 'on'
+                list(person_types).remove('TBGR')
+                person_type_id = person_types[0]
 
-            for pgeo in person.pgeos:
-                living_in = pgeo.area_id
-
-            for porg in person.porgs:
-                porgs_ = get_vorg_list(porg.org_unit_id_id)
-
+            # Get living in and working in details
+            working_in_county, living_in_county = [], None
+            working_in_subcounty, working_in_ward = [], []
+            living_in_subcounty, living_in_ward = '', ''
+            for pgeo in person_geos:
+                area_id = pgeo.area_id
+                area_type = pgeo.area.area_type_id
+                geo_type = pgeo.area_type
+                if geo_type == 'GLTW':
+                    if area_type == 'GPRV':
+                        working_in_county.append(area_id)
+                    elif area_type == 'GDIS':
+                        working_in_subcounty.append(area_id)
+                    else:
+                        working_in_ward.append(area_id)
+                else:
+                    if area_type == 'GPRV':
+                        living_in_county = area_id
+                    elif area_type == 'GDIS':
+                        living_in_subcounty = area_id
+                    else:
+                        living_in_ward = area_id
+            # Hack to remove sub_county and ward ids
+            print 'LIVIN IN', living_in_county
             # Get extid values
-            national_id_ = ''
-            staff_id_ = ''
-            workforce_id_ = ''
-            caregiver_id_ = ''
-            birth_reg_id_ = ''
-            for pextid in person.pextids:
+            id_map = {'INTL': 'national_id', 'IMAN': 'staff_id',
+                      'IWKF': 'is_workforce', 'ISCG': 'caregiver_id',
+                      'ISOV': 'birth_reg_id', 'CPHM': 'other_phone_number',
+                      'CPHA': 'physical_address', 'ITRB': 'tribe',
+                      'IREL': 'religion', 'ICOU': 'country',
+                      'IGNM': 'given_name'}
+
+            identifiers = {}
+            for pextid in person_extids:
                 pextid_identifier_type = pextid.identifier_type_id
                 pextid_identifier = pextid.identifier
+                if pextid_identifier_type in id_map:
+                    id_name = id_map[pextid_identifier_type]
+                    identifiers[id_name] = pextid_identifier
 
-                if pextid_identifier_type == 'INTL':
-                    national_id_ = pextid_identifier
-                if pextid_identifier_type == 'IMAN':
-                    staff_id_ = pextid_identifier
-                # if pextid_identifier_type == 'IWKF':
-                #    workforce_id_ = pextid_identifier
-                if pextid_identifier_type == 'ISCG':
-                    caregiver_id_ = pextid_identifier
-                if pextid_identifier_type == 'ISOV':
-                    birth_reg_id_ = pextid_identifier
+            # Get org unit values to help with checking primary unit
+            pri_unit_id, units_list = '', []
+            for person_org in person_orgs:
+                pri_unit = person_org.primary_unit
+                unit_names = person_org.org_unit.org_unit_name
+                units_list.append(unit_names)
+                if pri_unit:
+                    pri_unit_id = person_org.org_unit.id
+            person_org_names = ', '.join(units_list)
+            date_birth = None
+            if person.date_of_birth:
+                # the_date = convert_date(person.date_of_birth, '%Y-%m-%d')
+                date_birth = person.date_of_birth.strftime('%d-%b-%Y')
 
-            # Get orgunit values
-            org_unit_id_ = None
-            for porg_ in porgs_:
-                unit_id_ = porg_.id
-
-            form = RegistrationForm(initial={
+            # Offer child services
+            for pers_ext in person_extids:
+                ext_id_name = pers_ext.identifier_type_id
+                ext_id_value = pers_ext.identifier
+                if ext_id_name == 'IWKF':
+                    is_workforce = ext_id_value
+            child_service = 'AYES' if is_workforce else 'ANNO'
+            # Cadres and designations
+            designation = person.designation
+            list_types = ['person_type_id', 'title_type_id',
+                          'ngo_title_type_id']
+            cadres = get_list_types(list_type=list_types)
+            title_id = None
+            for cadre in cadres:
+                cadre_vals = cadres[cadre]
+                for cadre_val in cadre_vals:
+                    if designation and cadre_val.startswith(designation):
+                        title_id = cadre
+            # By inference determine region
+            if not working_in_county and not working_in_subcounty:
+                work_region = '0'
+            elif working_in_county:
+                work_region = '1'
+            else:
+                working_in_county = counties_from_aids(working_in_subcounty)
+                print 'CNT', working_in_county, working_in_subcounty
+                work_region = '2'
+            initial_vals = {
                 'person_type': person_type_id,
+                'person_id': person.pk,
+                'is_caregiver': is_caregiver,
                 'cadre_type': person.designation,
                 'first_name': person.first_name,
                 'other_names': person.other_names,
                 'surname': person.surname,
-                'sex_id': person.sex_id,
                 'des_phone_number': person.des_phone_number,
-                'date_of_birth': person.date_of_birth,
-                'email': person.email,
-                'living_in': living_in,
-                'org_unit_id': unit_id_,
-                'national_id': national_id_,
-                'staff_id': staff_id_,
-                'birth_reg_id': birth_reg_id_,
-                'caregiver_id': caregiver_id_
-            })
-            return render(request, 'registry/edit_person.html', {'form': form, 'pk': person.pk, 'person_type': person_type_id})
-        except Exception, e:
-            msg = 'Person does not exist - %s' % (str(e))
-            messages.add_message(request, messages.INFO, msg)
+                'sex_id': person.sex_id, 'date_of_birth': date_birth,
+                'email': person.email, 'working_in_county': working_in_county,
+                'working_in_subcounty': working_in_subcounty,
+                'working_in_ward': working_in_ward,
+                'living_in_subcounty': living_in_subcounty,
+                'living_in_ward': living_in_ward,
+                'org_unit_primary': pri_unit_id,
+                'orgs_selected': person_org_names,
+                'child_services': child_service,
+                'working_in_region': work_region}
+
+            all_values = merge_two_dicts(initial_vals, identifiers)
+
+            check_fields = ['sex_id', 'relationship_type_id']
+            vals = get_dict(field_name=check_fields)
+            # This is for titles
+            list_types = ['person_type_id', 'title_type_id',
+                          'ngo_title_type_id']
+            person_titles = get_list_types(list_type=list_types)
+            unused_titles = {'TBVC': [], 'TBGR': [], 'TWVL': []}
+            titles = merge_two_dicts(person_titles, unused_titles)
+
+            form = RegistrationForm(request.user, data=all_values)
+            return render(request, 'registry/person_edit.html',
+                          {'form': form, 'pk': person.pk,
+                           'person_type': person_type_id, 'titles': titles,
+                           'org_units': person_orgs, 'vals': vals,
+                           'siblings': siblings, 'person': person,
+                           'guardians': guardians, 'audits': audits,
+                           'cadre_type': designation, 'title_type': title_id,
+                           'todate': todate, 'region_id': work_region})
+    except RegPerson.DoesNotExist:
+            form = RegistrationSearchForm()
+            return render(request, 'registry/person_search.html',
+                          {'form': form})
+    except Exception, e:
+        msg = 'Person update error - %s' % (str(e))
+        messages.add_message(request, messages.ERROR, msg)
+        return HttpResponseRedirect(reverse(persons_search))
+    else:
         return HttpResponseRedirect(reverse(persons_search))
 
 
-def delete_person(request, id):
-    '''
-    Some default page for the home page / Dashboard
-    '''
-    first_name = None
-    surname = None
-    try:
-        # Delete from RegPerson
-        person = RegPerson.objects.get(pk=id)
-        person.is_void = True
-        first_name = person.first_name
-        surname = person.surname
-        person.save(update_fields=['is_void'])
+@login_required
+@is_allowed_groups(['RGM', 'RGU'])
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def new_user(request, id):
+    """
+    Page for creating users after registering a person.
 
-        # Delete from RegPersonsTypes
-        persontype = RegPersonsTypes.objects.get(pk=id)
-        persontype.is_void = True
-        persontype.save(update_fields=['is_void'])
-
-        # Delete from RegPersonsOrgUnits
-        personorgunits = RegPersonsOrgUnits.objects.filter(person=id)
-        for personorgunit in personorgunits:
-            personorgunit.is_void = True
-            personorgunit.save(update_fields=['is_void'])
-
-        # Delete from RegPersonsGeo
-        persongeos = RegPersonsGeo.objects.filter(person=id)
-        for persongeo in persongeos:
-            persongeo.is_void = True
-            persongeo.save(update_fields=['is_void'])
-
-        # Delete from RegPersonsGuardians
-        personguardians = RegPersonsGuardians.objects.filter(
-            child_person_id=id)
-        for personguardian in personguardians:
-            personguardian.is_void = True
-            personguardian.save(update_fields=['is_void'])
-
-        # Delete from RegPersonsExternalIds
-        personextids = RegPersonsExternalIds.objects.filter(person=id)
-        for personextid in personextids:
-            personextid.is_void = True
-            personextid.save(update_fields=['is_void'])
-
-        msg = 'Delete (%s %s) successful.' % (first_name, surname)
-        messages.add_message(request, messages.INFO, msg)
-    except Exception, e:
-        msg = 'Delete error - %s' % (str(e))
-        messages.add_message(request, messages.INFO, msg)
-    return HttpResponseRedirect(reverse(persons_search))
-
-# WORKFORCE
-
-
-def new_user(request):
-    '''
-    Some default page for the home page / Dashboard
-    '''
-
+    person must be either volunteer, NGO employee or Government
+    """
     msg = ''
     password = ''
 
-    if request.method == 'POST':
-        form = NewUser(data=request.POST)
-
-        try:
-            person_id = request.POST.get('person_id')
+    try:
+        person_id = int(id)
+        # Get Name
+        user = RegPerson.objects.get(pk=person_id)
+        personfname = user.first_name
+        personsname = user.surname
+        names = user.full_name
+        if request.method == 'POST':
+            form = NewUser(user, data=request.POST)
             username = request.POST.get('username')
             password1 = request.POST.get('password1')
             password2 = request.POST.get('password2')
-
-            # Get Name
-            person = RegPerson.objects.get(pk=person_id)
-            personfname = person.first_name
-            personsname = person.surname
 
             # resolve existing account
             user_exists = AppUser.objects.filter(reg_person=person_id)
@@ -918,16 +1231,16 @@ def new_user(request):
             else:
                 msg = 'Passwords do not match!'
                 messages.add_message(request, messages.INFO, msg)
-                form = NewUser(data=request.POST)
+                form = NewUser(user, data=request.POST)
                 return render(request, 'registry/new_user.html',
                               {'form': form},)
 
             # validate username if__exists
             username_exists = AppUser.objects.filter(username=username)
             if username_exists:
-                msg = 'The username (%s) is taken.Pick another one.' % username
+                msg = 'Username (%s) is taken. Pick another one.' % username
                 messages.add_message(request, messages.INFO, msg)
-                form = NewUser(data=request.POST)
+                form = NewUser(user, data=request.POST)
                 return render(request, 'registry/new_user.html',
                               {'form': form},)
             else:
@@ -936,98 +1249,54 @@ def new_user(request):
                                                    reg_person=person_id,
                                                    password=password)
                 if user:
-                    user.groups.add(Group.objects.get(name='Standard logged in'))
+                    user.groups.add(Group.objects.get(
+                        name='Standard logged in'))
                     # Capture msg & op status
                     msg = 'User (%s) save success.' % (username)
                     messages.add_message(request, messages.INFO, msg)
-                    return HttpResponseRedirect(reverse(workforce_search))
-
-        except Exception, e:
-            msg = 'Error - (%s) ' % (str(e))
-            # Capture msg & op status
-            messages.add_message(request, messages.ERROR, msg)
-            return HttpResponseRedirect(reverse(persons_search))
-    else:
-        form = NewUser()
-        return render(request, 'registry/new_user.html', {'form': form},)
-
-
-def workforce_search(request):
-    res = None
-    resultsets = None
-    resultset = None
-    results = None
-    result = None
-    wfc_type = None
-    person_type = None
-    search_location = False
-    search_wfc_by_org_unit = False
-
-    if request.method == 'POST':
-        form = UserSearchForm(data=request.POST)
-        try:
-            if form.is_valid():
-                person_type = form.cleaned_data['person_type']
-                search_string = form.cleaned_data['search_name']
-                person_deceased = form.cleaned_data['person_deceased']
-                search_criteria = form.cleaned_data['search_criteria']
-
-                deceased_person = True if person_deceased == 'True' else False
-                type_of_person = [person_type] if person_type else []
-
-                # Make PersonType selection mandatory
-                if person_type:
-                    wfc_type = person_type
-
-                # Filter Location Searches
-                if search_criteria == 'ORG':
-                    search_wfc_by_org_unit = True
-                if search_criteria == 'RES':
-                    search_location = True
-
-                resultsets = get_persons_list(user=request.user, tokens=search_string, wfc_type=wfc_type,
-                                              search_location=search_location, search_wfc_by_org_unit=search_wfc_by_org_unit)
-
-                result_pk = None
-                pgeolocs_ = None
-                porgs_ = None
-                if resultsets:
-                    for resultset in resultsets:
-                        if resultset:
-                            for result in resultset:
-                                result_pk = result.pk
-                                users = AppUser.objects.filter(
-                                    reg_person_id=result_pk)
-                                result.appusers = users
-                return render(request, 'registry/workforce_search.html',
-                              {'resultsets': resultsets, 'form': form})
-        except Exception, e:
-            msg = 'Error - (%s) ' % (str(e))
-            messages.add_message(request, messages.ERROR, msg)
-            return HttpResponseRedirect(reverse(workforce_search))
-        form = UserSearchForm()
-        return render(request, 'registry/workforce_search.html', {'form': form})
-    else:
-        form = UserSearchForm()
-        return render(request, 'registry/workforce_search.html', {'form': form})
+                    return HttpResponseRedirect(
+                        '%s?id=%d' % (reverse(persons_search), int(person_id)))
+        else:
+            form = NewUser(user)
+            return render(request, 'registry/new_user.html',
+                          {'names': names, 'form': form},)
+    except Exception, e:
+        msg = 'Error - (%s) ' % (str(e))
+        messages.add_message(request, messages.ERROR, msg)
+        return HttpResponseRedirect(reverse(persons_search))
 
 
+@login_required
 def registry_look(request):
-    '''
-    Json lookup stuff
-    '''
+    """For JSON lookup stuff on registry pages."""
     try:
-        msg, selects = 'Test', ''
+        msg, selects = 'Registry look up successful', ''
         results = {'message': msg}
         if request.method == 'POST':
             county = request.POST.getlist('county[]')
             sub_county = request.POST.getlist('sub_county[]')
             ward = request.POST.getlist('ward[]')
             action = int(request.POST.get('action'))
+            filters = request.POST.get('filter')
             datas = sub_county if action == 1 else county
             extras = ward if action == 1 else sub_county
             print action, datas, extras
-            results = get_geo_selected(results, datas, extras)
+            if action == 4:
+                extras = request.POST.getlist('ward')
+                datas = request.POST.getlist('sub_county')
+            if action == 6:
+                county = request.POST.get('county')
+                datas, extras = [county], []
+            su = request.user.is_superuser
+            # Check if in National person
+            if filters and not su:
+                national = RegPersonsGeo.objects.filter(
+                    person_id=request.user.id, is_void=False,
+                    date_delinked=None).count()
+                if national == 0:
+                    filters = False
+            filter_id = request.user if filters and not su else False
+            results = get_geo_selected(results, datas, extras, filter_id)
             res_extras = map(str, extras)
             if res_extras:
                 selects = ','.join(res_extras)
@@ -1036,4 +1305,163 @@ def registry_look(request):
         return JsonResponse(results, content_type='application/json',
                             safe=False)
     except Exception, e:
+        raise e
+
+
+@login_required
+def person_actions(request):
+    """
+    Json response on persons update stuff.
+
+    Add / remove Organisational units
+    Attach caregivers and siblings
+    """
+    try:
+        results = {'status': 9}
+        message = 'Record added successfully.'
+        if request.method == 'POST':
+            date_now = timezone.now()
+            person_id = request.POST.get('person_id')
+            edit_type = int(request.POST.get('edit_type'))
+            attached_ou = extract_post_params(request, naming='ou_')
+            if edit_type == 1:
+                message = 'Organisational unit linked successfully.'
+                for unid in attached_ou:
+                    if len(attached_ou[unid]) > 1:
+                        org_unit_id = int(unid)
+                        pri_unit = attached_ou[unid]['pri']
+                        reg_ass = attached_ou[unid]['reg']
+                        is_pri_unit = True if pri_unit == 'AYES' else False
+                        is_reg_ass = True if reg_ass == 'AYES' else False
+                        val, ctd = RegPersonsOrgUnits.objects.update_or_create(
+                            person_id=person_id, org_unit_id=org_unit_id,
+                            is_void=False,
+                            defaults={'person_id': person_id,
+                                      'date_linked': date_now,
+                                      'org_unit_id': org_unit_id,
+                                      'primary_unit': is_pri_unit,
+                                      'reg_assistant': is_reg_ass,
+                                      'date_delinked': None,
+                                      'is_void': False},)
+            elif edit_type == 2:
+                message = 'Organisational Unit delinked'
+                org_unit_id = request.POST.get('org_unit_id')
+                org_unit = get_object_or_404(
+                    RegPersonsOrgUnits, person_id=person_id,
+                    org_unit_id=org_unit_id, is_void=False)
+                org_unit.date_delinked = date_now
+                org_unit.is_void = True
+                org_unit.save(update_fields=["date_delinked", "is_void"])
+            elif edit_type == 3 or edit_type == 6:
+                # This is for adding caregiver
+                message = 'Caregiver added successfully'
+                attached_cg = extract_post_params(request, naming='cc_')
+                # This will be a single record - Re-used method
+                print 'CHK', attached_cg
+                for ncg in attached_cg:
+                    dob = None
+                    if len(attached_cg[ncg]) > 2:
+                        cpims_id = int(attached_cg[ncg]['cpid'])
+                        sex_id = attached_cg[ncg]['gender']
+                        date_of_birth = attached_cg[ncg]['dob']
+                        first_name = attached_cg[ncg]['fname']
+                        other_names = attached_cg[ncg]['oname']
+                        surname = attached_cg[ncg]['sname']
+                        if cpims_id == 0:
+                            if date_of_birth:
+                                dob = convert_date(date_of_birth)
+                            person = RegPerson(
+                                designation='',
+                                first_name=first_name.upper(),
+                                other_names=other_names.upper(),
+                                surname=surname.upper(),
+                                sex_id=sex_id, date_of_birth=dob,
+                                des_phone_number=None, email='',
+                                created_by_id=request.user.id,
+                                is_void=False)
+                            person.save()
+                            cpims_id = person.pk
+                            results['caregiver_id'] = cpims_id
+                            # Save this person type
+                            person_types = ['TBGR']
+                            save_person_type(person_types, cpims_id)
+                            # Copy paste locations from child
+                            copy_locations(person_id, cpims_id)
+                        # Now save this record to Guardians
+                        is_adult = attached_cg[ncg]['adult']
+                        relationship = attached_cg[ncg]['ctype']
+                        child_headed = True if is_adult == 'No' else False
+                        if edit_type == 3:
+                            g_count = RegPersonsGuardians.objects.filter(
+                                guardian_person_id=cpims_id,
+                                child_person_id=person_id, is_void=False,
+                                date_delinked=None).count()
+                            if g_count == 0:
+                                RegPersonsGuardians(
+                                    child_person_id=person_id,
+                                    guardian_person_id=cpims_id,
+                                    relationship=relationship,
+                                    date_linked=now,
+                                    date_delinked=None,
+                                    child_headed=child_headed,
+                                    is_void=False).save()
+
+                                # Create beneficiary id
+                                pp_id = int(cpims_id)
+                                ben_id = beneficiary_id_generator(pp_id)
+                                identifier_types = {'ISCG': ben_id}
+                                save_person_extids(identifier_types, pp_id)
+            elif edit_type == 4:
+                # This is for adding siblings
+                message = 'Sibling added successfully'
+                attached_sb = extract_post_params(request, naming='sb_')
+                sibling_id = save_sibling(request, attached_sb, person_id)
+                if sibling_id:
+                    results['sibling_id'] = sibling_id[0]
+            elif edit_type == 5:
+                # This is for removing guardians
+                message = 'Caregiver detached successfully'
+                guardian_id = request.POST.get('guardian_id')
+                org_unit = get_object_or_404(
+                    RegPersonsGuardians, guardian_person_id=guardian_id,
+                    child_person_id=person_id, is_void=False,
+                    date_delinked=None)
+                org_unit.date_delinked = date_now
+                org_unit.is_void = True
+                org_unit.save(update_fields=["date_delinked", "is_void"])
+            elif edit_type == 10:
+                # This is for removing siblings
+                message = 'Sibling detached successfully'
+                sibling_id = request.POST.get('sibling_id')
+                sib_details = get_object_or_404(
+                    RegPersonsSiblings, sibling_person_id=sibling_id,
+                    child_person_id=person_id, is_void=False,
+                    date_delinked=None)
+                sib_details.date_delinked = date_now
+                sib_details.is_void = True
+                sib_details.save(update_fields=["date_delinked", "is_void"])
+            elif edit_type == 7:
+                # Check if child is duplicate if all the following are the same
+                # Names, DOB, Gender and Location (Sub-county and ward
+                # When adding a new child.
+                response = person_duplicate(request)
+                results['status'] = response['status']
+                message = 'Child duplicate checked successfully.'
+            elif edit_type == 8:
+                # Check if sibling is duplicate if below are the same
+                # Names, DOB, Gender and Location (Sub-county and ward
+                # When attaching or creating new siblings.
+                response = person_duplicate(request, person='sibling')
+                results['status'] = response['status']
+                message = ('Sibling duplicate checked successfully.')
+            elif edit_type == 9:
+                # Got lazy; used this to check if unit exits with same name."""
+                response = unit_duplicate(request)
+                results['status'] = response['status']
+                message = 'Organisation Unit checked successfully.'
+            results['message'] = message
+        return JsonResponse(results, content_type='application/json',
+                            safe=False)
+    except Exception, e:
+        print 'Error on persons query - %s' % (str(e))
         raise e

@@ -105,29 +105,17 @@ var handleInteractiveChart = function () {
     }
 	if ($('#interactive-chart').length !== 0) {
 	
-        var data1 = [ 
-            [1, 40], [2, 50], [3, 60], [4, 60], [5, 60], [6, 65], [7, 75], [8, 90], [9, 100], [10, 105], 
-            [11, 110], [12, 110], [13, 120], [14, 130], [15, 135],[16, 145], [17, 132], [18, 123], [19, 135], [20, 150] 
-        ];
-        var data2 = [
-            [1, 10],  [2, 6], [3, 10], [4, 12], [5, 18], [6, 20], [7, 25], [8, 23], [9, 24], [10, 25], 
-            [11, 18], [12, 30], [13, 25], [14, 25], [15, 30], [16, 27], [17, 20], [18, 18], [19, 31], [20, 23]
-        ];
-        var xLabel = [
-            [1,''],[2,''],[3,'May&nbsp;15'],[4,''],[5,''],[6,'May&nbsp;19'],[7,''],[8,''],[9,'May&nbsp;22'],[10,''],
-            [11,''],[12,'May&nbsp;25'],[13,''],[14,''],[15,'May&nbsp;28'],[16,''],[17,''],[18,'May&nbsp;31'],[19,''],[20,'']
-        ];
         $.plot($("#interactive-chart"), [
                 {
-                    data: data1, 
-                    label: "Page Views", 
-                    color: blue,
+                    data: Cdata, 
+                    label: "Case Records", 
+                    color: red,
                     lines: { show: true, fill:false, lineWidth: 2 },
                     points: { show: true, radius: 3, fillColor: '#fff' },
                     shadowSize: 0
                 }, {
-                    data: data2,
-                    label: 'Visitors',
+                    data: Kdata,
+                    label: 'Child Registration',
                     color: green,
                     lines: { show: true, fill:false, lineWidth: 2 },
                     points: { show: true, radius: 3, fillColor: '#fff' },
@@ -161,7 +149,7 @@ var handleInteractiveChart = function () {
                 if (previousPoint !== item.dataIndex) {
                     previousPoint = item.dataIndex;
                     $("#tooltip").remove();
-                    var y = item.datapoint[1].toFixed(2);
+                    var y = item.datapoint[1].toFixed(0);
                     
                     var content = item.series.label + " " + y;
                     showTooltip(item.pageX, item.pageY, content);
@@ -178,18 +166,15 @@ var handleInteractiveChart = function () {
 var handleDonutChart = function () {
 	"use strict";
 	if ($('#donut-chart').length !== 0) {
-        var donutData = [
-			{ label: "CBO",  data: 10, color: blue},
-            { label: "NGO",  data: 20, color: purple},
-            { label: "Government",  data: 35, color: purpleDark},
-            { label: "Private",  data: 10, color: aqua}];
-		$.plot('#donut-chart', donutData, {
+        
+		$.plot('#donut-chart', dData, {
 			series: {
 				pie: {
 					innerRadius: 0.5,
 					show: true,
 					label: {
-						show: true
+						show: true,
+                        color: '#000000'
 					}
 				}
 			},

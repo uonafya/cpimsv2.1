@@ -19,12 +19,12 @@
     <!-- begin row -->
 	<div class="row">
 		<!-- begin col-3 -->
-		<div class="col-md-3 col-sm-6">
+		<div class="col-md-2 col-sm-3">
 			<div class="widget widget-stats bg-green">
-				<div class="stats-icon"><i class="fa fa-desktop"></i></div>
+				<div class="stats-icon"><i class="fa fa-child"></i></div>
 				<div class="stats-info">
-					<h4>Registered Children</h4>
-					<p>79</p>	
+					<h4>Children / OVC</h4>
+					<center><p>{{ data.children }}</p></center>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -33,26 +33,12 @@
 		</div>
 		<!-- end col-3 -->
 		<!-- begin col-3 -->
-		<div class="col-md-3 col-sm-6">
+		<div class="col-md-2 col-sm-3">
 			<div class="widget widget-stats bg-blue">
-				<div class="stats-icon"><i class="fa fa-chain-broken"></i></div>
-				<div class="stats-info">
-					<h4>Children registration Rate</h4>
-					<p>20 p/m</p>	
-				</div>
-				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
-				</div>
-			</div>
-		</div>
-		<!-- end col-3 -->
-		<!-- begin col-3 -->
-		<div class="col-md-3 col-sm-6">
-			<div class="widget widget-stats bg-purple">
 				<div class="stats-icon"><i class="fa fa-users"></i></div>
 				<div class="stats-info">
-					<h4>Registered Organisation Units</h4>
-					<p>50 (open)</p>	
+					<h4>Caregiver / Guardian</h4>
+					<center><p>{{ data.guardians }}</p></center>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -61,12 +47,54 @@
 		</div>
 		<!-- end col-3 -->
 		<!-- begin col-3 -->
-		<div class="col-md-3 col-sm-6">
-			<div class="widget widget-stats bg-black">
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-purple">
+				<div class="stats-icon"><i class="fa fa-user"></i></div>
+				<div class="stats-info">
+					<h4>Workforce Members</h4>
+					<center><p>{{ data.workforce }}</p></center>	
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-aqua">
+				<div class="stats-icon"><i class="fa fa-institution"></i></div>
+				<div class="stats-info">
+					<h4>Organisation Units</h4>
+					<center><p>{{ data.org_units }}</p></center>	
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-red">
+				<div class="stats-icon"><i class="fa fa-chain-broken"></i></div>
+				<div class="stats-info">
+					<h4>Case Records</h4>
+					<center><p>{{ data.cases }}</p></center>
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-grey">
 				<div class="stats-icon"><i class="fa fa-clock-o"></i></div>
 				<div class="stats-info">
-					<h4>Incomplete records</h4>
-					<p>4/100</p>	
+					<h4>Pending Cases Count</h4>
+					<center><p>{{ data.pending }}</p></center>	
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -86,7 +114,7 @@
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
 					</div>
-					<h4 class="panel-title">Children Registrations (Last 7 Days)</h4>
+					<h4 class="panel-title">Case Management (Last 21 Days)</h4>
 				</div>
 				<div class="panel-body">
 					<div id="interactive-chart" class="height-sm"></div>
@@ -100,7 +128,7 @@
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
 					</div>
-					<h4 class="panel-title">Organisational unit types</h4>
+					<h4 class="panel-title">Case categories (Top 5)</h4>
 				</div>
 				<div class="panel-body">
 					<div id="donut-chart" class="height-sm"></div>
@@ -117,6 +145,12 @@
 {% block lazy_javascript_code %}
     <script src="{% static 'plugins/flot/jquery.flot.min.js' %}"></script>
     <script src="{% static 'plugins/flot/jquery.flot.pie.min.js' %}"></script>
+    <script>
+        var Kdata = [{% autoescape off %}{{ kvals }}{% endautoescape %}];
+        var Cdata = [{% autoescape off %}{{ cvals }}{% endautoescape %}];
+        var xLabel = [{% autoescape off %}{{ dates }}{% endautoescape %}];
+        var dData = [{% autoescape off %}{{ dvals }}{% endautoescape %}];
+    </script>
     <script src="{% static 'js/dashboard.js' %}"></script>
 	<script>
 		$(document).ready(function() {

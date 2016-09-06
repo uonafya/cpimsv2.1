@@ -8,11 +8,11 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'z$gki-bd^me9+o699p#+oc-y)a_rps9u#unx8@b8o40-*_3f(5'
+SECRET_KEY = 'h34yo5l8c8!edb%^b@3j-i^gc$e)fcjnw_9jm4a^%jbq&*41+@'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -25,7 +25,10 @@ INSTALLED_APPS = (
     'cpovc_registry',
     'cpovc_main',
     'cpovc_forms',
+    'cpovc_gis',
+    'cpovc_access',
     'crispy_forms',
+    'rest_framework',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -34,10 +37,13 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'cpovc_access.middleware.AuthenticationPolicyMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'cpovc_main.middleware.SqlPrintingMiddleware',
+    # 'cpovc_main.middleware.SqlPrintingMiddleware',
+    'cpovc_auth.middleware.UserRestrictMiddleware',
+    'cpovc_access.middleware.FailedLoginMiddleware',
 )
 
 ROOT_URLCONF = 'cpims.urls'
@@ -63,11 +69,11 @@ WSGI_APPLICATION = 'cpims.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'cpims',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
-        'PORT': '5432', }
+        'NAME': 'cpims_main',
+        'USER': 'cpdbuser',
+        'PASSWORD': 'CP1$2016$ss',
+        'HOST': '',
+        'PORT': '', }
 }
 
 LANGUAGE_CODE = 'en-us'
@@ -81,6 +87,8 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+DOCUMENTS_URL = '/documents/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'reports')
 
@@ -109,3 +117,50 @@ EMAIL_HOST_PASSWORD = 'P@ss#2016'
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
+
+# Session variables
+SESSION_COOKIE_AGE = 3 * 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
+AXES_LOCKOUT_TEMPLATE = 'locked.html'
+AXES_COOLOFF_TIME = 0.25
+
+PASSWORD_CHANGE_POLICIES = (
+    ('cpovc_access.password_change.PasswordChangeExpired', {}),
+    ('cpovc_access.password_change.PasswordChangeTemporary', {}),
+)
+
+PASSWORD_STRENGTH_POLICIES = (
+    ('cpovc_access.password_strength.PasswordMinLength', {}),
+    ('cpovc_access.password_strength.PasswordContainsUpperCase', {}),
+    ('cpovc_access.password_strength.PasswordContainsLowerCase', {}),
+    ('cpovc_access.password_strength.PasswordContainsNumbers', {}),
+    ('cpovc_access.password_strength.PasswordContainsSymbols', {}),
+    ('cpovc_access.password_strength.PasswordUserAttrs', {}),
+    ('cpovc_access.password_strength.PasswordLimitReuse', {}),
+    ('cpovc_access.password_strength.PasswordDisallowedTerms', {
+        'terms': ['cpims']
+    }),
+)
+
+AUTHENTICATION_POLICIES = (
+    ('cpovc_access.authentication.AuthenticationBasicChecks', {}),
+    ('cpovc_access.authentication.AuthenticationDisableExpiredUsers', {}),
+)
+
+DOCUMENT_ROOT = os.path.join(BASE_DIR, 'templates/documents')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}

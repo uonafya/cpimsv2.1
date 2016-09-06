@@ -2765,7 +2765,7 @@ a.text-white:focus {
 }
 .datepicker table {
     width: 100%;
-}	        
+}           
 .input-daterange .input-group-addon {
     background: #d6d8dd !important;
     border: none !important;
@@ -3201,7 +3201,7 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
 }
 
 /* 5.16 Plugins - jVectorMap */
-			    
+                
 .jvectormap-zoomin, .jvectormap-zoomout {
     width: 16px !important;
     height: 16px !important;
@@ -3698,7 +3698,7 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
 
 
 /* 6.7 Page - Login */
-	    
+        
 .login {
     margin: 168px 0;
     position: relative;
@@ -5933,7 +5933,7 @@ body.flat-black {
     padding: 30px 60px;
 }
 .register.register-with-news-feed .register-content {
-    padding: 20px 60px 30px;
+    padding: 10px 30px 30px;
 }
 .login.login-with-news-feed .login-header,
 .register.register-with-news-feed .register-header {
@@ -5942,10 +5942,10 @@ body.flat-black {
     margin: 0;
     left: 0;
     right: 0;
-    padding: 100px 60px 0;
+    padding: 10px 30px 0;
 }
 .register.register-with-news-feed .register-header {
-    padding: 60px 60px 0;
+    padding: 10px 30px 0;
     font-size: 32px;
 }
 .register.register-with-news-feed .register-header small {
@@ -5953,7 +5953,7 @@ body.flat-black {
     display: block;
     font-size: 14px;
     margin-top: 10px;
-    line-height: 20px;
+    line-height: 10px;
 }
 .login.login-with-news-feed .login-header .brand {
     color: #242a30;
@@ -6160,7 +6160,7 @@ body.flat-black {
 }
 .promo{
     width: 120px;
-    text-align: right;
+    text-align: center;
     margin-right: 30px;
 }
 #footer .promo{
@@ -6173,9 +6173,13 @@ body.flat-black {
 .checkbox label span {
     vertical-align: middle;
 }
-.form-group a{
+.form-group a .fa{
     vertical-align: middle;
-    padding: 50px 15px 5px 0px;
+    padding: 25px 15px 5px 5px;
+}
+.form-group label a .fa{
+    vertical-align: middle;
+    padding: 5px 10px 5px 10px;
 }
 .pager .next > a {
     background: #2A72B5 none repeat scroll 0% 0%;
@@ -6197,4 +6201,37 @@ body.flat-black {
 }
 .multiselect-container{
     width: 100%;
+}
+.divider {
+    padding-bottom: 10px;
+    margin-top: 10px;
+}
+.log {
+    color: #ff0000;
+    font-weight: bold;
+}
+.ui-autocomplete { 
+    z-index: 5000; 
+}
+.modal .modal-dialog { 
+    width: 65%; 
+}
+.datepicker {
+    z-index: 2000 !important; 
+}
+.separator{
+    height: 15px;
+}
+.modal-body{
+    font-size: 15px;
+}
+.shome {
+    margin-top: 20px;
+    border: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+.terms-text{
+    text-align: justify;
+    text-justify: inter-word;
 }

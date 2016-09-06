@@ -1,25 +1,39 @@
+"""Users admin."""
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils.translation import ugettext_lazy as _
 from .models import AppUser
 
 
 class MyUserAdmin(UserAdmin):
-    # search_fields = ['area_id', 'area_name']
-    list_display = ['username']
-    # exclude = ['first_name', 'last_name', 'email', 'date_joined']
+    """
+    Admin back end class.
 
+    This is for handling Django admin create user.
+    """
 
-class MyUserAdmins(UserAdmin):
     model = AppUser
 
-    fieldsetss = UserAdmin.fieldsets + (
-        (None, {'fields': ('reg_person',)}),
-    )
+    list_display = ['username', 'first_name', 'last_name', 'email',
+                    'is_active']
+
+    search_fields = ['username']
+
     fieldsets = (
-        (None, {'fields': (
-            'username', 'password', 'reg_person', 'is_active', 'is_staff',
-            'password_changed_timestamp')}),)
+        (_('Personal info'), {'fields': ('username', 'password',
+                              'reg_person')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff',
+                            'is_superuser', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login',
+                                'password_changed_timestamp')}),
+        (_('Groups'), {'fields': ('groups',)}),
+    )
 
-admin.site.register(AppUser, MyUserAdmins)
+    add_fieldsets = (
+        (_('Create Account'), {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2', 'reg_person')}
+         ),
+    )
 
-# admin.site.register(AppUser, MyUserAdmin)
+admin.site.register(AppUser, MyUserAdmin)

@@ -1,11 +1,17 @@
+"""Common functions for authentication module."""
+from django.utils import timezone
+
 from .models import CPOVCRole, CPOVCUserRoleGeoOrg
+from cpovc_main.models import RegTemp
+from cpovc_registry.models import RegPersonsGeo
 
 
 def get_allowed_units_county(user_id):
-    '''
-    Return dict with list of allowed group ids mapped to org units
+    """
+    Return dict with list of allowed group ids mapped to org units.
+
     and for sub counties do the reverse just list of sub-counties
-    '''
+    """
     try:
         geo_orgs = get_group_geos_org(user_id)
         ex_areas, ex_orgs = [], {}
@@ -25,16 +31,16 @@ def get_allowed_units_county(user_id):
 
 
 def get_groups(grp_prefix='group_'):
-    '''
-    Return list of ids and CPIMS codes
-    '''
+    """Return list of ids and CPIMS codes."""
     groups = {}
+    disallowed_group = [11]
     try:
         results = CPOVCRole.objects.filter().values(
             'group_ptr_id', 'group_id', 'group_name')
         for group in results:
             group_id = '%s%s' % (grp_prefix, str(group['group_id']))
-            groups[group['group_ptr_id']] = group_id
+            if group_id not in disallowed_group:
+                groups[group['group_ptr_id']] = group_id
 
     except Exception, e:
         error = 'Error getting groups - %s' % (str(e))
@@ -44,6 +50,7 @@ def get_groups(grp_prefix='group_'):
 
 
 def get_group_geos_org(user_id):
+    """Get group ids mapping to geos."""
     try:
         result = CPOVCUserRoleGeoOrg.objects.filter(
             user_id=user_id, is_void=False).values(
@@ -56,6 +63,7 @@ def get_group_geos_org(user_id):
 
 
 def remove_group_geo_org(user_id, group_id, area_id, org_unit_id):
+    """For removing / revoking this group ids."""
     try:
         geo_orgs = CPOVCUserRoleGeoOrg.objects.get(
             user_id=user_id, group_id=group_id, is_void=False,
@@ -71,14 +79,52 @@ def remove_group_geo_org(user_id, group_id, area_id, org_unit_id):
 
 
 def save_group_geo_org(user_id, group_id, area_id, org_unit_id):
+    """Method for attaching org units and sub-counties."""
     try:
-        geo_org_perm, created = CPOVCUserRoleGeoOrg.objects.update_or_create(
-            user_id=user_id, group_id=group_id, is_void=False,
+        if org_unit_id:
+            geo_org_perm, ctd = CPOVCUserRoleGeoOrg.objects.update_or_create(
+                user_id=user_id, group_id=group_id, org_unit_id=org_unit_id,
+                is_void=False,
+                defaults={'area_id': area_id, 'org_unit_id': org_unit_id,
+                          'user_id': user_id, 'group_id': group_id,
+                          'is_void': False},)
+        geo_org_perm, ctd = CPOVCUserRoleGeoOrg.objects.update_or_create(
+            user_id=user_id, group_id=group_id, area_id=area_id, is_void=False,
             defaults={'area_id': area_id, 'org_unit_id': org_unit_id,
+                      'user_id': user_id, 'group_id': group_id,
                       'is_void': False},)
     except Exception, e:
         error = 'Error searching org unit -%s' % (str(e))
         print error
         return None
     else:
-        return geo_org_perm, created
+        return geo_org_perm, ctd
+
+
+def save_temp_data(user_id, page_id, page_data):
+    """"Method to save temp form data for this person and page."""
+    try:
+        new_tmp, ctd = RegTemp.objects.update_or_create(
+            user_id=user_id, page_id=page_id,
+            defaults={'data': str(page_data), 'created_at': timezone.now(),
+                      'user_id': user_id, 'page_id': page_id},)
+    except Exception, e:
+        print 'save tmp error - %s' % (str(e))
+        pass
+
+
+def check_national(user):
+    """"Method to check if national guy but allow for super user."""
+    try:
+        if user.is_superuser:
+            return False
+        person_id = user.reg_person_id
+        person_geos = RegPersonsGeo.objects.filter(
+            person_id=person_id, is_void=False)
+        if person_geos:
+            return False
+        else:
+            return True
+    except Exception, e:
+        print 'check national error - %s' % (str(e))
+        return False

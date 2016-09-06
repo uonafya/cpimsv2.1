@@ -1,9 +1,37 @@
+"""Main CPIMS models."""
+import base64
 from django.db import models
 from django.utils import timezone
 from cpovc_registry.models import RegPerson
+import uuid
+
+
+class SchoolList(models.Model):
+    """List of Schools model."""
+
+    # school_id = models.IntegerField(null=True, default=0)
+    school_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid1, editable=False)
+    school_name = models.CharField(max_length=255)
+    # level_of_education = models.CharField(max_length=255, null=True)
+    school_subcounty = models.ForeignKey(
+        'cpovc_main.SetupGeography', related_name='school_subcounty_fk', on_delete=models.CASCADE)
+    school_ward = models.ForeignKey(
+        'cpovc_main.SetupGeography', related_name='school_ward_fk', on_delete=models.CASCADE)
+    type_of_school = models.CharField(max_length=26, null=True)
+    timestamp_created = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+    created_by = models.IntegerField(null=True, default=404)
+
+    class Meta:
+        """Override some params."""
+
+        db_table = 'school_list'
 
 
 class SetupGeography(models.Model):
+    """List of Geographical areas of Kenya."""
+
     area_id = models.IntegerField(primary_key=True)
     area_type_id = models.CharField(max_length=50)
     area_name = models.CharField(max_length=100)
@@ -15,10 +43,16 @@ class SetupGeography(models.Model):
     is_void = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'list_geo'
+        verbose_name = 'Setup Geography'
+        verbose_name_plural = 'Setup Geographies'
 
 
 class SetupList(models.Model):
+    """List used for drop downs and other selections."""
+
     item_id = models.CharField(max_length=4)
     item_description = models.CharField(max_length=255)
     item_description_short = models.CharField(max_length=26, null=True)
@@ -32,10 +66,14 @@ class SetupList(models.Model):
     timestamp_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'list_general'
 
 
 class Forms(models.Model):
+    """Forms model."""
+
     form_guid = models.CharField(max_length=64)
     form_title = models.CharField(max_length=255, null=True)
     form_type_id = models.CharField(max_length=4, null=True)
@@ -54,10 +92,14 @@ class Forms(models.Model):
     is_void = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'forms'
 
 
 class ListQuestions(models.Model):
+    """List of questions used by forms."""
+
     question_text = models.CharField(max_length=255, null=True, blank=True)
     question_code = models.CharField(max_length=50)
     form_type_id = models.CharField(max_length=4, null=True, blank=True)
@@ -68,10 +110,14 @@ class ListQuestions(models.Model):
     is_void = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'list_questions'
 
 
 class ListAnswers(models.Model):
+    """List of all answers used by questions in forms."""
+
     answer_set_id = models.IntegerField(db_index=True, null=True)
     answer = models.CharField(max_length=255, null=True, blank=True)
     the_order = models.IntegerField(db_index=True, null=True)
@@ -79,85 +125,106 @@ class ListAnswers(models.Model):
     is_void = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'list_answers'
 
 
 class FormGenAnswers(models.Model):
+    """Link to questions and answers for the forms."""
+
     form = models.ForeignKey(Forms)
     question = models.ForeignKey(ListQuestions)
     answer = models.ForeignKey(ListAnswers, null=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_gen_answers'
 
 
 class FormGenText(models.Model):
+    """Text used the questions and corresponding questions."""
+
     form = models.ForeignKey(Forms)
     question = models.ForeignKey(ListQuestions)
     answer_text = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_gen_text'
 
 
 class FormGenDates(models.Model):
+    """Keed dates for forms and questions."""
+
     form = models.ForeignKey(Forms)
     question = models.ForeignKey(ListQuestions)
     answer_date = models.DateField()
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_gen_dates'
 
 
 class FormGenNumeric(models.Model):
+    """Track form and questions with answers."""
+
     form = models.ForeignKey(Forms)
     question = models.ForeignKey(ListQuestions)
     answer = models.DecimalField(null=True, decimal_places=1, max_digits=10)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_gen_numeric'
 
 
 class AdminUploadForms(models.Model):
+    """Track admin form uploads."""
+
     form = models.ForeignKey(Forms)
     timestamp_uploaded = models.DateTimeField(null=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'admin_upload_forms'
 
 
-class FormCsi(models.Model):
-    form = models.ForeignKey(Forms)
-    domain_id = models.CharField(max_length=4, null=True, blank=True)
-    # TODO part of composite key for domain_id
-    score = models.IntegerField(null=True, blank=True)
-    observations = models.CharField(max_length=255, null=True, blank=True)
-
-    class Meta:
-        db_table = 'form_csi'
-
-
 class FormPersonParticipation(models.Model):
+    """Form participation details."""
+
     form = models.ForeignKey(Forms)
     workforce_or_beneficiary_id = models.CharField(max_length=15)
     participation_level_id = models.CharField(max_length=4, null=True,
                                               blank=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_person_participation'
 
 
 class FormOrgUnitContributions(models.Model):
+    """Org unit contributions details."""
+
     form = models.ForeignKey(Forms)
     org_unit_id = models.CharField(max_length=7)
     contribution_id = models.CharField(max_length=4)
     # TODO part of composite key - org_unit_id and contrib_id
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_org_unit_contribution'
 
 
 class FormResChildren(models.Model):
+    """Residential institution details."""
+
     form = models.ForeignKey(Forms, null=True)
     child_person_id = models.IntegerField(null=True, blank=True)
     institution_id = models.IntegerField(null=True, blank=True)
@@ -170,10 +237,14 @@ class FormResChildren(models.Model):
     sms_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_res_children'
 
 
 class FormResWorkforce(models.Model):
+    """Forms and work force relations."""
+
     form = models.ForeignKey(Forms)
     workforce_id = models.IntegerField(null=True, blank=True)
     institution_id = models.IntegerField(null=True, blank=True)
@@ -181,29 +252,42 @@ class FormResWorkforce(models.Model):
     full_part_time_id = models.CharField(max_length=4, null=True, blank=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_res_workforce'
 
 
 class AdminPreferences(models.Model):
+    """Admin preferences settings details."""
+
     person = models.ForeignKey(RegPerson)
     preference_id = models.CharField(max_length=4)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'admin_preferences'
 
 
 class CoreAdverseConditions(models.Model):
-    beneficiary_person = models.ForeignKey(RegPerson)
+    """For adverse conditions tracking of case."""
+
+    beneficiary_person = models.ForeignKey(RegPerson,
+                                           related_name='adverse_beneficiary')
     adverse_condition_id = models.CharField(max_length=4)
     is_void = models.BooleanField(default=False)
     sms_id = models.IntegerField(null=True)
     form_id = models.IntegerField(null=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'core_adverse_conditions'
 
 
 class CoreServices(models.Model):
+    """For core services tracking of case."""
+
     workforce_person = models.ForeignKey(RegPerson,
                                          related_name='service_workforce')
     beneficiary_person = models.ForeignKey(RegPerson,
@@ -214,14 +298,18 @@ class CoreServices(models.Model):
     form_id = models.IntegerField(null=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'core_services'
 
 
 class CoreEncounters(models.Model):
+    """Core encouters for cases."""
+
     workforce_person = models.ForeignKey(RegPerson,
                                          related_name='encounter_workforce')
-    beneficiary_person = models.ForeignKey(RegPerson,
-                                           related_name='encouner_beneficiary')
+    beneficiary_person = models.ForeignKey(
+        RegPerson, related_name='encounter_beneficiary')
     encounter_date = models.DateField()
     org_unit_id = models.IntegerField()
     area_id = models.IntegerField()
@@ -230,37 +318,49 @@ class CoreEncounters(models.Model):
     form_id = models.IntegerField(null=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'core_encounters'
         # unique_together = ("workforce_person", "beneficiary_person",
         # "encounter_date", "form_id")
 
 
 class CoreEncountersNotes(models.Model):
+    """Forms core encounters notes."""
+
     encounter = models.ForeignKey(CoreEncounters)
     form_id = models.IntegerField()
     workforce_person = models.ForeignKey(RegPerson,
                                          related_name='encounter_n_workforce')
     beneficiary_person = models.ForeignKey(
-        RegPerson, related_name='encouner_n_beneficiary')
+        RegPerson, related_name='encounter_n_beneficiary')
     encounter_date = models.DateField()
     note_type_id = models.CharField(max_length=4)
     note = models.CharField(max_length=255)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'form_encounters_notes'
 
 
 class AdminCaptureSites(models.Model):
+    """For tracking capture sites."""
+
     org_unit_id = models.IntegerField(null=True)
     capture_site_name = models.CharField(max_length=255, null=True, blank=True)
     date_installed = models.DateField(null=True, blank=True)
     approved = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'admin_capture_sites'
 
 
 class AdminDownload(models.Model):
+    """Tracking all admin downloads."""
+
     capture_site_id = models.IntegerField(null=True, blank=True)
     section_id = models.CharField(max_length=4, null=True)
     timestamp_started = models.DateTimeField(null=True)
@@ -270,10 +370,14 @@ class AdminDownload(models.Model):
     success = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'admin_download'
 
 
 class CaptureTaskTracker(models.Model):
+    """Capture tasks tracker."""
+
     id = models.AutoField(primary_key=True)
     task_id = models.CharField(max_length=64, null=True)
     operation = models.CharField(max_length=8, null=True)
@@ -283,19 +387,27 @@ class CaptureTaskTracker(models.Model):
     cancelled = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'admin_task_tracker'
 
 
 class ListReports(models.Model):
+    """Listing of all reports."""
+
     report_code = models.CharField(max_length=100, null=True, blank=True)
     report_title_short = models.CharField(max_length=255, null=True)
     report_title_long = models.CharField(max_length=255, null=True)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'list_reports'
 
 
 class ListReportsParameters(models.Model):
+    """Reports parameters."""
+
     report = models.ForeignKey(ListReports, null=True)
     parameter = models.CharField(max_length=50, null=True, blank=True)
     filter = models.CharField(max_length=50, null=True, blank=True)
@@ -305,22 +417,59 @@ class ListReportsParameters(models.Model):
     required = models.BooleanField(default=False)
 
     class Meta:
+        """Override some params."""
+
         db_table = 'list_reports_parameter'
 
 
 class ReportsSets(models.Model):
+    """All reports sets."""
+
     set_name = models.CharField(max_length=70)
     set_type_id = models.CharField(max_length=4, default='SORG')
     user_id_created = models.IntegerField()
 
     class Meta:
+        """Override some params."""
+
         db_table = 'reports_sets'
 
 
 class ReportsSetsOrgUnits(models.Model):
+    """Reports for Org units."""
+
     set = models.ForeignKey(ReportsSets)
     org_unit_id = models.IntegerField()
 
     class Meta:
+        """Override some params."""
+
         db_table = 'reports_sets_org_unit'
         unique_together = ("set", "org_unit_id")
+
+
+class RegTemp(models.Model):
+    """For handling temp data."""
+
+    user_id = models.IntegerField()
+    page_id = models.CharField(max_length=100)
+    created_at = models.DateTimeField()
+
+    _data = models.TextField(
+        db_column='page_data',
+        blank=True)
+
+    def set_data(self, data):
+        """Encode before saving."""
+        self._data = base64.encodestring(data)
+
+    def get_data(self):
+        """"Decode after getting."""
+        return base64.decodestring(self._data)
+
+    data = property(get_data, set_data)
+
+    class Meta:
+        """Override some params."""
+
+        db_table = 'reg_temp_data'

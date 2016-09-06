@@ -8,28 +8,6 @@
 <link href="{% static 'plugins/DataTables/css/data-table.css' %}" rel="stylesheet" />
 {% endblock style_code%}
 
-
-
-{% block javascript_code%}
-<script type="text/javascript">
-window.onload = function(e)
-{ 
-    var elem = document.getElementById("person_id");
-    elem.value = localStorage.getItem("person_id");
-
-
-    var person_fname = localStorage.getItem("person_fname");
-    var person_sname = localStorage.getItem("person_sname");
-    var person_name = person_fname.concat(' ').concat(person_sname);
-    var person_uname = person_fname.concat(person_sname);
-    var tempusername = person_uname.substring(0, 1).concat(person_sname);
-    console.log(tempusername);
-    document.getElementById('person_name').innerHTML = person_name;
-    document.getElementById('username').innerHTML = tempusername;
-}
-</script>
-{% endblock javascript_code%}
-
 {% block primary%}
 <h1 class="page-header">Workforce Registry</h1>
 <p></p>
@@ -48,61 +26,63 @@ window.onload = function(e)
 
 <!-- begin row -->
 <div class="row">
-        <!-- begin col-12 -->
-        <div class="col-md-12">
-                <!-- begin panel -->
-                <div class="panel panel-inverse">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                                <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
-                        </div>                        
-                        <h4 class="panel-title">Create User Profile | <span id="person_name"></span></h4>
+    <!-- begin col-12 -->
+    <div class="col-md-12">
+        <!-- begin panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>                        
+                <h4 class="panel-title">Create User Profile | {{ names }}</span></h4>
+            </div>
+            <div class="panel-body panel-form">
+                <form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true" name="demo-form" >
+
+                    {% csrf_token %} 
+                    <div class="form-group">
+                    <div class="col-md-4 col-sm-4">
+                       <b>{{ form.person_id }}</b>
                     </div>
-                    <div class="panel-body panel-form">
-                        <form class="form-horizontal form-bordered" action="{% url 'new_user' %}" method="POST" data-parsley-validate="true" name="demo-form" >
+                    </div>             
+                    <div class="form-group">
+                        <label class="control-label col-md-4 col-sm-4">{{ form.username.label }} :</label>
+                        <div class="col-md-4 col-sm-4">
+                            {{ form.username }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-4 col-sm-4">Password :</label>
+                        <div class="col-md-4 col-sm-4">
+                            {{ form.password1 }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-4 col-sm-4">Password(Again) :</label>
+                        <div class="col-md-4 col-sm-4">
+                            {{ form.password2}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-4 col-sm-4"></label>
+                        <div class="col-md-4 col-sm-4">
+                        
+                            {% if error_msg %}
+                            <p>
+                                <div class="alert alert-danger fade in m-b-15"><b>{{ error_msg }}<b></div> 
+                            </p>
+                            {% endif %}
 
-                            {% csrf_token %} 
-                            <div class="form-group">
-                            <div class="col-md-6 col-sm-6">
-                               <b>{{ form.person_id }}</b>
-                            </div>
-                            </div>             
-                            <div class="form-group">
-                                <label class="control-label col-md-4 col-sm-4">Username :</label>
-                                <div class="col-md-6 col-sm-6">
-                                    <b>{{ form.username }}</b>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-md-4 col-sm-4">Password: :</label>
-                                <div class="col-md-6 col-sm-6">
-                                    <b>{{ form.password1 }}</b>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-md-4 col-sm-4">Password(Again):</label>
-                                <div class="col-md-6 col-sm-6">
-                                    <b>{{ form.password2}}</b> 
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-md-4 col-sm-4"></label>
-                                <div class="col-md-6 col-sm-6">
-                                
-                                    {% if error_msg %}
-                                    <p>
-                                        <div class="alert alert-danger fade in m-b-15"><b>{{ error_msg }}<b></div> 
-                                    </p>
-                                    {% endif %}
-
-                                    <button type="submit" class="btn btn-primary btn-block">Submit</button>
-                                </div>
-                            </div>
-                        </form>
-
-                </div>
-                <!-- end panel -->
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- end panel-->
+    </div>
+    <!-- begin col-12 -->
 </div>
-
+<!-- begin row -->
 {% endblock primary%}

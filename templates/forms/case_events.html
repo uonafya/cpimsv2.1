@@ -11,6 +11,7 @@
 <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
 <link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
 <link href="{% static 'plugins/bootstrap-wizard/css/bwizard.min.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
 <style type="text/css">
 .dialog_paragraph {
   color: #f00;
@@ -33,7 +34,7 @@
 <!-- begin breadcrumb -->
 <ol class="breadcrumb pull-right">
     <li><a href="#">Home</a></li>
-    <li clasbootstrap-tas="active">Forms</li>
+    <li clasbootstrap-tas="active">Case Events</li>
 </ol>
 <!-- end breadcrumb -->
 
@@ -59,7 +60,32 @@
 </div>
 
 <!-- begin page-header -->
-<h1 class="page-header">Forms <small>Case Events | <span id="person_name"></small><b></b></h1>
+<div class="profile-section">
+    <!-- begin row -->
+    <div class="row">
+        <!-- begin col-4 -->
+        <div class="col-md-4">
+            <h4 class="title"><small>About Child</small></h4>
+            {% for data in init_data %}
+                <h1 class="page-header">Forms <small>Manage Case Events | {{ data.first_name }} {{ data.surname }}</small></h1>
+
+                <h6>NAME : <i> {{ data.first_name }} {{ data.surname }}</i></h6>
+                <h6>SEX : <i> {{ data.sex_id|gen_value:vals }}</i></h6>
+                <h6>DATE OF BIRTH : <i> {{ data.date_of_birth }}</i></h6>
+                <h6>
+                AGE IN YEARS :
+                    <i>
+                        {% if data.date_of_birth|gen_age == 0 %}
+                            UNDER 1 YEAR
+                        {% else %}
+                            {{ data.date_of_birth|gen_age }} YRS 
+                        {% endif %}
+                     </i>
+                </h6>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 <!-- end page-header -->
 
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
@@ -68,55 +94,77 @@
     <p class="invalid-form-message"></p>
 </div>
 
-<div id="case_status_msg" align="right">
-{% for resultset in  resultsets %}
-    {% for result in  resultset %}
-        {% for res in result.c_record %}
-            <small>
-                <p>
-                    <i class="fa fa-tachometer"></i>
-                    <b>CASE STATUS : </b> <b class="dialog_paragraph">{{ res.case_status }}</b>
-                </p>
-            </small>
+
+<br><br>
+<div>
+    <div id="case_status_msg" align="right">
+    <small>
+        <button id="btn_case_status" class="btn  btn-sm btn-primary active m-r-5" onClick="fnNavigateBack()">  
+        <i class="fa fa-arrow-left"></i>&nbsp; <b>BACK TO FOLLOW-UPS </b>                       
+        </button>
+    </small>
+    {% for resultset in  resultsets %}
+        {% for result in  resultset %}
+            {% for res in result.c_record %}
+
+                {% if result.c_close %}
+                    {% for res2 in result.c_close %}                    
+                        <small>
+                            <button id="btn_case_status" class="btn  btn-sm btn-danger active m-r-5" onClick="fnOpenDialog('CaseStatus')">
+                            {% if res2.transfer_to_id %}
+                                <b>{{ res.case_status }} TO {{ res2.transfer_to_id|gen_orgunitname }}</b>
+                            {% else %}
+                                <b>{{ res.case_status }}</b>
+                            {% endif %}                            
+                            </button>
+                        </small>
+                    {% endfor %}
+                {% else %}
+                <small>
+                    <button id="btn_case_status" class="btn  btn-sm btn-danger active m-r-5" onClick="fnOpenDialog('CaseStatus')">
+                        <b>{{ res.case_status }}</b>      
+                    </button>
+                </small>
+                {% endif %}
+            {% endfor %}
         {% endfor %}
     {% endfor %}
-{% endfor %}
-</div>
+    </div>
+<div>
 
 <!-- Case Summary -->
-        <div class="profile-section">
-            <!-- begin row -->
-            <div class="row">
-                <!-- begin col-4 -->
-                <div class="col-md-12">
-                    <h4 class="title"><b>Case Summary</b> <small>Info</small></h4>
-                    <!-- begin scrollbar -->
-                    <div data-scrollbar="true" data-height="150px" class="bg-silver">
-                        <table class="table">
-                            <thead>                                
-                                <th>Case Serial</th>
-                                <th>Place Of Event</th>
-                                <th>Case Category(s) | Date Of Event</th>
-                                <th>Referrals</th>
-                            </thead>
-                            <tbody>
-                            {% for resultset in  resultsets %}
-                                {% for result in  resultset %}
-                                <tr>
-                                {% for res in result.c_record %} 
-                                    <td>{{ res.case_serial }}</td>
-                                    <td>{{ res.place_of_event|gen_value:vals }}</td>
+    <div class="profile-section">
+        <!-- begin row -->
+        <div class="row">
+            <!-- begin col-4 -->
+            <div id="div_case_summary" class="col-md-12">
+                <h4 class="title">Case Summary <small>Database Information</small></h4>
+                <!-- begin scrollbar -->
+                <div data-scrollbar="true" data-height="150px" class="bg-silver">
+                    <table class="table">
+                        <thead>                                
+                            <th>Case Serial</th>
+                            <th>Case Category(s) | Date Of Event</th>
+                            <th>Referrals</th>
+                        </thead>
+                        <tbody>
+                        {% for resultset in  resultsets %}
+                            {% for result in  resultset %}
+                            <tr>
+                            {% for res in result.c_record %} 
+                                <td>{{ res.case_serial }}</td>
+                            {% endfor %}
+                            <td>
+                                <ol>
+                                {% for res in result.c_cats %}                             
+                                    <li>
+                                    {{ res.case_category|gen_value:vals }} | {{ res.date_of_event }} <br>
+                                    </li>                                
                                 {% endfor %}
-                                <td>
-                                    <ol>
-                                    {% for res in result.c_cats %}                             
-                                        <li>
-                                        {{ res.case_category|gen_value:vals }} | {{ res.date_of_event }} <br>
-                                        </li>                                
-                                    {% endfor %}
-                                    </ol>
-                                </td>
-                                <td>
+                                </ol>
+                            </td>
+                            <td>
+                                {% if result.c_refs %}
                                     <ol>
                                     {% for res in result.c_refs %}                             
                                         <li>
@@ -124,26 +172,29 @@
                                         </li>                                
                                     {% endfor %}
                                     </ol>
-                                </td>                            
-                                
-                                </tr>
-                                {% endfor %}
+                                {% else %}
+                                    No referrals to show
+                                {% endif %}
+                            </td>                            
+                            
+                            </tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- end scrollbar -->
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                <!-- end scrollbar -->
             </div>
         </div>
-        <!-- End Case Summary -->
+    </div>
+    <!-- End Case Summary -->
         <br><br>
     <!-- OVC Case Record Row -->
     <div class="row">
             <!-- begin col-12 -->
             <div class="col-md-12">
                     <!-- begin panel -->
-                    <div class="panel panel-inverse">
+                    <div class="panel panel-info">
                         <div class="panel-heading">
                             <div class="panel-heading-btn">
                                     <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
@@ -160,10 +211,10 @@
                                     <table id="case_events_data_table" class="table table-striped table-bordered">
                                     <thead>
                                         <tr> 
-                                            <th>Event</th>
+                                            <th>Event Type</th>
                                             <th>Case Category</th>                                            
                                             <th>Details</th> 
-                                            <th>Date</th>                
+                                            <th>Date Of Event</th>                
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -213,7 +264,7 @@
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
                                     <div id="services-dialog-header">
-                                        <p>Add Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i></p>      
+                                        <p>Manage Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i></p>      
                                     </div>
                                     </h4>
                                 </div>
@@ -223,34 +274,39 @@
                                         <span class="close" data-dismiss="alert">×</span>
                                         <i class="fa fa-close fa-2x pull-left"></i>
                                         <ul class="messages">
-                                           <p></p>
+                                           <small><p></p></small>
                                         </ul>
                                     </div>
 
                                     <div class="row">
                                         {{ form.case_event_id_svc }}   
                                         <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                            <h6><label class="control-label col-md-3 col-sm-3">Case Category:<span class="asteriskField"> *</span></label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                     {{ form.service_provided_case }}
-                                                    <div id="encounters_msgs0"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    <div id="encounters_msgs0" style="display:none;">
+                                                        <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                                     </div>
                                             </div>
                                         </div>                                       
                                         <br><br>
                                         <div class="form-group">
+                                             <div id="encounters_msgs1" style="display:none;">
+                                                <small><span><p class="dialog_paragraph">One or more service(s) is required</p></span></small>
+                                            </div>
                                              <table id="services_manager_table" class="table">
                                                 <thead>
-                                                    <tr id="id_inputHeaders">
-                                                        <th>#</th>
-                                                        <th width="30%">Service(s)</th>
-                                                        <th width="20%">Date Of Service</th>
-                                                        <th width="20%">Service(s) Provider</th>
-                                                        <th width="20%">Place Of Service</th>
-                                                        <th width="5%">Actions</th> 
+                                                    <tr id="id_inputHeaders">                                                        
+                                                        <th><h6><b>#</b></h6></th>
+                                                        <th width="30%"><h6><b>Service(s)</b></h6></th>
+                                                        <th width="20%"><h6><b>Date Of Service</b></h6></th>
+                                                        <th width="20%"><h6><b>Service(s) Provider</b></h6></th>
+                                                        <th width="20%"><h6><b>Place Of Service</b></h6></th>
+                                                        <th width="5%"><h6><b>Actions</b></h6></th> 
+
                                                     </tr>
                                                 </thead>
+                                                <div>
                                                 <tbody>
                                                     <tr id="id_inputElements">
                                                         <td>#</td>
@@ -258,28 +314,28 @@
                                                         {{ form.service_provided }}
                                                         <h6><span id="sel_service_provided"></span></h6>
                                                         <div id="service_provided_errormsg" style="display:none;">
-                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                            <small><p class="dialog_paragraph">This value is required</p></span></small><span>
                                                         </div>
                                                         </td>
 
-                                                        <td width="20%">
+                                                        <td width="10%">
                                                         {{ form.date_of_encounter_event }}
                                                         <div id="date_of_encounter_event_errormsg" style="display:none;">
-                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                            <small><p class="dialog_paragraph">This value is required</p></span></small><span>
                                                         </div>
                                                         </td>
 
-                                                        <td width="20%">
+                                                        <td width="30%">
                                                         {{ form.service_provider }}
                                                         <div id="service_provider_errormsg" style="display:none;">
-                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                            <small><p class="dialog_paragraph">This value is required</p></span></small><span>
                                                         </div>
                                                         </td>
 
                                                         <td width="20%">
                                                         {{ form.place_of_service }}
                                                         <div id="place_of_service_errormsg" style="display:none;">
-                                                            <span><p class="dialog_paragraph">This value is required</p></span>
+                                                            <small><p class="dialog_paragraph">This value is required</p></span></small><span>
                                                         </div>
                                                         </td>
 
@@ -291,29 +347,18 @@
                                                     <tr>
                                                 </tbody>
                                             </table>
+                                            {{ form.service_provided_list }}
                                         </div>
                                         <br><br>
                                         <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Encounter/Service Notes * :</label>
+                                            <h6><label class="control-label col-md-3 col-sm-3">Encounter/Service Notes :</label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                     {{ form.encounter_notes }}
-                                                    <div id="encounters_msgs2"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    <div id="encounters_msgs2" style="display:none;">
+                                                        <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                                     </div>
                                             </div>
                                         </div>  
-                                        <!--                                      
-                                        <br><br><br>                                        
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.workforce_member_svc }}
-                                                    <div id="encounters_msgs4"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        -->
                                         <br><br>
                                     </div>
                                     
@@ -334,8 +379,8 @@
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                     <h4 class="modal-title">
-                                    <div id="court-sessions-dialog-header">
-                                        <p>Add Court Session &nbsp&nbsp<i class="fa fa-legal"></i></p>      
+                                    <div id="court-sessions-dialog">
+                                        <p>Manage Court Session &nbsp;&nbsp;<i class="fa fa-legal"></i></p>      
                                     </div>
                                     </h4>
                                 </div>
@@ -345,66 +390,107 @@
                                         <span class="close" data-dismiss="alert">×</span>
                                         <i class="fa fa-close fa-2x pull-left"></i>
                                         <ul class="messages">
-                                           <p></p>
+                                            <small><p></p></small>
                                         </ul>
                                     </div>
 
                                     <div class="row">
                                         {{ form.case_event_id_court }} 
                                         <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
+                                            <h6><label class="control-label col-md-3 col-sm-3">Case Category <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6">
-                                                    {{ form.court_session_case }}
-                                                    <div id="court_msgs0"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                {{ form.court_session_case }}
+                                                <div id="court_msgs0" style="display:none;">
+                                                     <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br><br><br>                              
+                                        <div class="form-group">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Date Of Court Session <span class="asteriskField">*</span> :</label></h6>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.date_of_court_event }}
+                                                    <div id="court_msgs1" style="display:none;">
+                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                    </div>
+                                            </div>
+                                        </div> 
+                                        <br><br><br>                               
+                                        <div class="form-group">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Court Session Type <span class="asteriskField">*</span> :</label></h6>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.court_session_type }}
+                                                    <div id="court_msgs2" style="display:none;">
+                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                                     </div>
                                             </div>
                                         </div>
-                                        <br><br>                                   
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Date Of Court Session * :</label>
+                                        <br><br><br>
+                                        <div id="div_next_mention_date" class="form-group" style="display:none;">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Date of Next Mention <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6">
-                                                    {{ form.date_of_court_event }}
-                                                    <div id="court_msgs1"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    {{ form.next_mention_date }}
+                                                    <div id="court_msgs3" style="display:none;">
+                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br><br> 
+                                        <div id="div_court_outcome" class="form-group" style="display:none;">
+                                        <h6><label class="control-label col-md-3 col-sm-3">Court Outcome <span class="asteriskField">*</span> :</label></h6>
+                                            <div class="col-md-6 col-sm-6 form-group block1">
+                                                {{ form.court_outcome }}
+                                                <div id="court_msgs4" style="display:none;">
+                                                     <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br><br><br>
+                                        <div id="div_next_hearing_date" class="form-group" style="display:none;">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Date of Next Hearing <span class="asteriskField">*</span> :</label></h6>
+                                                <div class="col-md-6 col-sm-6">
+                                                    {{ form.next_hearing_date }}
+                                                    <div id="court_msgs5" style="display:none;">
+                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                    </div>
+                                                </div>
+                                        </div>
+                                        <br><br><br>                                  
+                                        <div id="div_court_order" class="form-group" style="display:none;">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Court Order(s) <span class="asteriskField">*</span> :</label></h6>
+                                            <div class="col-md-6 col-sm-6">
+                                                {{ form.court_order }}
+                                                <div id="court_msgs6" style="display:none;">
+                                                     <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                </div>
+                                                <h6><span id="sel_court_order"></span></h6>
+                                                <br>
+                                            </div>
+                                        </div>
+                                        <br><br><br> <br>                                      
+                                        <div class="form-group">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Court Session Notes:</label></h6>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.court_notes }}
+                                                    <div id="court_msgs7" style="display:none;">
+                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                                     </div>
                                             </div>
                                         </div>
                                         <br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Court Session Notes* :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.court_notes }}
-                                                    <div id="court_msgs2"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br><br><br>                                        
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Court Order(s) * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.court_order }}
-                                                    <div id="court_msgs3"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                                    <span id="sel_court_order"></span>
-                                                    <br>
-                                            </div>
-                                        </div>
                                         <!--
                                         <br><br><br>
                                         <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
+                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name <span class="asteriskField">*</span> :</label>
                                             <div class="col-md-6 col-sm-6">
                                                     {{ form.workforce_member_court }}
-                                                    <div id="court_msgs4"  style="display:none;">
+                                                    <div id="court_msgs4" style="display:none;">
                                                         <span><p class="dialog_paragraph">This value is required</p></span>
                                                     </div>
                                             </div>
                                         </div>
                                         -->
-                                        <br><br>
+                                        <br><br><br>
 
                                     </div>
                                 </div>
@@ -417,143 +503,112 @@
                     </div>
                     <!-- #end court-sessions-dialog -->
 
-                    <!-- #residential-placement-dialog -->
-                    <div class="modal fade" id="residential-placement-dialog">
+                    <!-- #summons-dialog -->
+                    <div class="modal fade" id="summons-dialog">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                     <h4 class="modal-title">
-                                    <div id="court-sessions-dialog-header">
-                                        <p>
-                                        Add Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>
-                                        </p>      
+                                    <div id="summons-dialog">
+                                        <p>Manage Summons &nbsp;&nbsp;<i class="fa fa-wechat"></i></p>
                                     </div>
                                     </h4>
                                 </div>
                                 <div class="modal-body">
 
-                                    <div id="placement_msgs" class="alert alert-danger fade in" style="display:none;">
+                                    <div id="summon_msgs" class="alert alert-danger fade in" style="display:none;">
                                         <span class="close" data-dismiss="alert">×</span>
                                         <i class="fa fa-close fa-2x pull-left"></i>
                                         <ul class="messages">
-                                           <p></p>
+                                            <small><p></p></small>
                                         </ul>
                                     </div>
-
-                                    <div class="row">
-                                        <br><br>
-                                        {{ form.case_event_id_plcmt }} 
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Case Category * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.placement_case }}
-                                                    <div id="placement_msgs0"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>                                  
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Date Of Placement * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.date_of_placement_event }}
-                                                    <div id="placement_msgs1"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Placement Notes * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.placement_notes }}
-                                                    <div id="placement_msgs2"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br><br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Residential Institution * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.residential_institution }}
-                                                    <div id="placement_msgs3"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Current Residential Status * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.current_residential_status }}
-                                                    <div id="placement_msgs4"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Court Committal Order? * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.has_court_committal_order }}
-                                                    <div id="placement_msgs5"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Free for Adoption? * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.free_for_adoption }}
-                                                    <div id="placement_msgs6"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Admission Date * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.admission_date }}
-                                                    <div id="placement_msgs7"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                        <div id="div_departure_date" class="form-group"  style="display:none;">
-                                            <label class="control-label col-md-4 col-sm-4">Departure Date * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.departure_date }}
-                                                    <div id="placement_msgs8"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br> 
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name * :</label>
-                                                <div class="col-md-6 col-sm-6">
-                                                {{ form.workforce_member_plcmnt }}
-                                                <div id="placement_msgs9"  style="display:none;">
-                                                    <span><p class="dialog_paragraph">This value is required</p></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                    </div> 
-                                    <div class="modal-footer" >
-                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                    <button id="btn_save_placement" class="btn btn-sm btn-success" onClick="fnSaveResidentialPlacement()">Save</button>
-                                </div>  
+                                <!--
+                                <div class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Total Number Of Summons :</label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        <h6><b> 0 </b></h6>
+                                    </div>
                                 </div>
-                            </div>                               
+                                <br><br>
+                                -->
+                                {{ form.case_event_id_summon }}
+                                
+                                <div class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Summon Honored ? :<span class="asteriskField"> *</span></label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        {{ form.honoured }}
+                                        <div id="summons_msgs1" style="display:none;">
+                                            <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><br>
+                                <div id="div_honoured_date" style="display:none;" class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Date Honoured:<span class="asteriskField"> *</span></label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        {{ form.honoured_date }}
+                                        <div id="summons_msgs2" style="display:none;">
+                                            <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><br>
+                                <div id="div_summon_date" style="display:none;" class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Date Of Next Summon:<span class="asteriskField"> *</span></label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        {{ form.summon_date }}
+                                        <div id="summons_msgs3" style="display:none;">
+                                            <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><br>
+                                <div class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Notes :<span class="asteriskField"> *</span></label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        {{ form.summon_note }}
+                                        <div id="summons_msgs4" style="display:none;">
+                                            <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                                <br><br><br><br>
+                                <div class="modal-footer" >
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
+                                    <button id="btn_save_summon" class="btn btn-sm btn-success" onClick="fnSaveSummons()">Save</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <!-- #end residential-placement-dialog -->
+                    <!-- #end summons-dialog -->
+
+                    <!-- #case-status-dialog -->
+                    <div class="modal fade" id="case-status-dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title">
+                                    <div id="case-status-dialog">
+                                        <p>Manage Case Status &nbsp;&nbsp;<i class="fa fa-tachometer"></i></p>
+                                    </div>
+                                    </h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">                                                
+                                        <div>
+                                            <h6><span id="span_case_status"></span></h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- #end case-status-dialog -->
+
 
                     <!-- #manage-referals-dialog -->
                     <div class="modal fade" id="manage-referals-dialog">
@@ -575,32 +630,50 @@
                                     <div class="row">
                                         <table id="new_refferals_table" class="table table-striped table-bordered">
                                             <thead>
-                                                <th><h6><b>#</b></h6></th>
-                                                <th><h6><b>Case Category</b></h6></th>
-                                                <th><h6><b>Referral To</b></th>
-                                                <th><h6><b>Actions</b></th>
+                                                <th width="2%"><h6><b>#</b></h6></th>
+                                                <th width="15%"><h6><b>Case Category</b></h6></th>
+                                                <th width="15%"><h6><b>Referral Actor</b></th>
+                                                <th width="20%"><h6><b>Specify</b></th>
+                                                <th width="30%"><h6><b>Referral For</b></th>
+                                                <th width="5%"><h6><b>Actions</b></th>
                                             </thead>
                                             <tbody>
-                                                <td>#</td>
-                                                <td>
+                                                <td width="2%">#</td>
+                                                <td width="30%">
                                                 {{ form.refferal_case }}
                                                 <h6><span id="sel_refferal_case"></span></h6>
                                                 <div id="refferal_case_errormsg" style="display:none;">
-                                                    <h6><b><span><p class="dialog_paragraph">This value is required</p></span></b></h6>
+                                                    <h6><span><p class="dialog_paragraph">This value is required</p></span></h6>
                                                 </div>
                                                 </td>
 
-                                                <td>
+                                                <td width="20%">
+                                                {{ form.refferals_actor }}
+                                                <h6><span id="sel_refferals_actor"></span></h6>
+                                                <div id="refferals_actor_errormsg" style="display:none;">
+                                                    <h6><span><p class="dialog_paragraph">This value is required</p></span></h6>
+                                                </div>
+                                                </td>
+
+                                                <td width="20%">
+                                                {{ form.refferals_actor_specify }}
+                                                <h6><span id="sel_refferals_actor_specify"></span></h6>
+                                                <div id="refferals_actor_specify_errormsg" style="display:none;">
+                                                    <h6><span><p class="dialog_paragraph">This value is required</p></span></h6>
+                                                </div>
+                                                </td>
+
+                                                <td width="30%">
                                                 {{ form.refferals_made }}
-                                                <h6><b><span id="sel_refferals_made"></span></b></h6>
+                                                <h6><span id="sel_refferals_made"></span></h6>
                                                 <div id="refferals_made_errormsg" style="display:none;">
-                                                    <h6><b><span><p class="dialog_paragraph">This value is required</p></span></b></h6>
+                                                    <h6><span><p class="dialog_paragraph">This value is required</p></span></h6>
                                                 </div>
                                                 </td>
 
-                                                <td>
+                                                <td width="3%">
                                                 <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(1)">
-                                                    <i class="fa fa-plus"></i>&nbsp; <b>Save Referral</b>
+                                                    <i class="fa fa-plus"></i>&nbsp; <b>Save</b>
                                                 </button>
                                                 </td>                                                                        
                                             </tbody>
@@ -609,12 +682,14 @@
                                     <br><br>
                                     <div class="row" id="div_referrals">
                                         <legend class="pull-left width-full"><h4 class="modal-title">Manage Previous Referrals</h4></legend>
+                                        <!--
                                         <div>
                                             <button type="button" class="btn btn-sm btn-white m-r-5" onClick="LoadReferrals()">
                                                 <i class="fa fa-refresh"></i>&nbsp; <b>Load Data / Refresh</b>
                                             </button>
                                         </div>
                                         <br>
+                                        -->
                                         <div id="referral_msgs" class="alert alert-success fade in" style="display:none;">
                                             <span class="close" data-dismiss="alert">×</span>
                                             <i class="fa fa-check fa-2x pull-left"></i>
@@ -623,19 +698,14 @@
                                             </ul>
                                         </div>
                                         <br>  
-                                        <div class="container">                                   
+                                        <div class="container" style="overflow-y: scroll; height:250px;">                                   
                                         <table id="old_refferals_table" class="table table-striped table-bordered">
                                             <thead>
-                                                <th></th>
-                                                <th><h6><b>Referral End Date</b></h6></th>
-                                                <th><h6><b>Referral To</b></h6></th>
-                                                <th><h6><b>Case Category Attachment</b></h6></th>
-                                                <th><h6><b>Referral Status</b></h6></th>
-                                                <th><h6><b>Actions</b></h6></th>
-                                            </thead>
+                                                <!-- Dynamically Created Using Json Object -->
+                                            </thead>                                            
                                             <tbody>
                                                 <!-- Dynamically Created Using Json Object -->
-                                            </tbody>
+                                            </tbody>                                            
                                         </table>
                                         </div>
                                     </div>
@@ -643,7 +713,7 @@
                                     
                                 </div>
                                 <div class="modal-footer" >
-                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Exit</button>
+                                    <button class="btn btn-sm btn-white" data-dismiss="modal">Close</button>
                                     <!-- <button class="btn btn-sm btn-success" onClick="fnManageReferral()">Save</button> -->
                                 </div>
                             </div>
@@ -670,41 +740,63 @@
                                     </div>
 
                                     <br>
+                                        <!--
                                         <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Case Status(Active?) * :</label>
-                                            <div class="col-md-6 col-sm-6">
+                                            <h6><label class="control-label col-md-4 col-sm-4">Close Case? :<span class="asteriskField"> *</span></label></h6>
+                                            <div class="col-md-7 col-sm-7">
                                                     {{ form.case_status }}
-                                                    <div id="closure_msgs1"  style="display:none;">
+                                                    <div id="closure_msgs1" style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        -->
+                                        {{ form.case_event_id_closure }}
+                                        <div class="form-group">
+                                            <h6><label class="control-label col-md-4 col-sm-4">Case Outcome :<span class="asteriskField"> *</span></label></h6>
+                                            <div class="col-md-7 col-sm-7">
+                                                    {{ form.case_outcome }}
+                                                    <div id="closure_msgs2" style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div id="div_transfered_to" class="form-group" style="display:none;">
+                                            <h6><label class="control-label col-md-4 col-sm-4">Transferred To :<span class="asteriskField"> *</span></label></h6>
+                                            <div class="col-md-7 col-sm-7">
+                                                    {{ form.transfered_to }}
+                                                    <div id="closure_msgs3" style="display:none;">
                                                         <span><p class="dialog_paragraph">This value is required</p></span>
                                                     </div>
                                             </div>
                                         </div>
                                         <br><br>
                                         <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Case Outcome Notes * :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.case_outcome_notes }}
-                                                    <div id="closure_msgs2"  style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Date Case Closed * :</label>
-                                            <div class="col-md-6 col-sm-6">
+                                            <h6><label class="control-label col-md-4 col-sm-4">Date Closed/Transferred :<span class="asteriskField"> *</span></label></h6>
+                                            <div class="col-md-7 col-sm-7">
                                                     {{ form.date_of_case_closure }}
-                                                    <div id="closure_msgs3"  style="display:none;">
+                                                    <div id="closure_msgs4" style="display:none;">
+                                                        <span><p class="dialog_paragraph">This value is required</p></span>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                        <div class="form-group">
+                                            <h6><label class="control-label col-md-4 col-sm-4">Case Closure Notes :<span class="asteriskField"> *</span></label></h6>
+                                            <div class="col-md-7 col-sm-7">
+                                                    {{ form.case_closure_notes }}
+                                                    <div id="closure_msgs5" style="display:none;">
                                                         <span><p class="dialog_paragraph">This value is required</p></span>
                                                     </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <br><br>
-                                    <br><br>
+                                    <br><br><br><br>                                    
                                     <div class="modal-footer" >
                                         <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
-                                        <button class="btn btn-sm btn-success" onClick="fnCloseCase()">Save</button>
+                                        <button id="btn_save_closure" class="btn btn-sm btn-success" onClick="fnSaveClosure()">Save</button>
                                     </div>
                             </div>
                         </div>
@@ -723,16 +815,14 @@
             </a>
             -->
             <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Services')">
-                <b>Add Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
+                <b>Manage Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
             </button>
             <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Court')">
-                <b>Add Court Session</b>&nbsp&nbsp<i class="fa fa-legal"></i>
+                <b>Manage Court Session</b>&nbsp&nbsp<i class="fa fa-legal"></i>
             </button>
-            <!--
-            <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Placement')">
-                <b>Add Residential Institution Placement</b>&nbsp&nbsp<i class="fa fa-university"></i>
+             <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Summon')">
+                <b>Manage Summons</b>&nbsp&nbsp<i class="fa fa-wechat"></i>
             </button>
-            -->
             <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Referral')">
                 <b>Manage Referals</b>&nbsp&nbsp<i class="fa fa-share"></i>
             </button>
@@ -759,20 +849,91 @@
 <script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
 <script src="{% static 'js/form-wizards.js' %}"></script>
 <script type="text/javascript">
+function ResetEventsDialog(event_type)
+{
+    // clear operation_mode
+    $('#operation_mode').val('');
+
+    if(event_type == 'Services')
+    {
+        // Reset All Controls/Table
+        $('#service_provided_case').multiselect("clearSelection"); 
+        $('#service_provided_case').multiselect("refresh"); 
+        $('#date_of_encounter_event').val(''); 
+        $('#service_provided_list').val(''); 
+        $('#encounter_notes').val(''); 
+        $("#service_provided").multiselect("clearSelection");
+        $("#service_provided").multiselect("refresh");
+        $("#sel_service_provided").html('');
+        $("#sel_service_provider").html('');
+        $("#services_manager_table").find("tr:gt(1)").remove();
+        $("#encounters_msgs").css({ 'display': 'none'})
+        $("#btn_save_encounter").text('Save');
+    }
+    if(event_type == 'Court')
+    {
+        // Reset All Controls
+        $("#court_session_case").multiselect("clearSelection");
+        $("#court_session_case").multiselect("refresh");
+        $('#date_of_court_event').val('');
+        $("#court_session_type").multiselect("clearSelection");
+        $("#court_session_type").multiselect("refresh");
+        $("#court_session_type").trigger("change"); 
+        $("#court_outcome").multiselect("clearSelection");
+        $("#court_outcome").multiselect("refresh");
+        $("#court_outcome").trigger("change");
+        $('#next_hearing_date').val('');
+        $('#next_mention_date').val('');
+        $('#court_notes').val(''); 
+        $("#court_order").multiselect("clearSelection");
+        $("#court_session_case").multiselect("refresh");
+        $( "#sel_court_order").html('');
+        $("#court_msgs").css({ 'display': 'none'})
+        $("#btn_save_court").text('Save');
+    }
+
+    if(event_type == 'Summon')
+    {
+        // Reset All Controls/Table
+        $('#honoured').val('');
+        $('#honoured_date').val('');
+        $('#summon_date').val('');
+        $('#summon_note').val('');
+        $("#summon_msgs").css({ 'display': 'none'})        
+        $("#btn_save_summon").text('Save');
+    }
+
+    if(event_type == 'Closure')
+    {
+        // Reset All Controls/Table
+        $('#case_outcome').val('');
+        $("#case_outcome").trigger("change");
+        $("#transfered_to").multiselect("clearSelection");
+        $("#transfered_to").multiselect("refresh");
+        $('#date_of_case_closure').val('');
+        $('#case_closure_notes').val('');
+        $("#closure_msgs").css({ 'display': 'none'})        
+        $("#btn_save_closure").text('Save');
+    }
+}
+function fnNavigateBack()
+{
+    return window.location.href='{% url 'forms_registry' %}';
+}
 function fnOpenDialog(dialog_type)
 {
+    ResetEventsDialog(dialog_type);     
     if(dialog_type == 'Services')
     {
-        $('#services-dialog-header p').html('Add Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i>'); 
         $('#services-dialog').modal('show');
     }
     if(dialog_type == 'Court')
     {
         $('#court-sessions-dialog').modal('show');
     }
-    if(dialog_type == 'Placement')
+     if(dialog_type == 'Summon')
     {
-        $('#residential-placement-dialog').modal('show');
+        $('#summons-dialog').modal('show');
     }
     if(dialog_type == 'Referral')
     {
@@ -781,6 +942,10 @@ function fnOpenDialog(dialog_type)
     if(dialog_type == 'Closure')
     {
         $('#close-case-dialog').modal('show');
+    }
+    if(dialog_type == 'CaseStatus')
+    {
+        $('#case-status-dialog').modal('show');
     }
 }
 function LoadCaseEvents()
@@ -820,6 +985,16 @@ function LoadCaseEvents()
                         var btnDeleteCe = 'btnDeleteCe' + i;
                         var tableRowId = 'tableRowId' + i;
 
+                        //Actions Item
+                        var editItem = '<button id=' + btnEditCe + ' type="submit" class="btn  btn-sm btn-primary m-r-5"><i class="fa fa-edit"></i></button>';
+                        var deleteItem = '<button id=' + btnDeleteCe + ' type="submit" class="btn  btn-sm btn-danger m-r-5"><i class="fa fa-trash"></i></button>';
+
+                        if (case_event_type == 'REFERRAL')
+                        {
+                            editItem = '';
+                            deleteItem ='';
+                        }
+
 
                         // Append to rows to table rows
                         $("#case_events_data_table tbody").append('<tr id=' + tableRowId + '>' + 
@@ -828,25 +1003,27 @@ function LoadCaseEvents()
                             '<td width="25%"><h6>' + case_event_description +'</h6></td>' + 
                             '<td width="15%"><h6>' + case_event_date + '</h6></td>' +
                             '<td>' + 
-                            '<button id=' + btnViewCe + ' type="submit" class="btn  btn-sm btn-primary m-r-5"><b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i></button>' +
-                            '<button id=' + btnEditCe + ' type="submit" class="btn  btn-sm btn-primary m-r-5"><b>Edit</b>&nbsp&nbsp<i class="fa fa-edit"></i></button>' +
-                            /* '<button id=' + btnDeleteCe + ' type="submit" class="btn  btn-sm btn-danger m-r-5"><b>Delete</b>&nbsp&nbsp<i class="fa fa-trash"></i></button>' + */
+                            '' + editItem + '' +
+                            '' + deleteItem + '' +
                             '</td></tr>');
 
                         // Add Click Event To Buttons      edit_view_delete_CaseEvent(event_type, event_id, action)
-                        $("#" + btnViewCe + "").click(function(e)
-                        {
-                            edit_view_delete_CaseEvent(case_event_type, case_event_id,'VIEW');
-                        }); 
-
                         $("#" + btnEditCe + "").click(function(e)
                         {
-                            edit_view_delete_CaseEvent(case_event_type, case_event_id,'EDIT');
+                            // edit_view_delete_CaseEvent(case_event_type, case_event_id,'EDIT');
+                            $('#operation_mode').val('EDIT');
+                            if(case_event_type == 'COURT MENTION' || case_event_type == 'COURT HEARING') { fnViewCourtSession(case_event_id);}
+                            if(case_event_type == 'SERVICES') { fnViewEncounter(case_event_id);}
+                            if(case_event_type == 'CLOSURE') { fnViewClosure(case_event_id);}
+                            if(case_event_type == 'SUMMON') { fnViewSummon(case_event_id);}                            
                         }); 
 
                         $("#" + btnDeleteCe + "").click(function(e)
                         {
-                            edit_view_delete_CaseEvent(case_event_type, case_event_id,'DELETE');
+                            if(case_event_type == 'COURT MENTION' || case_event_type == 'COURT HEARING') { fnDeleteCourtSession(case_event_id);}
+                            if(case_event_type == 'SERVICES') { fnDeleteEncounter(case_event_id);}
+                            if(case_event_type == 'CLOSURE') { fnDeleteClosure(case_event_id); }
+                            if(case_event_type == 'SUMMON') { fnDeleteSummon(case_event_id); }
                         }); 
                     });
                 },
@@ -875,6 +1052,18 @@ function LoadReferrals()
                 data: values,
                 success: function(result)
                 {
+                    // Clear <thead>
+                    $("#old_refferals_table thead").html('');
+
+                    // Append to rows to table <thead>
+                    $("#old_refferals_table thead").append('<th width="15%"></th>' +
+                        '<th width="15%"><h6><b>Date</b></h6></th>' +
+                        '<th width="20%"><h6><b>Referral For</b></h6></th>' +
+                        '<th width="20%"><h6><b>Case Category Attachment</b></h6></th>' +
+                        '<th width="10%"><h6><b>Status</b></h6></th>' +
+                        '<th width="15%"><h6><b></b></h6></th>' +
+                        '<th width="5%"><h6><b></b></h6></th>');
+
                     // Clear <tbody>
                     $("#old_refferals_table tbody").html('');
 
@@ -885,8 +1074,6 @@ function LoadReferrals()
                         var refferal_enddate = val.refferal_enddate;
                         var refferal_case_category = val.refferal_case_category;
 
-                        // alert(refferal_case_category_id);
-
                         // Append rows to #old_refferals_table <tbody>
                         var datePickerId = 'date_referral_completed' + i;
                         var caseCategoryId = 'caseCategory' + i;
@@ -895,8 +1082,10 @@ function LoadReferrals()
                         var btnEdit = 'btnEdit' + i;
                         var btnSaveChanges = 'btnSaveChanges' + i;
                         var btnCancelChanges = 'btnCancelChanges' + i;
+                        var btnRemove = 'btnRemove' + i;
                         var spanCaseCategoryId = 'sel_caseCategory' + i;
                         var spanReferralId = 'spanRefferalId' + i;
+                        var hReferralId = "<input id='hReferralId' type='hidden' value='"+refferal_id+"'>"
                         var spanDateInputEditId = 'spanRefferalId' + i;
                         var dateInput_errormsgId = 'dateInput_errormsg' + i;
                         var dateInput;
@@ -906,24 +1095,33 @@ function LoadReferrals()
                         { dateInput = '<span id=' + spanDateInputEditId + '>' + refferal_enddate + '</span>'; }
                         else
                         { 
-                            dateInput = '<input id=' + datePickerId + ' type="text" value="Referral End Date" class="form-control"><div id=' + dateInput_errormsgId + ' style="display:none;"><h6><b><span><p class="dialog_paragraph">This value is required</p></span></b></h6></div>'; 
+                            dateInput = '<input id=' + datePickerId + ' type="text" value="Date" class="form-control"><div id=' + dateInput_errormsgId + ' style="display:none;"><h6><b><span><p class="dialog_paragraph">This value is required</p></span></b></h6></div>'; 
                         }
 
-                        // Append to rows to table rows
+                        // Append to rows to table <tbody>
                         $("#old_refferals_table tbody").append('<tr id=' + tableRowId + '>' + 
-                            '<td width="5%"><span id=' + spanReferralId + ' style="display:none">' + refferal_id + '</span><button id=' + btnEdit + ' type="button" class="btn btn-sm btn-link m-r-5"><i class="fa fa-edit"></i>&nbsp; <b>Edit</b></button></td>' +
+                            '<td width="15%"><h6>' + hReferralId + '<button id=' + btnEdit + ' type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-edit"></i>&nbsp; <b>Manage</b></button></td>' +
                             '<td width="15%"><h6>' + dateInput + '</h6></td>' +
-                            '<td width="25%"><h6>' + refferal_to + '</h6></td>' + 
-                            '<td width="15%"><h6><select id=' + caseCategoryId + ' name="case_to_attach" class="form-control" multiple></select><span id=' + spanCaseCategoryId + '></span></h6></td>' + 
-                            '<td width="5%"><h6>' + refferal_status + '</h6></td>' +
-                            '<td width="5%"><div id=' + divButtonsId + ' style="display:none"><button id=' + btnSaveChanges + ' type="button" class="btn btn-sm btn-white m-r-5"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp; <b>Save</b></button><button id=' + btnCancelChanges + ' type="button" class="btn btn-sm btn-white m-r-5"><i class="fa fa-close"></i>&nbsp; <b>Cancel</b></button></div></td>' +
+                            '<td width="20%"><h6>' + refferal_to + '</h6></td>' +
+                            '<td width="20%"><h6><select id=' + caseCategoryId + ' name="case_to_attach" class="form-control"></select><span id=' + spanCaseCategoryId + '></span></h6></td>' +
+                            '<td width="10%"><h6>' + refferal_status + '</h6></td>' +
+                            '<td width="15%"><h6><div id=' + divButtonsId + ' style="display:none"><button id=' + btnSaveChanges + ' type="button" class="btn btn-sm btn-white m-r-5"><i class="fa fa-save"></i>&nbsp;&nbsp;&nbsp; <b>Save</b></button><button id=' + btnCancelChanges + ' type="button" class="btn btn-sm btn-white m-r-5"><i class="fa fa-close"></i>&nbsp; <b>Cancel</b></button></div></h6></td>' +
+                            '<td width="5%"><h6><div id="divRemove"><button id=' + btnRemove + ' class="btn btn-sm btn-danger m-r-5"><i class="fa fa-trash"></i></button></div></h6></td>' +
                             '</tr>');
+
+                        // Add Click Event To Remove Buttons
+                        $("#" + btnRemove + "").click(function(e)
+                        {
+                            var referral_id = $('#old_refferals_table tr').find('input[id="hReferralId"]').val();
+                            fnDeleteReferral(referral_id);    
+                        }); 
 
                         // Datepicker to Capture Date Referral was Completed   
                         $("#" + datePickerId + "").datepicker({
                             dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
                             endDate: '+0d', enddate: '+0d', autoclose: true
-                        });                    
+                        }); 
+                        $("#" + datePickerId + "").prop('disabled', true);            
 
                         // Populate multiSelects With Case Categorys For This Case
                         var multiselect_data = [];
@@ -947,6 +1145,7 @@ function LoadReferrals()
 
                                 //Case To Attach - multi selects
                                 $("#" + caseCategoryId + "").multiselect({
+                                    selectMultiple: false,
                                     selectAllValue: 'multiselect-all',
                                     includeSelectAllOption: true,
                                     enableCaseInsensitiveFiltering: true,
@@ -955,7 +1154,10 @@ function LoadReferrals()
                                     buttonWidth: '100%',
                                     buttonClass: 'btn btn-white'
                                 });                                
-                                $("#" + caseCategoryId + "").multiselect('dataprovider', multiselect_data); 
+                                $("#" + caseCategoryId + "").multiselect('dataprovider', multiselect_data);
+
+                                // Disable CaseCategory Attachment Multiselect  
+                                $("#" + caseCategoryId + "").multiselect('disable');   
 
                                 // Set Selected Options
                                 if(refferal_case_category)
@@ -983,29 +1185,46 @@ function LoadReferrals()
                         // Add Click Event To buttonEdit
                         $("#" + btnEdit + "").click(function(e)
                         {
-                            var refferal_enddate_ = $('#old_refferals_table').find('tr#' + tableRowId + ' span:eq(1)').text(); 
+                            var refferal_status = $('#old_refferals_table tr#' + tableRowId).find('td:eq(4)').text();
+
+                            // alert(refferal_status);
                             
-                            if(refferal_enddate_)
+                            if(refferal_status == 'COMPLETED')
                             {
-                                refferal_enddate_ = new Date(refferal_enddate_);
+                                alert('This referral has been Managed!');
+                            }
+                            else
+                            {                            
+                                //Enable DatePicker/CaseCategory Dropdown
+                                $("#" + datePickerId + "").prop('disabled', false);
 
+                                // Enable CaseCategory Attachment Multiselect  
+                                $("#" + caseCategoryId + "").multiselect('enable'); 
 
-                                if(refferal_enddate_ == 'Invalid Date')
+                                var refferal_enddate_ = $('#old_refferals_table').find('tr#' + tableRowId + ' span:eq(1)').text(); 
+                                
+                                if(refferal_enddate_)
                                 {
-                                    $("#" + divButtonsId + "").css({ 'display': "block" }); 
-                                }
-                                else
-                                {
-                                    $('#old_refferals_table').find('tr#' + tableRowId).find('td:eq(1)').html('<input id=' + datePickerId + ' type="text" class="form-control">')
+                                    refferal_enddate_ = new Date(refferal_enddate_);
 
-                                    // Set Datepicker on Edit
-                                    $("#" + datePickerId + "").datepicker({
-                                        dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
-                                        endDate: '+0d', enddate: '+0d', autoclose: true
-                                    });
-                                    $("#" + datePickerId + "").datepicker('setDate', new Date(refferal_enddate_));   
-                                }
-                                $("#" + divButtonsId + "").css({ 'display': "block" });                                
+
+                                    if(refferal_enddate_ == 'Invalid Date')
+                                    {
+                                        $("#" + divButtonsId + "").css({ 'display': "block" }); 
+                                    }
+                                    else
+                                    {
+                                        $('#old_refferals_table').find('tr#' + tableRowId).find('td:eq(1)').html('<input id=' + datePickerId + ' type="text" class="form-control">')
+
+                                        // Set Datepicker on Edit
+                                        $("#" + datePickerId + "").datepicker({
+                                            dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
+                                            endDate: '+0d', enddate: '+0d', autoclose: true
+                                        });
+                                        $("#" + datePickerId + "").datepicker('setDate', new Date(refferal_enddate_));   
+                                    }
+                                    $("#" + divButtonsId + "").css({ 'display': "block" });                                
+                                }                                
                             }
                         });
 
@@ -1017,7 +1236,8 @@ function LoadReferrals()
 
                             // Get User Inputs Per Row
                             var date_referral_completed = $('#old_refferals_table').find('tr#' + tableRowId).find('input[id=' + datePickerId + ']').val();
-                            var refferal_id = $('#old_refferals_table').find('tr#' + tableRowId + ' span:eq(0)').text();
+                            var referral_id = $('#old_refferals_table tr').find('input[id="hReferralId"]').val();
+                            // var refferal_id = $('#old_refferals_table').find('tr#' + tableRowId + ' span:eq(0)').text();
                             var case_category_ids = $('#old_refferals_table').find('tr#' + tableRowId).find('#' + caseCategoryId + '').val();
 
                             if(date_referral_completed)
@@ -1045,9 +1265,22 @@ function LoadReferrals()
                                         $("#referral_msgs").css({ 'display': "block" }); 
                                         $('#referral_msgs p').html('Referral Managed Successfully - Details updated.');
 
+                                        /* Reload Referrals */
                                         LoadReferrals();
 
+                                        /* Reload CaseEvents */
+                                        LoadCaseEvents();
+
+                                        /* Reload Case Summary Div */
+                                        $("#div_case_summary").load(location.href + " #div_case_summary");
+
                                         $("#" + dateInput_errormsgId + "").css({ 'display': "none" });
+
+                                        //Disable DatePicker/CaseCategory Dropdown
+                                        $("#" + datePickerId + "").prop('disabled', true);
+
+                                        // Disable CaseCategory Attachment Multiselect  
+                                        $("#" + caseCategoryId + "").multiselect('disable');
                                     },
                                     error: function(e)
                                     {
@@ -1058,25 +1291,32 @@ function LoadReferrals()
                             else
                             {
                                 $("#" + dateInput_errormsgId + "").css({ 'display': "block" });
-                            }
-                            
+                            }                            
                         });
 
                         // Add Click Event To btnCancelChanges
                         $("#" + btnCancelChanges + "").click(function(e)
                         {
-                           var referralStatus = $('#old_refferals_table').find('tr#' + tableRowId + ' td:eq(4)').text();
-                           if(referralStatus == 'COMPLETED')
-                           {
+                            var referralStatus = $('#old_refferals_table').find('tr#' + tableRowId + ' td:eq(4)').text();
+                            if(referralStatus == 'COMPLETED')
+                            {
                                 var date_referral_completed = $('#old_refferals_table').find('tr#' + tableRowId).find('input[id=' + datePickerId + ']').val();
                                 $('#old_refferals_table').find('tr#' + tableRowId).find('td:eq(1)').html('<span><h6>' + date_referral_completed + '</h6></span>')
-                           }
-                           else
-                           {                                
-                                $("#" + datePickerId + "").val('Referral End Date');
-                           }
-                           $("#" + divButtonsId + "").css({ 'display': "none" });                           
-                           $("#" + dateInput_errormsgId + "").css({ 'display': "none" });
+                            }
+
+                            $("#" + divButtonsId + "").css({ 'display': "none" });                           
+                            $("#" + dateInput_errormsgId + "").css({ 'display': "none" });
+
+                            //Disable DatePicker/CaseCategory Dropdown
+                            $("#" + datePickerId + "").prop('disabled', true);
+                            $("#" + datePickerId + "").val('');
+                            $("#" + datePickerId + "").attr("placeholder", "Date");
+
+                            // Disable CaseCategory Attachment Multiselect  
+                            $("#" + caseCategoryId + "").multiselect('disable');
+                            $("#" + caseCategoryId + "").multiselect('clearSelection');
+                            $("#" + caseCategoryId + "").multiselect('refresh');
+                            $("#sel_" + caseCategoryId + "").html('');
                         }); 
                     });
                 },
@@ -1096,6 +1336,8 @@ function AddRow(x)
     if(x == 1) // Refferals Table
     {
         var refferal_case = $("#refferal_case").val();
+        var refferals_actor = $("#refferals_actor").val();
+        var refferals_actor_specify = $("#refferals_actor_specify").val();
         var refferals_made = $("#refferals_made").val();
         var case_id = $('#case_id').val();
         var ReferralsData = new Array();
@@ -1108,87 +1350,129 @@ function AddRow(x)
                      };
         if(refferal_case)
         {
-            if(refferals_made)
+            if(refferals_actor)
             {
-                //Save to database - OVCReferrals Table
-                ReferralsData = {
+                if(refferals_actor_specify)
+                {
+                    if(refferals_made)
+                    {
+                        ReferralsData = {
                             "refferal_case" : refferal_case,
+                            "refferals_actor" : refferals_actor,
+                            "refferals_actor_specify" : refferals_actor_specify,
                             "refferals_made" : refferals_made
                         };
-                ReferralsData = JSON.stringify(ReferralsData);
-                values['ReferralsData'] = ReferralsData;
-                $.ajax({
-                            // url: '{% url 'manage_casecategory001' %}',
-                            url: '{% url 'manage_refferal' %}',
-                            dataType: 'json',
-                            method: 'POST',
-                            contentType: 'application/x-www-form-urlencoded',
-                            data: values,
-                            success: function(result)
-                            {
-                                //On success - Get referral_grouping_id from Json to be used onRemove()
-                                var referral_grouping_id;
-                                $.each(result, function(i, val) {
-                                    referral_grouping_id = val.referral_grouping_id;
-                                });
+                        ReferralsData = JSON.stringify(ReferralsData);
 
-                                // Find a <table> element with id="myTable":
-                                var table = $('#new_refferals_table')[0]; 
+                        values['ReferralsData'] = ReferralsData;
+                        $.ajax({
+                                    url: '{% url 'manage_refferal' %}',
+                                    dataType: 'json',
+                                    method: 'POST',
+                                    contentType: 'application/x-www-form-urlencoded',
+                                    data: values,
+                                    success: function(result)
+                                    {
+                                        //On success - Get referral_grouping_id from Json to be used onRemove()
+                                        var referral_grouping_id;
+                                        $.each(result, function(i, val) {
+                                            referral_grouping_id = val.referral_grouping_id;
+                                        });
 
-                                // Create an empty <tr> element with id and add it to the 1st position of the table:
-                                var rows_length = table.rows.length;
-                                var row = table.insertRow(rows_length);
-                                var rowId = row.id = "id_" + (rows_length-2);
+                                        // Find a <table> element with id="myTable":
+                                        var table = $('#new_refferals_table')[0]; 
 
-                                //Insert new cells (<td> elements) of the "new" <tr> element:
-                                var cell0 = row.insertCell(0);
-                                var cell1 = row.insertCell(1);
-                                var cell2 = row.insertCell(2);
-                                var cell3 = row.insertCell(3);
-                                // var cell4 = row.insertCell(4);
+                                        // Create an empty <tr> element with id and add it to the 1st position of the table:
+                                        var rows_length = table.rows.length;
+                                        var row = table.insertRow(rows_length);
+                                        var rowId = row.id = "id_" + (rows_length-2);
 
-                                // Add some text to the new cells:
-                                var index = rows_length - 1;
-                                cell0.innerHTML =  "<h6>" + (index) + "</h6>" + "<div id='span_referral_grouping_id' style='display:none'><span>" + referral_grouping_id + "</span></div>";
-                                cell1.innerHTML = '<h6>' + $('#refferal_case option:selected').text() + '</h6>';
-                                cell2.innerHTML = '<h6>' + displayVals3("refferals_made") + '</h6>';
-                                cell3.innerHTML  = "<button id=btnRemove" + index +" type='button' class='btn btn-sm btn-link m-r-5'><i class='fa fa-minus'></i>&nbsp; <b>Remove</b></button>"
+                                        //Insert new cells (<td> elements) of the "new" <tr> element:
+                                        var cell0 = row.insertCell(0);
+                                        var cell1 = row.insertCell(1);
+                                        var cell2 = row.insertCell(2);
+                                        var cell3 = row.insertCell(3);
+                                        var cell4 = row.insertCell(4);
+                                        var cell5 = row.insertCell(5);
 
-                                // AddClick EVent To Remove Button
-                                var btnRemoveId = 'btnRemove' + index;
-                                var span_referral_grouping_id = $("#" + rowId + " span:eq(0)").text(); 
-                                $("#" + btnRemoveId + "").click(function(e)
-                                {
-                                    RemoveRow(span_referral_grouping_id, rowId);
-                                }); 
+                                        // Add some text to the new cells:
+                                        var index = rows_length - 1;
+                                        cell0.innerHTML =  "<h6>" + (index) + "</h6>" + "<div id='span_referral_grouping_id' style='display:none'><span>" + referral_grouping_id + "</span></div>";
+                                        cell1.innerHTML = '<h6>' + $('#refferal_case option:selected').text() + '</h6>';
+                                        cell2.innerHTML = '<h6>' + $('#refferals_actor option:selected').text() + '</h6>';
+                                        // cell3.innerHTML = '<h6>' + $('#refferals_actor_specify').val() + '</h6>';
+                                        cell3.innerHTML = '<h6>' + $('#refferals_actor_specify option:selected').text() + '</h6>';
+                                        cell4.innerHTML = '<h6>' + $('#refferals_made option:selected').text() + '</h6>';
+                                        cell5.innerHTML  = "<button id=btnRemove" + index +" class='btn btn-sm btn-link m-r-5'><b>Remove</b></button>"
 
-                                // Reset Input Elements/Error Divs
-                                $("#refferal_case").multiselect("clearSelection");
-                                $("#refferals_made").multiselect("clearSelection");
-                                $( "#sel_refferals_made").html('');
-                                $( "#refferal_case_errormsg").html('');
-                                $( "#refferals_made_errormsg").html('');
-                                $("#referral_event_msgs").css({ 'display': "none" });
-                            },
-                            error: function(xhr, status, error)
-                            {
-                                alert(error);
-                            }
+                                        // AddClick EVent To Remove Button
+                                        var btnRemoveId = 'btnRemove' + index;
+                                        var span_referral_grouping_id = $("#" + rowId + " span:eq(0)").text(); 
+                                        $("#" + btnRemoveId + "").click(function(e)
+                                        {
+                                            RemoveRow(2, span_referral_grouping_id, rowId);
+                                        }); 
 
-                        });                
+                                        // Reset Input Elements/Error Divs
+                                        $("#refferal_case").multiselect("clearSelection");
+                                        $("#refferal_case").multiselect("refresh");
+                                        $( "#sel_refferal_case").html('')
+
+                                        $("#refferals_actor").multiselect("clearSelection");
+                                        $("#refferals_actor").multiselect("refresh");
+                                        $("#sel_refferals_actor").html('');
+
+                                        // $("#refferals_actor_specify").val('');
+                                        $("#refferals_actor_specify").multiselect("clearSelection");
+                                        $("#refferals_actor_specify").multiselect("refresh");
+                                         $("#sel_refferals_actor_specify").html('');
+
+                                        $("#refferals_made").multiselect("clearSelection");
+                                        $("#refferals_made").multiselect("refresh");
+                                        $( "#sel_refferals_made").html('')
+
+                                        $("#referral_event_msgs").css({ 'display': "none" });
+
+                                        /* Reload List */
+                                        LoadReferrals();
+
+                                        /* Reload CaseEvents */
+                                        LoadCaseEvents();
+
+                                        /* Reload Case Summary Div */
+                                        $("#div_case_summary").load(location.href + " #div_case_summary");
+                                    },
+                                    error: function(xhr, status, error)
+                                    {
+                                        alert(error);
+                                    }
+
+                                });      
+                    }
+                    else
+                    {
+                        $("#refferals_made_errormsg").css({ 'display': "block" }); 
+                        $("#referral_event_msgs").css({ 'display': "block" }); 
+                        $('#referral_event_msgs p').html('Please fill the missing values');
+                    }        
+                }
+                else
+                {
+                    $("#refferals_actor_specify_errormsg").css({ 'display': "block" }); 
+                    $("#referral_event_msgs").css({ 'display': "block" }); 
+                    $('#referral_event_msgs p').html('Please fill the missing values');
+                }  
             }
             else
             {
-                $("#refferals_made_errormsg").css({ 'display': "block" }); 
-
+                $("#refferals_actor_errormsg").css({ 'display': "block" }); 
                 $("#referral_event_msgs").css({ 'display': "block" }); 
                 $('#referral_event_msgs p').html('Please fill the missing values');
             }
         }
         else
         {
-            $("#refferal_case_errormsg").css({ 'display': "block" }); 
-
+            $("#refferal_case_errormsg").css({ 'display': "block" });
             $("#referral_event_msgs").css({ 'display': "block" }); 
             $('#referral_event_msgs p').html('Please fill the missing values');
         }        
@@ -1203,6 +1487,7 @@ function AddRow(x)
         var values = {  
             'csrfmiddlewaretoken': csrftoken
         };
+        var EncountersData = new Array();
 
         // Perform Ajax() to create jsonObjectArrayServices
         if(service_provided)
@@ -1213,61 +1498,78 @@ function AddRow(x)
                 {
                     if(place_of_service)
                     {
-                        EncountersData = {
-                                            "service_provided" : service_provided,
-                                            "date_of_encounter_event" : date_of_encounter_event,
-                                            "service_provider" : service_provider,
-                                            "place_of_service" : place_of_service
-                                        }
-                        EncountersData = JSON.stringify(EncountersData);
-                        values['EncountersData'] = EncountersData;
+                        // Find a <table> element with id="myTable":
+                        var table = $('#services_manager_table')[0]; 
 
-                         $.ajax({
-                                    url: '{% url 'manage_encounters001' %}',
-                                    dataType: 'text',
-                                    method: 'POST',
-                                    contentType: 'application/x-www-form-urlencoded',
-                                    data: values,
-                                    success: function(result)
-                                    { 
-                                        // Find a <table> element with id="myTable":
-                                        var table = $('#services_manager_table')[0]; 
+                        // Create an empty <tr> element with id and add it to the 1st position of the table:
+                        var rows_length = table.rows.length;
+                        var row = table.insertRow(rows_length);
+                        var index = rows_length - 2;
+                        row_id = 'rowid_' + index;
+                        row.id = row_id;
+                        var btnRemoveSvcId = 'btnRemoveSvc' + index;
 
-                                        // Create an empty <tr> element with id and add it to the 1st position of the table:
-                                        var rows_length = table.rows.length;
-                                        var row = table.insertRow(rows_length);
-                                        row.id = "id_" + (rows_length-2);
+                        // Insert new cells (<td> elements) of the "new" <tr> element:
+                        var cell0 = row.insertCell(0);
+                        var cell1 = row.insertCell(1);
+                        var cell2 = row.insertCell(2);
+                        var cell3 = row.insertCell(3);
+                        var cell4 = row.insertCell(4);
+                        var cell5 = row.insertCell(5);
 
-                                        // Insert new cells (<td> elements) of the "new" <tr> element:
-                                        var cell0 = row.insertCell(0);
-                                        var cell1 = row.insertCell(1);
-                                        var cell2 = row.insertCell(2);
-                                        var cell3 = row.insertCell(3);
-                                        var cell4 = row.insertCell(4);
-                                        var cell5 = row.insertCell(5);
+                        // Add some text to the new cells:
+                        var hservice_provided = "<input id='hservice_provided' type='hidden' value='"+service_provided+"'>"
+                        var hservice_provider = "<input id='hservice_provider' type='hidden' value='"+service_provider+"'>"
+                        var hservice_status= "<input id='hservice_status' value='new'>"
 
-                                        // Add some text to the new cells:
-                                        var index = rows_length - 2;
-                                        cell0.innerHTML = '<h6>' + (index) + '</h6>';        
-                                        cell1.innerHTML = '<h6>' + displayVals3("service_provided") + '</h6>';
-                                        cell2.innerHTML = '<h6>' + $('#date_of_encounter_event').val() + '</h6>';
-                                        cell3.innerHTML = '<h6>' + displayVals3("service_provider") + '</h6>';
-                                        cell4.innerHTML = '<h6>' + $('#place_of_service').val() + '</h6>';
-                                        cell5.innerHTML  = '<h6>' + "<a  class='btn btn-sm btn-link m-r-5 href='#'></i>&nbsp; <b>Remove</b></a>" + '</h6>';
+                        cell0.innerHTML = '<h6>#</h6>';        
+                        cell1.innerHTML = '<h6>' + displayVals3("service_provided") + hservice_provided + '</h6>';
+                        cell2.innerHTML = '<h6>' + $('#date_of_encounter_event').val() + '</h6>';
+                        cell3.innerHTML = '<h6>' + displayVals3("service_provider") + hservice_provider + '</h6>';
+                        cell4.innerHTML = '<h6>' + $('#place_of_service').val() + hservice_status + '</h6>';
+                        cell5.innerHTML  = '<h6>' + "<a id=" + btnRemoveSvcId + " class='btn btn-sm btn-link m-r-5 href='#'>Remove</a>" + '</h6>';
 
-                                        // Reset Input Elements/Error Divs
-                                        $("#service_provided").multiselect("clearSelection");
-                                        $('#date_of_encounter_event').val('');
-                                        $("#service_provider").multiselect("clearSelection");
-                                        $('#place_of_service').val('');
-                                        $( "#sel_service_provided").html('');
+                        // AddClick Event To Remove Button
+                        $("#" + btnRemoveSvcId + "").click(function(e)
+                        {
+                            RemoveRow(1, '', row_id);
+                        });
 
-                                    },
-                                    error: function(xhr, status, error)
-                                    {
-                                        alert(error);
-                                    }
-                            }); 
+                        // Reset Input Elements/Error Divs
+                        $("#service_provided").multiselect("clearSelection");
+                        $("#service_provided").multiselect("refresh");
+                        $('#date_of_encounter_event').val('');
+                        $("#service_provider").multiselect("clearSelection");
+                        $('#place_of_service').val('');
+                        $( "#sel_service_provided").html('');
+                        $('#service_provided_list').val(''); 
+
+
+
+                        $('#services_manager_table tr').each(function(row, tr)
+                        {                            
+                            var service_provided = $(tr).find('input[id="hservice_provided"]').val();
+                            var date_of_encounter_event = $(tr).find('td:eq(2)').text();
+                            var service_provider = $(tr).find('input[id="hservice_provider"]').val();
+                            var place_of_service = $(tr).find('td:eq(4)').text();
+                            var service_status = $(tr).find('input[id="hservice_status"]').val();
+
+                            EncountersData[row]= {
+                                "service_provided" : service_provided,
+                                "date_of_encounter_event" : date_of_encounter_event,
+                                "service_provider" : service_provider,
+                                "place_of_service" : place_of_service,
+                                "service_status" : service_status
+                                }                                
+                            
+                        });
+                        
+                        EncountersData.shift(); //remove first row(headers stuff)
+                        EncountersData.shift(); //remove second row(controls stuff)
+                        EncountersData = JSON.stringify(EncountersData); 
+
+                        // Set service_provided_list
+                        $('#service_provided_list').val(EncountersData); 
                     } 
                     else
                     {
@@ -1346,43 +1648,82 @@ function EditRow(x, id)
         });
     }
 }
-function RemoveRow(uuid, tr_id)
+
+
+function RemoveRow(index, uuid, tr_id)
 {
-    if(uuid)
+    if(index == 1)
     {
-        var data = new Array();
-        var csrftoken = $.cookie('csrftoken');
-        var values = {  
-                        'referral_grouping_id' : uuid,
-                        'csrfmiddlewaretoken': csrftoken
-                     };
-        $.ajax({
-                    // url: '{% url 'manage_casecategory001' %}',
-                    url: '{% url 'manage_refferal001' %}',
-                    dataType: 'text',
-                    method: 'POST',
-                    contentType: 'application/x-www-form-urlencoded',
-                    data: values,
-                    success: function(result)
-                    {
-                        //Delete Table Row
-                        $("#" + tr_id).remove();
+        // Delete Table Row
+        $("#" + tr_id).remove();
 
-                        $('#new_refferals_table tr').each(function(row, tr)
+        $('#services_manager_table tr').each(function(row, tr)
+        {                            
+            var service_provided = $(tr).find('input[id="hservice_provided"]').val();
+            var date_of_encounter_event = $(tr).find('td:eq(2)').text();
+            var service_provider = $(tr).find('input[id="hservice_provider"]').val();
+            var place_of_service = $(tr).find('td:eq(4)').text();
+            var service_status = $(tr).find('input[id="hservice_status"]').val();
+
+            EncountersData[row]= {
+                "service_provided" : service_provided,
+                "date_of_encounter_event" : date_of_encounter_event,
+                "service_provider" : service_provider,
+                "place_of_service" : place_of_service,
+                "service_status" : service_status
+                }                                
+            
+        });
+        
+        EncountersData.shift(); //remove first row(headers stuff)
+        EncountersData.shift(); //remove second row(controls stuff)
+        EncountersData = JSON.stringify(EncountersData); 
+
+        // Set service_provided_list
+        $('#service_provided_list').val(EncountersData);
+    }
+    if(index == 2)
+    {
+
+        if(uuid)
+        {
+            var data = new Array();
+            var csrftoken = $.cookie('csrftoken');
+            var values = {  
+                            'referral_grouping_id' : uuid,
+                            'csrfmiddlewaretoken': csrftoken
+                         };
+            $.ajax({
+                        // url: '{% url 'manage_casecategory001' %}',
+                        url: '{% url 'manage_refferal001' %}',
+                        dataType: 'text',
+                        method: 'POST',
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: values,
+                        success: function(result)
                         {
-                            var rowIndex = parseInt(tr.rowIndex);
-                            if(rowIndex > 1)
-                            {
-                                $(tr).find('td:eq(0)').text(rowIndex-1);
-                            }
-                        });
-                    },
-                    error: function(xhr, status, error)
-                    {
-                        alert(error);
-                    }
+                            //Delete Table Row
+                            $("#" + tr_id).remove();
 
-                });  
+                            $('#new_refferals_table tr').each(function(row, tr)
+                            {
+                                var rowIndex = parseInt(tr.rowIndex);
+                                if(rowIndex > 1)
+                                {
+                                    $(tr).find('td:eq(0)').text(rowIndex-1);
+                                }
+                            });
+
+                            /* reload referrals */
+                            LoadReferrals();
+                        },
+                        error: function(xhr, status, error)
+                        {
+                            alert(error);
+                        }
+
+                    });  
+        } 
     }
 }
 function edit_view_delete_CaseEvent(event_type, event_id, action)
@@ -1409,6 +1750,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
 
     if(event_type == 'SERVICES')
     {
+        // ResetEventsDialog('Services');
         var services_array = new Array();
 
         $.ajax({
@@ -1496,6 +1838,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
     }
     else if(event_type == 'COURT')
     {
+        /// ResetEventsDialog('Court');
         var court_sessions_array = new Array();
 
         $.ajax({
@@ -1508,6 +1851,8 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                     $.each(result, function(i, val) {
                         var date_of_court_event = val.date_of_event;
                         var court_notes = val.case_event_notes;
+                        var court_outcome = val.court_outcome;
+                        var next_hearing_date = val.next_hearing_date;
                         var court_orders = ((val.ovc_court_orders).toString()).split(",");
                         var case_category_id = ((val.ovc_category_ids).toString()).split(",");
 
@@ -1515,11 +1860,17 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                         {
                             $("#court_order option[value='" + court_orders[i] + "']").prop("selected", true);
                         }
+                        $('#sel_court_order').html('')
                         $("#court_order").multiselect("refresh");
                         $('#court_order').trigger('change');
 
                         $('#date_of_court_event').datepicker('setDate', dateHandler(date_of_court_event));
                         $('#court_notes').val(court_notes);
+
+                        $('#court_outcome').val(court_outcome);
+                        $("#court_outcome").multiselect("refresh");
+                        $('#court_outcome').trigger('change')
+                        if(next_hearing_date){ $('#next_hearing_date').datepicker('setDate', dateHandler(next_hearing_date)); }                        
 
                         $('#court_session_case').val(case_category_id); 
                         $("#court_session_case").multiselect("refresh");
@@ -1532,8 +1883,11 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                         $('#court-sessions-dialog').modal('show');
 
                         //disable inputs - view mode
-                        $('#court_order').prop("readonly", true);
+                        $('#court_session_case').multiselect('disable');
+                        $('#court_order').multiselect('disable');
                         $('#date_of_court_event').prop("readonly", true);
+                        $('#court_outcome').multiselect('disable');
+                        $('#next_hearing_date').prop("readonly", true);
                         $('#court_notes').prop("readonly", true);
 
                         $('#court-sessions-dialog p').html('View Court Session &nbsp&nbsp<i class="fa fa-legal"></i>');     
@@ -1544,9 +1898,12 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                         // show dialog
                         $('#court-sessions-dialog').modal('show');
 
-                        //disable inputs - view mode
-                        $('#court_order').prop("readonly", false);
+                        //enable inputs - edit mode
+                        $('#court_session_case').multiselect('enable');
+                        $('#court_order').multiselect('enable');
                         $('#date_of_court_event').prop("readonly", false);
+                        $('#court_outcome').multiselect('enable');
+                        $('#next_hearing_date').prop("readonly", true);
                         $('#court_notes').prop("readonly", false);
 
                         $('#court-sessions-dialog p').html('Edit Court Session &nbsp&nbsp<i class="fa fa-legal"></i>');     
@@ -1565,98 +1922,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                 }
         });       
     }
-    else if(event_type == 'PLACEMENT')
-    {
-        var placements_array = new Array();
-
-        $.ajax({
-            url: '{% url 'view_placement' id=0 %}',
-            dataType: 'json',
-            method: 'POST',
-            data: values,
-            success: function(result)
-            { 
-                $.each(result, function(i, val) {
-                    var date_of_placement_event = val.date_of_event;
-                    var placement_notes = val.case_event_notes;
-                    var placements = ((val.ovc_placements).toString()).split(",");
-                    var case_category_id = ((val.ovc_category_ids).toString()).split(",");
-
-                    $('#date_of_placement_event').datepicker('setDate', dateHandler(date_of_placement_event));
-                    $('#placement_notes').val(placement_notes);
-                    
-                    $('#residential_institution').val(placements[0]);
-                    $('#current_residential_status').val(placements[1]);
-                    $('#has_court_committal_order').val(placements[2]);
-                    $('#free_for_adoption').val(placements[3]);
-                    $('#admission_date').val(placements[4]);
-                    $('#departure_date').val(placements[5]);
-
-                    $('#placement_case').val(case_category_id); 
-                    $("#placement_case").multiselect("refresh");
-                });      
-
-                var operation_mode = $('#operation_mode').val(); 
-                if(operation_mode == 'EDIT') { $('#div_departure_date').css({'display': 'block'}); }
-                if(operation_mode == 'VIEW') { $('#div_departure_date').css({'display': 'none'}); }
-
-                // change dialog-title & show save button on EDIT
-                if(action == 'VIEW')
-                {
-                    // show dialog
-                    $('#residential-placement-dialog').modal('show');
-
-                    //disable inputs - view mode
-                    $('#date_of_placement_event').prop("readonly", true);
-                    $('#placement_notes').prop("readonly", true);
-                    $('#residential_institution').prop("readonly", true);   
-                    $('#current_residential_status').prop("disabled", true);   
-                    $('#has_court_committal_order').prop("disabled", true);   
-                    $('#free_for_adoption').prop("disabled", true);   
-                    $('#admission_date').prop("readonly", true); 
-                    $('#departure_date').prop("readonly", true);    
-                    $("#btn_save_placement").hide();
-
-                    $('#residential-placement-dialog p').html('View Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>');    
-                    $("#btn_save_placement").hide();
-                }
-                else if(action == 'EDIT')
-                {
-                    // show dialog
-                    $('#residential-placement-dialog').modal('show');
-
-                    //disable inputs - view mode
-                    $('#date_of_placement_event').prop("readonly", false);
-                    $('#placement_notes').prop("readonly", false);
-                    $('#residential_institution').prop("readonly", false);   
-                    $('#current_residential_status').prop("disabled", false);   
-                    $('#has_court_committal_order').prop("disabled", false);   
-                    $('#free_for_adoption').prop("disabled", false);   
-                    $('#admission_date').prop("readonly", false); 
-                    $('#departure_date').prop("readonly", false);    
-                    $("#btn_save_placement").hide();
-
-                    $('#residential-placement-dialog p').html('Edit Residential Institution Placement &nbsp&nbsp<i class="fa fa-university"></i>');    
-                    $("#btn_save_placement").show();
-                } 
-                else if(action == 'DELETE')
-                {
-                    $('#div-delete-doalog p').html('Do you want to delete '+  event_type + ' EVENT (' + event_id + ')?');
-                    // show dialog
-                    $('#delete-dialog').modal('show');
-                }
-                else{ console.log('DoNothingError!');}  
-            },
-            error: function(xhr, status, error)
-            {
-                alert(error);
-            }
-        });  
-    }
-    else
-    {
-        console.log('No EVENT TYPE recognized!');
-    }
+    
 }
 
 function getJsonObject001()
@@ -1689,7 +1955,7 @@ function getJsonObject001()
                 }); 
 
                 //multi selects
-                $('#service_provided_case, #court_session_case, #placement_case').multiselect({
+                $('#service_provided_case, #court_session_case').multiselect({
                     selectAllValue: 'multiselect-all',
                     enableCaseInsensitiveFiltering: true,
                     numberDisplayed: 1,
@@ -1703,9 +1969,7 @@ function getJsonObject001()
                 $("#court_session_case").multiselect("refresh");
                 $("#court_session_case").multiselect('dataprovider', multiselect_data); 
 
-                $("#placement_case").multiselect("refresh");
-                $("#placement_case").multiselect('dataprovider', multiselect_data);   
-
+                
                 $("#refferal_case").multiselect("refresh");
                 $("#refferal_case").multiselect('dataprovider', multiselect_data);      
             },
@@ -1717,17 +1981,20 @@ function getJsonObject001()
 }
 function dateHandler(mydate)
 {
-    var my_date = mydate.split(" ")
-    var date_array = new Array();
-    for(var i =0; i < my_date.length; i++)
-    {
-        date_array.push(my_date[i]);
-    }
-    
-    var date = date_array[0];
-    date = new Date(date)
+    if(mydate)
+    {       
+        var my_date = mydate.split(" ")
+        var date_array = new Array();
+        for(var i =0; i < my_date.length; i++)
+        {
+            date_array.push(my_date[i]);
+        }
+        
+        var date = date_array[0];
+        date = new Date(date) 
 
-    return date;
+        return date;
+    }
 }
 function deleteCaseEvent_()
 {
@@ -1784,36 +2051,7 @@ function deleteCaseEvent(event_type, event_id)
             }
         });
     }
-    if(event_type == 'PLACEMENT')
-    {
-        var crudMsg = 'Residential Placement Deleted Successfully!';
-        var services_array = new Array();
-        var csrftoken = $.cookie('csrftoken');
-        var values = {  
-            'csrfmiddlewaretoken': csrftoken,
-            'event_id':event_id
-        };
-
-        $.ajax({
-            url: '{% url 'delete_placement' %}',
-            dataType: 'text',
-            method: 'POST',
-            data: values,
-            success: function(result)
-            {
-                $("#ce_msgs").css({ 'display': "block" }); 
-                $('#ce_msgs p').html(crudMsg);
-                $('#case-events').load(document.URL +  ' #case-events'); 
-
-                //close delete-dialog
-                $('#delete-dialog').modal('hide');
-            },
-            error: function(xhr, status, error)
-            {
-                alert(error);
-            }
-        });
-    }
+    
     if(event_type == 'COURT')
     {
         var crudMsg = 'Court Orders Deleted Successfully!';
@@ -1845,31 +2083,64 @@ function deleteCaseEvent(event_type, event_id)
         });
     }
 }
-function fnCloseCase()
+
+function fnSaveClosure()
 {
-    var crudMsg = 'Case  Closed Successfully.';
+    var operation_mode = $('#operation_mode').val(); 
+    if(operation_mode == 'EDIT')
+    { 
+        fnUpdateClosure();
+        return false;
+    }
+
+    var crudMsg = 'Case Closed Successfully.';
     var csrftoken = $.cookie('csrftoken');
     var case_id = $('#case_id').val();
-    var case_status = $('#case_status').val();
-    var case_outcome_notes = $('#case_outcome_notes').val(); 
+    // var case_status = $('#case_status').val();
+    var case_outcome = $('#case_outcome').val(); 
+    var transfered_to = $('#transfered_to').val(); 
+    var case_closure_notes = $('#case_closure_notes').val(); 
     var date_of_case_closure = $('#date_of_case_closure').val();
-
-    if(case_status)
-    {
-        if(case_outcome_notes)
-        {
-            if(date_of_case_closure)
-            {
-                var values = {  
+    var values = {  
                     'csrfmiddlewaretoken': csrftoken,
-                    'case_id':case_id,
-                    'case_status':case_status,
-                    'case_outcome_notes':case_outcome_notes,
-                    'date_of_case_closure':date_of_case_closure
-                };
-                $.ajax({
-                    url: '{% url 'close_case' %}',
-                    dataType: 'json',
+                    'case_id':case_id
+                }
+    
+    if(case_outcome)
+    {
+        values['case_outcome'] = case_outcome;
+        if(case_outcome == 'COTR')
+        {
+            if(transfered_to)
+            {
+                values['transfered_to'] = transfered_to;
+            }
+            else
+            {
+                $("#closure_msgs3").css({ 'display': "block" });
+                $("#closure_msgs").css({ 'display': "block" });
+                $('#closure_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
+        if(date_of_case_closure)
+        {
+            values['date_of_case_closure'] = date_of_case_closure;
+        }
+        else
+        {
+            $("#closure_msgs4").css({ 'display': "block" });
+            $("#closure_msgs").css({ 'display': "block" });
+            $('#closure_msgs p').html('Please fill the missing values');
+            return false;
+        }
+
+        values['case_closure_notes'] = case_closure_notes;
+
+        $.ajax({
+                    url: '{% url 'save_closure' %}',
+                    dataType: 'text',
                     method: 'POST',
                     data: values,
                     success: function(result)
@@ -1887,345 +2158,632 @@ function fnCloseCase()
                         $("#ce_msgs").css({ 'display': "block" }); 
                         $('#ce_msgs p').html(crudMsg); 
 
-                        $('#case_status').val('');
-                        $('#case_outcome_notes').val(''); 
+                        // $('#case_status').val('');
+                        $('#case_outcome').val('');
+                        $('#transfered_to').multiselect('clearSelection');
+                        $('#transfered_to').multiselect('refresh');
+                        $('#case_closure_notes').val(''); 
                         $('#date_of_case_closure').val(''); 
 
                         //close residential-placement-dialog
                         $('#close-case-dialog').modal('hide');
                         $("#closure_msgs").css({ 'display': "none" }); 
 
+                        /* Reload active/inactive Status */
                         $('#case_status_msg').load(document.URL +  ' #case_status_msg');
+
+                        /* Reload CaseEvents */
+                        LoadCaseEvents();
+
+                        ResetEventsDialog('Closure');
                     },
                     error: function(e)
                     {
                         console.log(e)
                     }
-                });        
-            }
-            else
-            {
-                $("#closure_msgs3").css({ 'display': "block" }); 
-
-                $("#closure_msgs").css({ 'display': "block" }); 
-                $('#closure_msgs p').html('Please fill the missing values');
-            }
-        }
-        else
-        {
-            $("#closure_msgs2").css({ 'display': "block" }); 
-
-            $("#closure_msgs").css({ 'display': "block" }); 
-            $('#closure_msgs p').html('Please fill the missing values');
-        }
+                });
     }
     else
     {
-        $("#closure_msgs1").css({ 'display': "block" }); 
-
-        $("#closure_msgs").css({ 'display': "block" }); 
+        $("#closure_msgs2").css({ 'display': "block" });
+        $("#closure_msgs").css({ 'display': "block" });
         $('#closure_msgs p').html('Please fill the missing values');
+        return false;
     }
 }
-function fnSaveResidentialPlacement(){
-    var operation_mode = $('#operation_mode').val(); 
-    var crudMsg = 'Residential Placement Saved Successfully.';
-    var _url = '{% url 'save_placement' %}';   
-    var case_event_id = $('#case_event_id_plcmt').val();
+
+function fnViewClosure(case_event_id)
+{
+    var event_id = case_event_id.trim();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'event_id':event_id
+    };
+
+    // case_event_id
+    $('#case_event_id_closure').val(event_id);
+
+    $.ajax({
+        url: '{% url 'view_closure' %}',
+        dataType: 'json',
+        method: 'POST',
+        data: values,
+        success: function(result)
+        {
+            $('#close-case-dialog').modal('show');
+            $("#btn_save_closure").text('Update');
+
+            $.each(result, function(i, val) {
+                var closure_outcome = val.closure_outcome;
+                var transfer_to = val.transfer_to;
+                var case_closure_notes = val.case_closure_notes;
+                var date_of_event = val.date_of_event;
+
+                $('#case_outcome').val(closure_outcome);
+                $("#case_outcome").trigger("change");
+                $('#transfered_to').val(transfer_to); 
+                $("#transfered_to").multiselect("refresh");
+                $('#case_closure_notes').val(case_closure_notes);
+                $('#date_of_case_closure').val(date_of_event);
+            });
+        },
+        error: function(xhr, status, error)
+        {
+            alert(error);
+        }
+    }); 
+
+}
+
+function fnUpdateClosure()
+{
+    var crudMsg = 'Case Closure Updated Successfully.';
+    var csrftoken = $.cookie('csrftoken');    
+    var case_outcome = $('#case_outcome').val(); 
+    var transfered_to = $('#transfered_to').val(); 
+    var case_closure_notes = $('#case_closure_notes').val(); 
+    var date_of_case_closure = $('#date_of_case_closure').val();
+    var case_id = $('#case_id').val();
+    var case_event_id = $('#case_event_id_closure').val();
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id,
+                    'case_event_id': case_event_id
+                 };
+    
+    if(case_outcome)
+    {
+        values['case_outcome'] = case_outcome;
+        if(case_outcome == 'COTR')
+        {
+            if(transfered_to)
+            {
+                values['transfered_to'] = transfered_to;
+            }
+            else
+            {
+                $("#closure_msgs3").css({ 'display': "block" });
+                $("#closure_msgs").css({ 'display': "block" });
+                $('#closure_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
+        if(date_of_case_closure)
+        {
+            values['date_of_case_closure'] = date_of_case_closure;
+        }
+        else
+        {
+            $("#closure_msgs4").css({ 'display': "block" });
+            $("#closure_msgs").css({ 'display': "block" });
+            $('#closure_msgs p').html('Please fill the missing values');
+            return false;
+        }
+
+        values['case_closure_notes'] = case_closure_notes;
+
+        $.ajax({
+                    url: '{% url 'edit_closure' %}',
+                    dataType: 'text',
+                    method: 'POST',
+                    data: values,
+                    success: function(result)
+                    {
+
+                        $("#ce_msgs").css({ 'display': "block" }); 
+                        $('#ce_msgs p').html(crudMsg); 
+
+                        // $('#case_status').val('');
+                        $('#case_outcome').val('');
+                        $('#transfered_to').multiselect('clearSelection');
+                        $('#transfered_to').multiselect('refresh');
+                        $('#case_closure_notes').val(''); 
+                        $('#date_of_case_closure').val(''); 
+
+                        //close residential-placement-dialog
+                        $('#close-case-dialog').modal('hide');
+                        $("#closure_msgs").css({ 'display': "none" }); 
+
+                        /* Reload active/inactive Status */
+                        $('#case_status_msg').load(document.URL +  ' #case_status_msg');
+
+                        /* Reload CaseEvents */
+                        LoadCaseEvents();
+
+                        ResetEventsDialog('Closure');
+                    },
+                    error: function(e)
+                    {
+                        console.log(e)
+                    }
+                });
+    }
+    else
+    {
+        $("#closure_msgs2").css({ 'display': "block" });
+        $("#closure_msgs").css({ 'display': "block" });
+        $('#closure_msgs p').html('Please fill the missing values');
+        return false;
+    }
+}
+
+function fnDeleteClosure(case_event_id)
+{
+    var crudMsg = 'Case Closure Deleted Successfully.';
     var csrftoken = $.cookie('csrftoken');
     var case_id = $('#case_id').val();
     var values = {  
                     'csrfmiddlewaretoken': csrftoken,
-                    'case_id':case_id
+                    'case_id':case_id,
+                    'case_event_id': case_event_id
                  };
-    var case_category_id = $('#placement_case').val();
-    var date_of_placement_event = $('#date_of_placement_event').val();
-    var placement_notes = $('#placement_notes').val(); 
-    var residential_institution = $('#residential_institution').val(); 
-    var current_residential_status = $('#current_residential_status').val(); 
-    var has_court_committal_order = $('#has_court_committal_order').val(); 
-    var free_for_adoption = $('#free_for_adoption').val(); 
-    var admission_date = $('#admission_date').val(); 
-    var departure_date = $('#departure_date').val(); 
-    var workforce_member_plcmnt = $('#workforce_member_plcmnt').val();
 
-    // On Edit
-    if(operation_mode == 'EDIT')
-    { 
-        crudMsg = 'Residential Placement Updated Successfully.'; 
-        _url = '{% url 'edit_placement' id=0%}';
-        values['case_event_id'] = case_event_id;
-    }
-
-    
-    //validation
-    if(case_category_id)
-    {
-        if(date_of_placement_event)
-        {
-            if(placement_notes)
-            {
-                if(residential_institution)
+    $.ajax({
+                url: '{% url 'delete_closure' %}',
+                dataType: 'text',
+                method: 'POST',
+                data: values,
+                success: function(result)
                 {
-                    if(current_residential_status)
-                    {
-                        if(has_court_committal_order)
-                        {
-                            if(free_for_adoption)
-                            {
-                                if(admission_date)
-                                {
-                                    values['case_category_id'] = case_category_id;
-                                    values['date_of_placement_event'] = date_of_placement_event;
-                                    values['placement_notes'] = placement_notes;
-                                    values['residential_institution'] = residential_institution;
-                                    values['current_residential_status'] = current_residential_status;
-                                    values['has_court_committal_order'] = has_court_committal_order;
-                                    values['free_for_adoption'] = free_for_adoption;
-                                    values['admission_date'] = admission_date;
-                                    values['departure_date'] = departure_date;
 
-                                    $.ajax({
-                                            url: _url,
-                                            dataType: 'text',
-                                            method: 'POST',
-                                            contentType: 'application/x-www-form-urlencoded',
-                                            data: values,
-                                            success: function(data)
-                                            {
-                                                $("#ce_msgs").css({ 'display': "block" }); 
-                                                $('#ce_msgs p').html(crudMsg); 
-                                                // $('#case-events').load(document.URL +  ' #case-events');
-                                                LoadCaseEvents();
+                    $("#ce_msgs").css({ 'display': "block" }); 
+                    $('#ce_msgs p').html(crudMsg); 
 
-                                                $('#date_of_placement_event').val('');
-                                                $('#placement_notes').val(''); 
-                                                $('#residential_institution').val(''); 
-                                                $('#current_residential_status').val(''); 
-                                                $('#has_court_committal_order').val(''); 
-                                                $('#free_for_adoption').val(''); 
-                                                $('#admission_date').val(''); 
-                                                $('#departure_date').val(''); 
+                    /* Reload active/inactive Status */
+                    $('#case_status_msg').load(document.URL +  ' #case_status_msg');
 
-                                                //close residential-placement-dialog
-                                                $('#residential-placement-dialog').modal('hide');
-                                                $("#placement_msgs").css({ 'display': "none" }); 
-                                            },
-                                            error: function(e)
-                                            {
-                                                console.log(e)
-                                            }
-                                    }); 
-                                }
-                                else
-                                {
-                                    $("#placement_msgs7").css({ 'display': "block" }); 
-
-                                    $("#placement_msgs").css({ 'display': "block" }); 
-                                    $('#placement_msgs p').html('Please fill the missing values');
-                                }
-                            }
-                            else
-                            {
-                                $("#placement_msgs6").css({ 'display': "block" }); 
-
-                                $("#placement_msgs").css({ 'display': "block" }); 
-                                $('#placement_msgs p').html('Please fill the missing values');
-                            }
-                        }
-                        else
-                        {
-                            $("#placement_msgs5").css({ 'display': "block" }); 
-
-                            $("#placement_msgs").css({ 'display': "block" }); 
-                            $('#placement_msgs p').html('Please fill the missing values');
-                        }
-                    }
-                    else
-                    {
-                        $("#placement_msgs4").css({ 'display': "block" }); 
-
-                        $("#placement_msgs").css({ 'display': "block" }); 
-                        $('#placement_msgs p').html('Please fill the missing values');
-                    }
-                }
-                else
+                    /* Reload CaseEvents */
+                    LoadCaseEvents();
+                },
+                error: function(e)
                 {
-                    $("#placement_msgs3").css({ 'display': "block" }); 
-
-                    $("#placement_msgs").css({ 'display': "block" }); 
-                    $('#placement_msgs p').html('Please fill the missing values');   
+                    console.log(e)
                 }
-            }
-            else
-            {
-                $("#placement_msgs2").css({ 'display': "block" }); 
-
-                $("#placement_msgs").css({ 'display': "block" }); 
-                $('#placement_msgs p').html('Please fill the missing values');
-            }
-        }
-        else
-        {
-            $("#placement_msgs1").css({ 'display': "block" }); 
-
-            $("#placement_msgs").css({ 'display': "block" }); 
-            $('#placement_msgs p').html('Please fill the missing values');
-        }
-    }
-    else
-    {
-        $("#placement_msgs0").css({ 'display': "block" }); 
-
-        $("#placement_msgs").css({ 'display': "block" }); 
-        $('#placement_msgs p').html('Please fill the missing values');
-    }
-
-    
+            });
 }
+
 function fnSaveCourtSession(){
     var operation_mode = $('#operation_mode').val(); 
-    var crudMsg = 'Court Session Saved Successfully.';
-    var _url = '{% url 'save_court' %}';
+    if(operation_mode == 'EDIT')
+    { 
+        fnUpdateCourtSession();
+        return false;
+    }
 
+    var crudMsg = 'Court Session Saved Successfully.';
     var data = new Array();
     var csrftoken = $.cookie('csrftoken');
-    var date_of_court_event = $('#date_of_court_event').val();
     var case_id = $('#case_id').val();
-    var court_notes = $('#court_notes').val();
-    var court_orders = $('#court_order').val();
-    var workforce_member_court = $('#workforce_member_court').val();
-    var case_category_id = $('#court_session_case').val();
-    var case_event_id = $('#case_event_id_court').val();
-
     var values = {  
                     'csrfmiddlewaretoken': csrftoken,
                     'case_id':case_id
                  };
+    // action='COT'; 
+    var court_session_case = $('#court_session_case').val();
+    var date_of_court_event = $('#date_of_court_event').val();
+    var court_session_type = $('#court_session_type').val();
+    var court_outcome = $('#court_outcome').val();
+    var next_hearing_date = $('#next_hearing_date').val();
+    var next_mention_date = $('#next_mention_date').val();
+    var court_order = $('#court_order').val();
+    var court_notes = $('#court_notes').val();
 
-    // On Edit
-    if(operation_mode == 'EDIT')
-    { 
-        crudMsg = 'Court Session Updated Successfully.'; 
-        _url = '{% url 'edit_court' %}';
-        values['case_event_id'] = case_event_id;
-    }
+    // values['action'] = action;
+    values['court_session_case'] = court_session_case;
+    values['date_of_court_event'] = date_of_court_event;
+    values['court_session_type'] = court_session_type;
+    values['court_notes'] = court_notes;
 
-    if(case_category_id)
+    if(court_session_case)
     {
         if(date_of_court_event)
         {
-            if(court_notes)
+            if(court_session_type)
             {
-                if(court_orders)
+                if(court_session_type == 'STHR')
                 {
-                    values['case_category_id'] = case_category_id;
-                    values['date_of_court_event'] = date_of_court_event;
-                    values['court_notes'] = court_notes;
-                    values['court_orders'] = court_orders.toString();
-                    values['workforce_member_court'] = workforce_member_court;
-                    $.ajax({
-                            url: _url,
-                            dataType: 'text',
-                            method: 'POST',
-                            contentType: 'application/x-www-form-urlencoded',
-                            data: values,
-                            success: function(data)
+                    if(court_outcome)
+                    {
+                        values['court_outcome'] = court_outcome;
+                        if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+                        {
+                            if(court_order)
                             {
-                                $("#ce_msgs").css({ 'display': "block" });  
-                                $('#ce_msgs p').html(crudMsg);
-                                // $('#case-events').load(document.URL +  ' #case-events');
-                                LoadCaseEvents();
-
-                                $("#court_session_case").multiselect("clearSelection");
-                                $('#date_of_court_event').val(''); 
-                                //$('#case_id').val(''); 
-                                $('#court_notes').val(''); 
-                                $("#court_order").multiselect("clearSelection");
-                                $('#workforce_member_court').val(''); 
-                                $( "#sel_court_order").html('');
-
-                                //close courtsessions-dialog
-                                $('#court-sessions-dialog').modal('hide');
-                                $("#court_msgs").css({ 'display': "none" });
-                            },
-                            error: function(e)
-                            {
-                                console.log(e)
+                                values['court_order'] = court_order.toString();
                             }
-                    });  
+                            else
+                            {
+                                $("#court_msgs6").css({ 'display': "block" });
+                                $("#court_msgs").css({ 'display': "block" }); 
+                                $('#court_msgs p').html('Please fill the missing values');
+                                return false;
+                            }  
+                        }  
+                        if(court_outcome == 'CADJ')
+                        {
+                            if(next_hearing_date)
+                            {
+                                values['next_hearing_date'] = next_hearing_date;
+                            }
+                            else
+                            {
+                                $("#court_msgs5").css({ 'display': "block" });
+                                $("#court_msgs").css({ 'display': "block" }); 
+                                $('#court_msgs p').html('Please fill the missing values');
+                                return false;
+                            }
+                        }                    
+                    }
+                    else
+                    {
+                        $("#court_msgs4").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }
                 }
-                else
+                if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
                 {
-                    $("#court_msgs3").css({ 'display': "block" }); 
-
-                    $("#court_msgs").css({ 'display': "block" }); 
-                    $('#court_msgs p').html('Please fill the missing values');
+                    if(next_mention_date)
+                    {
+                        values['next_mention_date'] = next_mention_date;
+                    }
+                    else
+                    {
+                        $("#court_msgs3").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }
                 }
+
+                // Save Court
+                $.ajax({
+                        url: '{% url 'save_court' %}',
+                        dataType: 'text',
+                        method: 'POST',
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: values,
+                        success: function(result)
+                        {
+                            $("#ce_msgs").css({ 'display': "block" });  
+                            $('#ce_msgs p').html(crudMsg);
+
+                            LoadCaseEvents();
+
+                            ResetEventsDialog('Court');
+
+                            //close courtsessions-dialog
+                            $('#court-sessions-dialog').modal('hide');
+                            $("#court_msgs").css({ 'display': "none" });
+                        },
+                        error: function(xhr, status, error)
+                        {
+                            console.log(error)
+                        }
+                    });
             }
             else
             {
-                $("#court_msgs2").css({ 'display': "block" }); 
-
+                $("#court_msgs2").css({ 'display': "block" });
                 $("#court_msgs").css({ 'display': "block" }); 
                 $('#court_msgs p').html('Please fill the missing values');
+                return false;
             }
-
         }
         else
         {
-            $("#court_msgs1").css({ 'display': "block" }); 
-
+            $("#court_msgs1").css({ 'display': "block" });
             $("#court_msgs").css({ 'display': "block" }); 
             $('#court_msgs p').html('Please fill the missing values');
+            return false;
         }
-    }
+    } 
     else
     {
-        $("#court_msgs0").css({ 'display': "block" }); 
-
+        $("#court_msgs0").css({ 'display': "block" });
         $("#court_msgs").css({ 'display': "block" }); 
         $('#court_msgs p').html('Please fill the missing values');
+        return false;
     }
 }
-function fnSaveEncounter(){
-    var operation_mode = $('#operation_mode').val(); 
-    var crudMsg = 'Service/Encounter Saved Successfully.';
-    var _url = '{% url 'save_encounter' %}';
 
+function fnViewCourtSession(case_event_id){
+    var event_id = case_event_id.trim();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'event_id':event_id
+    };
+
+    // case_event_id
+    $('#case_event_id_court').val(event_id);
+
+    $.ajax({
+        url: '{% url 'view_court' %}',
+        dataType: 'json',
+        method: 'POST',
+        data: values,
+        success: function(result)
+        {
+            $('#court-sessions-dialog').modal('show');
+            $("#btn_save_court").text('Update');
+
+            $.each(result, function(i, val) {
+                var date_of_court_event = val.date_of_event;
+                var court_outcome = val.court_outcome;
+                var court_session_type = val.case_event_type_id;
+                var date_of_court_event = val.date_of_event;
+                var next_hearing_date = val.next_hearing_date;
+                var next_mention_date = val.next_mention_date;
+                var court_notes = val.case_event_notes;
+                var court_orders = ((val.ovc_court_orders).toString()).split(",");
+                var case_category_id = ((val.ovc_category_ids).toString()).split(",");
+
+                $('#court_session_type').val(court_session_type); 
+                $("#court_session_type").multiselect("refresh");
+                $("#court_session_type").trigger("change");
+
+                $('#court_outcome').val(court_outcome); 
+                $("#court_outcome").multiselect("refresh");
+                $("#court_outcome").trigger("change");
+
+                if(next_hearing_date)
+                { $('#next_hearing_date').datepicker('setDate', dateHandler(next_hearing_date)); }
+
+                if(next_mention_date)
+                { $('#next_mention_date').datepicker('setDate', dateHandler(next_mention_date)); }
+
+                for(var i =0; i < court_orders.length; i++)
+                {
+                    $("#court_order option[value='" + court_orders[i] + "']").prop("selected", true);
+                }
+                $("#court_order").multiselect("refresh");
+                $('#court_order').trigger('change');
+
+                $('#date_of_court_event').datepicker('setDate', dateHandler(date_of_court_event));
+                $('#court_notes').val(court_notes);
+
+                $('#court_session_case').val(case_category_id); 
+                $("#court_session_case").multiselect("refresh");
+            });
+    },
+    error: function(xhr, status, error)
+    {
+    alert(error);
+    }
+    });  
+}
+
+function fnUpdateCourtSession(){
+    var crudMsg = 'Court Session Updated Successfully.';
     var data = new Array();
     var csrftoken = $.cookie('csrftoken');
-    var date_of_encounter_event = $('#date_of_encounter_event').val();
     var case_id = $('#case_id').val();
-    var encounter_notes = $('#encounter_notes').val();
-    var workforce_member_svc = $('#workforce_member_svc').val();
-    // var services_provided = $('#service_provided').val();
-    var case_event_id = $('#case_event_id_svc').val();
-    var case_category_id = $('#service_provided_case').val();
+    var case_event_id = $('#case_event_id_court').val();
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id,
+                    'case_event_id': case_event_id
+                 };
+    // action='COT'; 
+    var court_session_case = $('#court_session_case').val();
+    var date_of_court_event = $('#date_of_court_event').val();
+    var court_session_type = $('#court_session_type').val();
+    var court_outcome = $('#court_outcome').val();
+    var next_hearing_date = $('#next_hearing_date').val();
+    var next_mention_date = $('#next_mention_date').val();
+    var court_order = $('#court_order').val();
+    var court_notes = $('#court_notes').val();
+
+    // values['action'] = action;
+    values['court_session_case'] = court_session_case;
+    values['date_of_court_event'] = date_of_court_event;
+    values['court_session_type'] = court_session_type;
+    values['court_notes'] = court_notes;
+
+    if(court_session_case)
+    {
+        if(date_of_court_event)
+        {
+            if(court_session_type)
+            {
+                if(court_session_type == 'STHR')
+                {
+                    if(court_outcome)
+                    {
+                        values['court_outcome'] = court_outcome;
+                        if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+                        {
+                            if(court_order)
+                            {
+                                values['court_order'] = court_order.toString();
+                            }
+                            else
+                            {
+                                $("#court_msgs6").css({ 'display': "block" });
+                                $("#court_msgs").css({ 'display': "block" }); 
+                                $('#court_msgs p').html('Please fill the missing values');
+                                return false;
+                            }  
+                        }  
+                        if(court_outcome == 'CADJ')
+                        {
+                            if(next_hearing_date)
+                            {
+                                values['next_hearing_date'] = next_hearing_date;
+                            }
+                            else
+                            {
+                                $("#court_msgs5").css({ 'display': "block" });
+                                $("#court_msgs").css({ 'display': "block" }); 
+                                $('#court_msgs p').html('Please fill the missing values');
+                                return false;
+                            }
+                        }                    
+                    }
+                    else
+                    {
+                        $("#court_msgs4").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }
+                }
+                if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
+                {
+                    if(next_mention_date)
+                    {
+                        values['next_mention_date'] = next_mention_date;
+                    }
+                    else
+                    {
+                        $("#court_msgs3").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }
+                }
+
+                // Update Court
+                $.ajax({
+                        url: '{% url 'edit_court' %}',
+                        dataType: 'text',
+                        method: 'POST',
+                        contentType: 'application/x-www-form-urlencoded',
+                        data: values,
+                        success: function(result)
+                        {
+                            $("#ce_msgs").css({ 'display': "block" });  
+                            $('#ce_msgs p').html(crudMsg);
+
+                            LoadCaseEvents();
+
+                            ResetEventsDialog('Court');
+
+                            //close courtsessions-dialog
+                            $('#court-sessions-dialog').modal('hide');
+                            $("#court_msgs").css({ 'display': "none" });
+
+                            $("#btn_save_court").text('Save');
+                            $("#operation_mode").val('');
+                        },
+                        error: function(xhr, status, error)
+                        {
+                            console.log(error)
+                        }
+                    });
+            }
+            else
+            {
+                $("#court_msgs2").css({ 'display': "block" });
+                $("#court_msgs").css({ 'display': "block" }); 
+                $('#court_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+        else
+        {
+            $("#court_msgs1").css({ 'display': "block" });
+            $("#court_msgs").css({ 'display': "block" }); 
+            $('#court_msgs p').html('Please fill the missing values');
+            return false;
+        }
+    } 
+    else
+    {
+        $("#court_msgs0").css({ 'display': "block" });
+        $("#court_msgs").css({ 'display': "block" }); 
+        $('#court_msgs p').html('Please fill the missing values');
+        return false;
+    }
+    
+}
+
+function fnDeleteCourtSession(case_event_id){
+    var crudMsg = 'Court Session Deleted Successfully!';
+    var services_array = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'event_id':case_event_id
+    };
+
+    $.ajax({
+        url: '{% url 'delete_court' %}',
+        dataType: 'text',
+        method: 'POST',
+        data: values,
+        success: function(result)
+        {
+            $("#ce_msgs").css({ 'display': "block" }); 
+            $('#ce_msgs p').html(crudMsg);
+
+            //close delete-dialog
+            $('#delete-dialog').modal('hide');
+
+            LoadCaseEvents();
+        },
+        error: function(xhr, status, error)
+        {
+            alert(error);
+        }
+    });
+}
+
+function fnSaveEncounter(){
+    var operation_mode = $('#operation_mode').val(); 
+    if(operation_mode == 'EDIT')
+    { 
+        fnUpdateEncounter();
+        return false;
+    }
+
+    var crudMsg = 'Encounters/Services Saved Successfully.';
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
     var values = {  
                     'csrfmiddlewaretoken': csrftoken,
                     'case_id':case_id
                  };
-
-    // On Edit
-    if(operation_mode == 'EDIT')
-    { 
-        crudMsg = 'Service/Encounter Updated Successfully.'; 
-        _url = '{% url 'edit_encounter' %}';
-        values['case_event_id'] = case_event_id;
-    }
+    var case_category_id = $('#service_provided_case').val();
+    var service_provided_list = $('#service_provided_list').val();
+    var encounter_notes = $('#encounter_notes').val();
 
     //validation
     if(case_category_id)
     {
-        if(encounter_notes)
+        if(service_provided_list)
         {
             values['case_category_id'] = case_category_id;
-            values['workforce_member_svc'] = workforce_member_svc;
+            values['service_provided_list'] = service_provided_list;
             values['encounter_notes'] = encounter_notes;
 
-            $.ajax({
-                url: _url,
+             $.ajax({
+                url: '{% url 'save_encounter' %}',
                 dataType: 'text',
                 method: 'POST',
                 contentType: 'application/x-www-form-urlencoded',
@@ -2235,34 +2793,22 @@ function fnSaveEncounter(){
                     $("#ce_msgs").css({ 'display': "block" });
                     $('#ce_msgs p').html(crudMsg);
 
-                    $('#operation_mode').val('')
+                    LoadCaseEvents();
 
-                    LoadCaseEvents(); 
-                    $('#service_provided_case').multiselect("clearSelection"); 
-                    $('#date_of_encounter_event').val(''); 
-                    $('#encounter_notes').val(''); 
-                    $("#service_provided").multiselect("clearSelection");
-                    $('#workforce_member_svc').val(''); 
-                    $( "#sel_service_provided").html('');
-                    $( "#sel_service_provider").html('');
-
-                    // Clear <tbody>
-                    //$("#services_manager_table tbody").html('');
+                    ResetEventsDialog('Services');
 
                     //close services-dialog
                     $('#services-dialog').modal('hide');
-                    $("#encounters_msgs").css({ 'display': "none" });
                 },
                 error: function(e)
                 {
                     console.log(e);
                 }
-            });                  
+            });   
         }
         else
         {
-            $("#encounters_msgs2").css({ 'display': "block" }); 
-
+            $("#encounters_msgs1").css({ 'display': "block" }); 
             $("#encounters_msgs").css({ 'display': "block" }); 
             $('#encounters_msgs p').html('Please fill the missing values');
         }
@@ -2270,10 +2816,476 @@ function fnSaveEncounter(){
     else
     {
         $("#encounters_msgs0").css({ 'display': "block" }); 
-
         $("#encounters_msgs").css({ 'display': "block" }); 
         $('#encounters_msgs p').html('Please fill the missing values');
     }
+}
+
+function fnViewEncounter(case_event_id){ 
+    var EncountersData = new Array();
+    var event_id = case_event_id.trim();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'event_id':event_id
+    };
+
+    // case_event_id
+    $('#case_event_id_svc').val(event_id);
+
+    $.ajax({
+            url: '{% url 'view_encounter' %}',
+            dataType: 'json',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            { 
+                // show dialog
+                $('#services-dialog').modal('show');
+
+                // clear rows
+                $('#services_manager_table').find("tr:gt(1)").remove();
+                
+                $('#btn_save_encounter').text('Update');
+
+                // Populate Grid
+                $.each(result, function(i, val) {
+                    var case_event_id = val.case_event_id
+                    var date_of_event = val.date_of_event;
+                    var encounter_notes = val.case_event_notes;
+                    var case_category = val.case_category;
+                    var resultsets = val.resultsets;
+
+                    $.each(resultsets, function(i, resultset)
+                    {
+                        $.each(resultset, function(i, result)
+                        { 
+                            // Remove pre-exisiting rows 
+                            $('#id_inputElements' + i + '').remove();
+
+                            var rowIndex = i;
+                            var pk = result.pk;
+                            var service_provided = result.service_provided;
+                            var service_provided_id = result.service_provided_id;
+                            var date_of_encounter_event = result.date_of_encounter_event;
+                            var service_provider = result.service_provider;
+                            var service_provider_id = result.service_provider_id;
+                            var place_of_service = result.place_of_service;
+                            var service_grouping_id = result.service_grouping_id;
+                            var btnRemove = 'btnRemove' + i;
+                            var id_inputElements = 'id_inputElements' + i;
+
+                            // Hidden Inputs
+                            var hservice_provided = "<input id='hservice_provided' type='hidden' value='"+service_provided_id+"'>"
+                            var hservice_provider = "<input id='hservice_provider'  type='hidden'  value='"+service_provider_id+"'>"
+                            var hservice_status= "<input id='hservice_status'  type='hidden' value='exist'>"
+
+
+                            var table_row = '<tr id=' + id_inputElements + '><td><h6>' + (i+1) + '</h6></td>' + 
+                            '<td><h6>' + service_provided + '</h6>' +hservice_provided+ '</td><td><h6>' + date_of_encounter_event + '</h6></td>' + 
+                            '<td><h6>' + service_provider + '</h6>' +hservice_provider+ '</td><td><h6>' + place_of_service + '</h6>' + hservice_status + '</td>' + 
+                            '<td><button id=' + btnRemove + ' type="button" class="btn btn-sm btn-link m-r-5"' +
+                            ' onClick="fnDeleteEncounter(\''+ case_event_id +'\',\''+ pk +'\',\''+ id_inputElements +'\')">Remove </b></button></td></tr>'
+
+                            // Append each result to  row
+                            $('#services_manager_table > tbody:last-child').append(table_row);
+
+                        });
+                    });
+                    $('#encounter_notes').val(encounter_notes);
+                    $('#service_provided_case').val(case_category); 
+                    $('#service_provided_case').multiselect('refresh'); 
+                });
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
+}
+
+function fnUpdateEncounter(){
+    var crudMsg = 'Encounters/Services Session Updated Successfully.';
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    var case_event_id = $('#case_event_id_svc').val();
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id,
+                    'case_event_id': case_event_id
+                 };
+    var case_category_id = $('#service_provided_case').val();
+    var service_provided_list = $('#service_provided_list').val();
+    var encounter_notes = $('#encounter_notes').val();
+    var services = $('#services_manager_table tr').length;
+
+    //validation
+    if(case_category_id)
+    {
+        if((service_provided_list) || (services ==3))
+        {
+            values['case_category_id'] = case_category_id;
+            values['service_provided_list'] = service_provided_list;
+            values['encounter_notes'] = encounter_notes;
+
+             $.ajax({
+                url: '{% url 'edit_encounter' %}',
+                dataType: 'text',
+                method: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: values,
+                success: function(data)
+                {
+                    $("#ce_msgs").css({ 'display': "block" });
+                    $('#ce_msgs p').html(crudMsg);
+
+                    LoadCaseEvents();
+
+                    ResetEventsDialog('Services');
+
+                    //close services-dialog
+                    $('#services-dialog').modal('hide');
+                },
+                error: function(e)
+                {
+                    $("#ce_msgs").css({ 'display': "block" });
+                    $('#ce_msgs p').html(e);
+                }
+            });   
+        }
+        else
+        {
+            $("#encounters_msgs1").css({ 'display': "block" }); 
+            $("#encounters_msgs").css({ 'display': "block" }); 
+            $('#encounters_msgs p').html('Please fill the missing values');
+        }
+    }
+    else
+    {
+        $("#encounters_msgs0").css({ 'display': "block" }); 
+        $("#encounters_msgs").css({ 'display': "block" }); 
+        $('#encounters_msgs p').html('Please fill the missing values');
+    }
+}
+
+function fnDeleteEncounter(case_event_id, service_id, row){
+    var crudMsg = 'Encounter/Services Deleted Successfully!';
+    var services_array = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'case_event_id':case_event_id,
+        'service_id': service_id
+    };
+
+    $.ajax({
+        url: '{% url 'delete_encounter' %}',
+        dataType: 'text',
+        method: 'POST',
+        data: values,
+        success: function(result)
+        {
+            $("#ce_msgs").css({ 'display': "block" }); 
+            $('#ce_msgs p').html(crudMsg);
+
+            if(service_id){
+                $("#" + row).remove();
+            }
+
+            LoadCaseEvents();
+        },
+        error: function(xhr, status, error)
+        {
+            alert(error);
+        }
+    });
+    
+}
+
+function fnSaveSummons(){
+    var operation_mode = $('#operation_mode').val();
+    if(operation_mode == 'EDIT')
+    { 
+        fnUpdateSummons();
+        return false;
+    }
+
+    var crudMsg = 'Summon Saved Successfully.';
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    var values = {
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id
+                 };
+
+    var honoured = $('#honoured').val();
+    var honoured_date = $('#honoured_date').val();
+    var summon_date = $('#summon_date').val();
+    var summon_note = $('#summon_note').val();
+    
+    values['summon_note'] = summon_note;
+
+    if(honoured)
+    {
+        values['honoured'] = honoured;
+        if(honoured=='AYES')
+        {
+            if(honoured_date)
+            {
+                values['honoured_date'] = honoured_date;
+            }
+            else
+            {
+                $("#summons_msgs2").css({ 'display': "block" });
+                $("#summon_msgs").css({ 'display': "block" });
+                $('#summon_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
+        if(honoured=='ANNO')
+        {
+            if(summon_date)
+            {
+                values['summon_date'] = summon_date;
+            }
+            else
+            {
+                $("#summons_msgs3").css({ 'display': "block" });
+                $("#summon_msgs").css({ 'display': "block" });
+                $('#summon_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
+        // Save Summons
+        $.ajax({
+                url: '{% url 'save_summon' %}',
+                dataType: 'text',
+                method: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: values,
+                success: function(result)
+                {
+                    $("#ce_msgs").css({ 'display': "block" });
+                    $('#ce_msgs p').html(crudMsg);
+
+                    LoadCaseEvents();
+
+                    ResetEventsDialog('Summon');
+
+                    //close courtsessions-dialog
+                    $('#summons-dialog').modal('hide');
+                    $("#summon_msgs").css({ 'display': "none" });
+                },
+                error: function(xhr, status, error)
+                {
+                    console.log(error)
+                }
+            });
+    }
+    else
+    {
+        $("#summons_msgs1").css({ 'display': "block" });
+        $("#summon_msgs").css({ 'display': "block" });
+        $('#summon_msgs p').html('Please fill the missing values');
+        return false;
+    }    
+}
+
+function fnViewSummon(case_event_id){
+    var event_id = case_event_id.trim();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'event_id':event_id
+    };
+
+    // case_event_id
+    $('#case_event_id_summon').val(event_id);
+
+    $.ajax({
+            url: '{% url 'view_summon' %}',
+            dataType: 'json',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            { 
+                // show dialog
+                $('#summons-dialog').modal('show');
+
+                $('#btn_save_summon').text('Update');
+
+                // Extract JSON
+                $.each(result, function(i, val) {
+                    var honoured = val.honoured;
+                    var date_of_event = val.date_of_event;
+                    var summon_note = val.summon_note;
+                    var case_event_id = val.case_event_id;
+
+                    $('#honoured').val(honoured);
+                    $('#honoured').trigger('change');
+                    if(honoured=='AYES'){ $('#honoured_date').val(date_of_event); }
+                    if(honoured=='ANNO'){ $('#summon_date').val(date_of_event); }
+                    $('#summon_note').val(summon_note);
+                });
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        });
+}
+
+function fnUpdateSummons(case_event_id){
+    var crudMsg = 'Summons Updated Successfully.';
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    var case_event_id = $('#case_event_id_summon').val();
+    var values = {  
+                    'csrfmiddlewaretoken': csrftoken,
+                    'case_id':case_id,
+                    'case_event_id': case_event_id
+                 };
+    var honoured = $('#honoured').val();
+    var honoured_date = $('#honoured_date').val();
+    var summon_date = $('#summon_date').val();
+    var summon_note = $('#summon_note').val();
+    
+    values['summon_note'] = summon_note;
+
+    if(honoured)
+    {
+        values['honoured'] = honoured;
+        if(honoured=='AYES')
+        {
+            if(honoured_date)
+            {
+                values['honoured_date'] = honoured_date;
+            }
+            else
+            {
+                $("#summons_msgs2").css({ 'display': "block" });
+                $("#summon_msgs").css({ 'display': "block" });
+                $('#summon_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
+        if(honoured=='ANNO')
+        {
+            if(summon_date)
+            {
+                values['summon_date'] = summon_date;
+            }
+            else
+            {
+                $("#summons_msgs3").css({ 'display': "block" });
+                $("#summon_msgs").css({ 'display': "block" });
+                $('#summon_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
+        // Save Summons
+        $.ajax({
+                url: '{% url 'edit_summon' %}',
+                dataType: 'text',
+                method: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: values,
+                success: function(result)
+                {
+                    $("#ce_msgs").css({ 'display': "block" });
+                    $('#ce_msgs p').html(crudMsg);
+
+                    LoadCaseEvents();
+
+                    ResetEventsDialog('Summon');
+
+                    //close courtsessions-dialog
+                    $('#summons-dialog').modal('hide');
+                    $("#summon_msgs").css({ 'display': "none" });
+                },
+                error: function(xhr, status, error)
+                {
+                    console.log(error)
+                }
+            });
+    }
+    else
+    {
+        $("#summons_msgs1").css({ 'display': "block" });
+        $("#summon_msgs").css({ 'display': "block" });
+        $('#summon_msgs p').html('Please fill the missing values');
+        return false;
+    }  
+}
+
+function fnDeleteSummon(case_event_id){
+    var crudMsg = 'Summon Deleted Successfully!';
+    var services_array = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'event_id':case_event_id
+    };
+
+    $.ajax({
+        url: '{% url 'delete_summon' %}',
+        dataType: 'text',
+        method: 'POST',
+        data: values,
+        success: function(result)
+        {
+            $("#ce_msgs").css({ 'display': "block" }); 
+            $('#ce_msgs p').html(crudMsg);
+
+            // Load Grid
+            LoadCaseEvents();
+        },
+        error: function(xhr, status, error)
+        {
+            alert(error);
+        }
+    });
+}
+
+function fnDeleteReferral(referral_id){
+    var crudMsg = 'Referral Deleted Successfully!';
+    var csrftoken = $.cookie('csrftoken');
+    var values = {  
+        'csrfmiddlewaretoken': csrftoken,
+        'referral_id':referral_id
+    };
+
+    $.ajax({
+        url: '{% url 'delete_referral' %}',
+        dataType: 'text',
+        method: 'POST',
+        data: values,
+        success: function(result)
+        {
+            $("#ce_msgs").css({ 'display': "block" }); 
+            $('#ce_msgs p').html(crudMsg);
+
+            // Reset New Referrals Table
+            $("#new_refferals_table").find("tr:gt(1)").remove();
+
+            // Load Grid
+            LoadCaseEvents();
+
+            // Load Referrals
+            LoadReferrals();
+        },
+        error: function(xhr, status, error)
+        {
+            alert(error);
+        }
+    });
 }
 </script>
 <script>
@@ -2285,16 +3297,15 @@ $(document).ready(function()
     LoadCaseEvents();
 
     /* 
+    Load Referrals From Database
+    */
+    LoadReferrals();
+
+    /* 
      Make a Call To getJsonObject001() To Get Case Categories to load to Multiselects;
      These will be picked when adding Encounters/Court/Placements
     */
     getJsonObject001();
-
-    /* Get Case Owner */
-    var pfirst_name = localStorage.getItem("pfirst_name");
-    var psurname = localStorage.getItem("psurname");
-    var person_name = pfirst_name + ' ' + psurname;
-    $('#person_name')[0].innerHTML = person_name;
 
     // workforce_member autocomplete
     $( "#workforce_member_svc,#workforce_member_court,#workforce_member_plcmnt" ).autocomplete({
@@ -2318,7 +3329,7 @@ $(document).ready(function()
     });
 
     //multi selects
-    $('#refferal_case, #service_provided_case, #court_session_case, #placement_case, #residential_institution, #service_provided, #court_order, #refferals_made, #service_provider').multiselect({
+    $('#refferal_case, #service_provided_case, #court_session_case, #court_session_type, #service_provided, #court_order, #court_outcome, #refferals_made, #service_provider, #refferals_actor, #refferals_actor_specify, #transfered_to').multiselect({
         selectAllValue: 'multiselect-all',
         includeSelectAllOption: true,
         enableCaseInsensitiveFiltering: true,
@@ -2353,20 +3364,48 @@ $(document).ready(function()
         }
     }); 
 
-    //bootstrap table - referrals-data-table
-    $('#old_refferals_table1').bootstrapTable(
+    /**    
+
+    // Bootstrap Table
+    $('#old_refferals_table').bootstrapTable(
     { 
         toggle: 'table', 
-        // search: 'true',
+        search: 'true',
         locale: 'en-US',
         pagination: 'true',
         pageNumber: 1,
-        pageSize: 5,
-        maintainSelected: true,
-        
-        onClickRow: function (row, $element)
-        {
-        }        
+        pageSize: 10,
+        //showRefresh: true,
+        showToggle: true,
+        //showColumns: true,
+        singleSelect: true,
+        clickToSelect:true,
+        maintainSelected: true
+    });
+    **/
+
+
+    var court_outcome = $('#court_outcome').val();
+    if(court_outcome == 'CADJ')
+    {
+        $('#div_court_order').css({'display': 'none'}); 
+        $('#court_order').attr('data-parsley-required', 'false');
+        $('#court_order').val('');
+        $('#div_next_hearing_date').css({'display': 'block'}); 
+    }
+    else if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+    {
+        $('#div_court_order').css({'display': 'block'}); 
+        $('#court_order').attr('data-parsley-required', 'true');
+        $('#div_next_hearing_date').css({'display': 'none'}); 
+        $('#next_hearing_date').val('');
+    }
+
+    // Reconfigure next_hearing_date
+    $('#next_hearing_date').datepicker('remove');
+    $('#next_hearing_date').datepicker({ 
+        dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
+        startDate: '+1d', startdate: '+1d', autoclose: true
     });
 
     $('html,body').scrollTop(0);
@@ -2423,20 +3462,47 @@ function displayVals3(value)
     return selections.join( ", <br>" );
 }
 
-/*()
-$("#refferals_made").change(function(event) 
+// Summons
+$("#honoured").change(function(event) 
 { 
-    $( "#refferals_made_errormsg").html('');
-});
-$('#refferals_made').trigger('change');
+    var honoured = $('#honoured').val();
+    if(honoured == 'AYES')
+    {
+        $('#div_summon_date').css({'display': 'none'});
+        $('#div_honoured_date').css({'display': 'block'});       
+    }
+    else if(honoured == 'ANNO')
+    {
+        $('#div_summon_date').css({'display': 'block'});
+        $('#div_honoured_date').css({'display': 'none'});
 
-$("#refferal_case").change(function(event) 
-{   
-   $( "#refferal_case_errormsg").html('');
+        // Reconfigure date_of_summon
+        $('#summon_date').datepicker('remove');
+        $('#summon_date').datepicker({ 
+            startDate: '+1d',
+            format: 'dd-M-yyyy'
+        });
+    }
+    else
+    {
+        $('#div_summon_date').css({'display': 'none'});
+        $('#div_honoured_date').css({'display': 'none'});
+    }
+    $("#summons_msgs1").css({ 'display': "none" });
 });
-$('#refferal_case').trigger('change');
-*/
 
+$("#honoured_date").change(function(event) 
+{ 
+    $("#summons_msgs2").css({ 'display': "none" });
+});
+
+$("#summon_date").change(function(event) 
+{ 
+    $("#summons_msgs3").css({ 'display': "none" });
+});
+
+
+//Services
 $("#service_provided").change(function(event) 
 { 
     displayVals2("service_provided");
@@ -2454,13 +3520,6 @@ $("#court_order").change(function(event)
     displayVals("court_order");
 });
 $('#court_order').trigger('change');
-/*
-$("#refferals_made").change(function(event) 
-{ 
-    displayVals("refferals_made");
-});
-$('#refferals_made').trigger('change');
-*/
 
 //- - - - - CLEAR ERRORS - - - - //
 
@@ -2470,7 +3529,14 @@ $("#service_provided_case").change(function(event)
     $("#encounters_msgs0").css({ 'display': "none" }); 
 });
 
-$('#date_of_encounter_event').datepicker({ format: 'dd-M-yyyy' });
+// Reconfigure date_of_encounter_event
+$('#date_of_encounter_event').val('');
+$('#date_of_encounter_event').datepicker('remove');
+$('#date_of_encounter_event').datepicker({ 
+    endDate: '+0d',
+    format: 'dd-M-yyyy'
+});
+    
 $('#date_of_encounter_event').datepicker().on('change.dp', function(e) {
     $("#date_of_encounter_event_errormsg").css({ 'display': "none" });
 });
@@ -2499,6 +3565,13 @@ $('#place_of_service').keyup(function() {
     }
 });
 
+$('#service_provided_list').keyup(function() {
+    if($(this).val()) // get the current value of the input field    
+    {
+        $("#encounters_msgs2").css({ 'display': "none" }); 
+    }
+});
+
 $('#workforce_member_svc').keyup(function() {
     if($(this).val()) // get the current value of the input field    
     {
@@ -2506,7 +3579,7 @@ $('#workforce_member_svc').keyup(function() {
     }
 });
 
-/* Court Sessions Dialog */
+/* Court Sessions Dialog*/ 
 $("#court_session_case").change(function(event) 
 { 
     $("#court_msgs0").css({ 'display': "none" }); 
@@ -2515,6 +3588,94 @@ $("#court_session_case").change(function(event)
 $('#date_of_court_event').datepicker({ format: 'dd-M-yyyy' });
 $('#date_of_court_event').datepicker().on('change.dp', function(e) {
     $("#court_msgs1").css({ 'display': "none" });
+});
+
+$("#court_session_type").change(function(event) 
+{ 
+    var court_session_type = $('#court_session_type').val();
+    if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
+    {
+        $('#div_next_mention_date').css({'display': 'block'});
+
+        $('#div_court_outcome').css({'display': 'none'});
+        $('#court_outcome').multiselect('clearSelection');
+        $('#court_outcome').multiselect('refresh')
+        $('#court_outcome').trigger('change');
+    }
+    else if(court_session_type == 'STHR')
+    {
+        $('#div_next_mention_date').css({'display': 'none'});
+        $('#next_mention_date').val('');
+        $('#div_court_outcome').css({'display': 'block'});
+    }
+    else
+    {
+        $('#div_court_outcome').css({'display': 'none'});
+        $('#court_outcome').multiselect('clearSelection');
+        $('#court_outcome').multiselect('refresh')
+
+        $('#div_next_mention_date').css({'display': 'none'});
+        $('#next_mention_date').val('');
+    }
+    $("#court_msgs2").css({ 'display': "none" });
+});
+
+$("#court_outcome").change(function(event) 
+{ 
+    var court_outcome = $('#court_outcome').val();
+    if(court_outcome == 'CADJ')
+    {
+        $('#div_court_order').css({'display': 'none'});
+        $('#court_order').multiselect('clearSelection');
+        $('#court_order').multiselect('refresh')
+        $('#sel_court_order').html('')
+        $('#div_next_hearing_date').css({'display': 'block'}); 
+    }
+    else if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+    {
+        $('#div_court_order').css({'display': 'block'}); 
+        $('#div_next_hearing_date').css({'display': 'none'}); 
+        $('#next_hearing_date').val('');
+    }
+    else
+    {
+        $('#div_court_order').css({'display': 'none'});
+        $('#court_order').multiselect('clearSelection');
+        $('#court_order').multiselect('refresh')
+        $('#sel_court_order').html('')
+
+        $('#div_next_hearing_date').css({'display': 'none'}); 
+        $('#next_hearing_date').val('');
+    }
+    $("#court_msgs4").css({ 'display': "none" });
+});
+
+$('#next_hearing_date').datepicker({ format: 'dd-M-yyyy' });
+$('#next_hearing_date').datepicker().on('change.dp', function(e) {
+    $("#court_msgs3").css({ 'display': "none" });
+});
+
+$('#date_of_court_event').datepicker().on('change.dp', function(e) {
+    var date_of_court_event = $('#date_of_court_event').datepicker('getDate');
+    var new_court_event_date = (date_of_court_event.getDate() + 1) + '/' 
+                                + (date_of_court_event.getMonth() + 1) + '/' 
+                                + date_of_court_event.getFullYear(); 
+
+    // Reconfigure next_mention_date
+    $('#next_mention_date').val('');
+    $('#next_mention_date').datepicker('remove');
+    $('#next_mention_date').datepicker({ 
+        startDate: new_court_event_date,
+        format: 'dd-M-yyyy'
+    });
+
+    // Reconfigure next_hearing_date
+    $('#next_hearing_date').val('');
+    $('#next_hearing_date').datepicker('remove');
+    $('#next_hearing_date').datepicker({ 
+        startDate: new_court_event_date,
+        format: 'dd-M-yyyy'
+    });
 });
 
 $('#court_notes').keyup(function() {
@@ -2536,70 +3697,47 @@ $('#workforce_member_court').keyup(function() {
     }
 });
 
-
-/* Placement Dialog */
-$("#placement_case").change(function(event) 
+/* Manage Referrals */
+$("#refferal_case").change(function(event) 
 { 
-    $("#placement_msgs0").css({ 'display': "none" }); 
+    $("#refferal_case_errormsg").css({ 'display': "none" }); 
+    displayVals('refferal_case');
 });
 
-$('#date_of_placement_event').datepicker({ format: 'dd-M-yyyy' });
-$('#date_of_placement_event').datepicker().on('change.dp', function(e) {
-    $("#placement_msgs1").css({ 'display': "none" });
+$("#refferals_actor").change(function(event) 
+{ 
+    $("#refferals_actor_errormsg").css({ 'display': "none" }); 
+    displayVals('refferals_actor');
 });
 
-$('#placement_notes').keyup(function() {
+$("#refferals_actor_specify").change(function(event) 
+{ 
+    $("#refferals_actor_specify_errormsg").css({ 'display': "none" }); 
+    displayVals('refferals_actor_specify');
+});
+
+/*
+$('#refferals_actor_specify').keyup(function() {
     if($(this).val()) // get the current value of the input field    
     {
-        $("#placement_msgs2").css({ 'display': "none" }); 
+        $("#refferals_actor_specify_errormsg").css({ 'display': "none" }); 
     }
 });
+**/
 
-$("#residential_institution").keyup(function(event) 
+$("#refferals_made").change(function(event) 
 { 
-    $("#placement_msgs3").css({ 'display': "none" }); 
+    $("#refferals_made_errormsg").css({ 'display': "none" }); 
+    displayVals('refferals_made');
 });
 
-$("#current_residential_status").change(function(event) 
-{ 
-    $("#placement_msgs4").css({ 'display': "none" }); 
-});
-
-$("#has_court_committal_order").change(function(event) 
-{ 
-    $("#placement_msgs5").css({ 'display': "none" }); 
-});
-
-$("#free_for_adoption").change(function(event) 
-{ 
-    $("#placement_msgs6").css({ 'display': "none" }); 
-});
-
-$('#admission_date').datepicker({ format: 'dd-M-yyyy' });
-$("#admission_date").change(function(event) 
-{ 
-    $("#placement_msgs7").css({ 'display': "none" }); 
-});
-
-$('#departure_date').datepicker({ format: 'dd-M-yyyy' });
-$("#departure_date").change(function(event) 
-{ 
-    $("#placement_msgs8").css({ 'display': "none" }); 
-});
-
-$('#workforce_member_plcmnt').keyup(function() {
-    if($(this).val()) // get the current value of the input field    
-    {
-        $("#placement_msgs9").css({ 'display': "none" }); 
-    }
-});
 
 /* Closure Dialog */
 $('#date_of_case_closure').datepicker({ format: 'dd-M-yyyy' });
 $('#date_of_case_closure').datepicker().on('change.dp', function(e) {
     $("#closure_msgs3").css({ 'display': "none" });
 });
-$('#case_outcome_notes').keyup(function() {
+$('#case_closure_notes').keyup(function() {
     if($(this).val()) // get the current value of the input field    
     {
         $("#closure_msgs2").css({ 'display': "none" }); 
@@ -2609,5 +3747,43 @@ $("#case_status").change(function(event)
 { 
     $("#closure_msgs1").css({ 'display': "none" }); 
 });
+$("#case_outcome").change(function(event) 
+{ 
+    var case_outcome = $('#case_outcome').val();
+    if(case_outcome =='COTR')
+    {
+        $("#div_transfered_to").css({ 'display': "block" });
+    } 
+    else
+    {
+        $("#div_transfered_to").css({ 'display': "none" });
+        $("#transfered_to").multiselect('clearSelection');
+        $("#transfered_to").multiselect('refresh');
+    }
+});
+
+// Reconfigure date_of_case_closure
+$('#date_of_case_closure').val('');
+$('#date_of_case_closure').datepicker('remove');
+$('#date_of_case_closure').datepicker({ 
+    endDate: '1d',
+    format: 'dd-M-yyyy'
+});
+
+/* Mentions Dialog */
+// Reconfigure next_mention_date
+$('#next_mention_date').val('');
+$('#next_mention_date').datepicker('remove');
+$('#next_mention_date').datepicker({ 
+    endDate: '-0d',
+    format: 'dd-M-yyyy'
+});
+
+/* Case Status Dialog */
+$('#case-status-dialog').on('shown.bs.modal', function() {
+    var case_status = $('#btn_case_status').text();
+      $('#span_case_status').html('This case is ' + case_status + '.');
+    });
+
 </script>
 {% endblock %}

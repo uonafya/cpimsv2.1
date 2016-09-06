@@ -1,32 +1,45 @@
+"""Main module for managing set up lists."""
+import csv
+import time
 from django.contrib import admin
 from django.http import HttpResponse
-from .models import SetupGeography
+from .models import SetupGeography, SetupList
 
 
-def export_csv(modeladmin, request, queryset):
-    import csv
-    from django.utils.encoding import smart_str
+def dump_to_csv(modeladmin, request, qs):
+    """
+    These takes in a Django queryset and spits out a CSV file.
+
+    Generic method for any queryset
+    """
+    model = qs.model
+    file_id = 'CPIMS_%s_%d' % (model.__name__, int(time.time()))
+    file_name = 'attachment; filename=%s.csv' % (file_id)
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=list_geo.csv'
+    response['Content-Disposition'] = file_name
     writer = csv.writer(response, csv.excel)
-    response.write(u'\ufeff'.encode('utf8'))
-    # BOM (optional...Excel needs it to open UTF-8 file properly)
-    writer.writerow([
-        smart_str(u"ID"),
-        smart_str(u"Name"),
-        smart_str(u"Parent"),
-    ])
-    for obj in queryset:
-        writer.writerow([
-            smart_str(obj.pk),
-            smart_str(obj.area_name),
-            smart_str(obj.parent_area_id),
-        ])
+
+    headers = []
+    for field in model._meta.fields:
+        headers.append(field.name)
+    writer.writerow(headers)
+
+    for obj in qs:
+        row = []
+        for field in headers:
+            val = getattr(obj, field)
+            if callable(val):
+                val = val()
+            if type(val) == unicode:
+                val = val.encode("utf-8")
+            row.append(val)
+        writer.writerow(row)
     return response
-export_csv.short_description = u"Export CSV"
+dump_to_csv.short_description = u"Dump to CSV"
 
 
 def export_xls(modeladmin, request, queryset):
+    """Method to export as excel."""
     import xlwt
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=list_geo.xls'
@@ -64,6 +77,7 @@ export_xls.short_description = u"Export XLS"
 
 
 def export_xlsx(modeladmin, request, queryset):
+    """Export as xlsx."""
     import openpyxl
     from openpyxl.cell import get_column_letter
     fmt = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -108,11 +122,28 @@ export_xlsx.short_description = u"Export XLSX"
 
 
 class GeoModelAdmin(admin.ModelAdmin):
+    """Admin back end for Geo data management."""
+
     search_fields = ['area_id', 'area_name']
     list_display = ['area_id', 'area_name', 'area_type_id', 'area_code',
                     'parent_area_id']
     readonly_fields = ['area_id']
     list_filter = ['area_type_id']
-    actions = [export_csv, export_xls, export_xlsx]
+    actions = [dump_to_csv, export_xls, export_xlsx]
 
 admin.site.register(SetupGeography, GeoModelAdmin)
+
+
+class GeneralModelAdmin(admin.ModelAdmin):
+    """Admin back end for Lookup lists management."""
+
+    search_fields = ['item_id', 'item_description']
+    list_display = ['item_id', 'item_description', 'field_name',
+                    'item_category', 'item_sub_category', 'the_order',
+                    'is_void']
+    readonly_fields = ['is_void']
+    list_filter = ['field_name']
+    actions = [dump_to_csv]
+
+
+admin.site.register(SetupList, GeneralModelAdmin)

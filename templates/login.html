@@ -1,55 +1,80 @@
-{% extends 'base.html' %}
-{% block page_title %} Dashboard {% endblock %}
+{% extends 'base_home.html' %}
+{% load staticfiles %}
 
-{% block secondary %}
-<!-- begin login -->
-<div class="login animated fadeInDown">
-    <!-- begin brand -->
-    <div class="login-header">
-        <div class="brand">
-            LOGIN<small>Provide your credentials to login.</small>
-        </div>
-        <div class="icon">
-            <i class="fa fa-sign-in"></i>
-        </div>
+{% block page_title %} {{block.super}} Log in {% endblock page_title%}    
+
+{% block primary %}
+<!-- begin right-content -->
+<div class="right-content">
+    <!-- begin register-header -->
+    <div class="register-header">
+        <h4 class="brand shome">Department of Children Services (DCS)</h4>
     </div>
-    <!-- end brand -->
-    <div class="login-content">
-
+    <h1 class="register-header">
+        <small>Provide the required details to log in</small>
+    </h1>
+    <!-- end register-header -->
+    
+    <!-- begin register-content -->
+    <div class="register-content">
+     {% if request.session.password_change_relogin %}
+     <p>Please login afresh</p>
+     {% endif %}
         {% if messages %}
-        <div id="messages" class="alert alert-danger fade in">
-            <span class="close" data-dismiss="alert">×</span>
-            <i class="fa fa-check fa-2x pull-left"></i>
-            <ul class="messages">
-                {% for message in messages %}
-                <li{% if message.info %} class="{{ message.info }}"{% endif %}><b>{{ message }}</b></li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        <form action="{% url 'login' %}" method="POST" class="margin-bottom-0">
-            {% csrf_token %}
-
-            {{ form.as_table }}
-            <br>
-            <div class="login-buttons">
-                <button type="submit" class="btn btn-success btn-block btn-lg">Log in</button>
-
-                <div align="center" class="m-t-20 m-b-40 p-b-40">
-                    <a href="{% url 'new_person' %}" class="btn btn-inverse m-r-5 m-b-5">
-                        Register
-                    </a>
-                    <a href="#" class="btn btn-inverse m-r-5 m-b-5">
-                        Forgot password?
-                    </a>
-                </div>
-
+            {% for message in messages %}
+            {% if 'error' in message.tags %}
+                <div id="messages" class="alert alert-danger fade in m-b-15">
+                <span class="close" data-dismiss="alert">×</span>
+                <i class="fa fa-info fa-2x pull-left"></i>
+            {% else %}
+                <div id="messages" class="alert alert-success fade in">
+                <span class="close" data-dismiss="alert">×</span>
+                <i class="fa fa-check fa-2x pull-left"></i>
+            {% endif %}    
+                <p>{{ message }}</p>
             </div>
-            <br>
-            
+           {% endfor %}
+        {% endif %}
+        {% if form.errors %}
+            <div id="messages" class="alert alert-danger fade in m-b-15">
+            <span class="close" data-dismiss="alert">×</span>
+            <i class="fa fa-info fa-2x pull-left"></i>
+            {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <form action="{{ request.get_full_path }}" method="POST" class="margin-bottom-0" data-parsley-validate="true">
+            {% csrf_token %}
+            <label class="control-label">Username</label>
+            <div class="form-group m-b-15">
+                {{ form.username }}
+            </div>
+            <label class="control-label">Password</label>
+            <div class="form-group m-b-15">
+                {{ form.password }}
+            </div>
+            <div class="login-buttons">
+                <button type="submit" class="btn btn-success btn-block btn-lg">Sign in</button>
+            </div>
+            <div class="m-t-20 m-b-20 p-b-20">
+                Not registered yet? Click <a href="{% url 'access' %}" class="text-success">here</a> to request for access<br>
+                Forgot password? Click <a href="{% url 'password_reset' %}" class="text-success">here</a> to change password
+            </div>
+                <span class="promo">
+                    <p>
+                        <img src="{% static 'img/logo.jpg' %}" height="60"> &nbsp;&nbsp; | &nbsp;&nbsp;
+                        <img src="{% static 'img/usaid.jpg' %}" height="60">
+                        <img src="{% static 'img/pima.jpg' %}" height="55">
+                    </p>
+                    </span>
+                    <hr />
+                    <p class="text-center text-inverse">
+                        &copy; {% now "Y" %} Department of Children Services (DCS). All Rights Reserved.
+                    </p>
         </form>
     </div>
+    <!-- end register-content -->
 </div>
-<!-- end login -->
-{% endblock secondary %}
+<!-- end right-content -->
+{% endblock primary %}
+
+{% block lazy_javascript_code %}{% endblock lazy_javascript_code %}

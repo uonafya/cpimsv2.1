@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block page_title %} {{block.super}} Register {% endblock page_title%}
+{% block page_title %} {{block.super}} Persons registry details {% endblock page_title%}
 
 {% load staticfiles %}
 
@@ -17,7 +17,7 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h3 class="page-header">Registry <small>Person Details</small></h3>
+<h3 class="page-header">Persons Registry <small>Person Details</small></h3>
 <!-- end page-header -->
 {% if messages %}
 <div id="messages" class="alert alert-success fade in">
@@ -69,15 +69,12 @@
                                 <table class="table table-profile">
                                     <thead>
                                         <tr>
-                                            <th width="30%"></th>
+                                            <th width="25%"></th>
                                             <th>
                                             <h4>{{ person_details.first_name }} {{ person_details.surname }}
                                                 <br>
-                                                <br>
                                                 <small><b>
-                                                {% if person_details.date_of_death == None %}
-                                                    Alive
-                                                {% else %}
+                                                {% if not person_details.date_of_death == None %}
                                                     Date Of Death {{ person_details.date_of_death }}
                                                 {% endif %}
                                                 </b></small>
@@ -90,84 +87,117 @@
                                             <td class="field">Person ID : </td>
                                             <td>{{ person_details.id}}</td>
                                         </tr>
-                                        {% for ptype in person_details.ptypes %}
                                         <tr>
-                                            <td class="field">Person Type : </td>
-                                            <td>{{ ptype.person_type_id|gen_value:vals }}</td>
+                                            <td class="field">Person Type(s) : </td>
+                                            <td>{{ person_details.person_type_name }}</td>
                                         </tr>
-                                        {% endfor %} 
                                         <tr>
                                             <td class="field">Person First Name : </td>
                                             <td>{{ person_details.first_name }}</td>
                                         </tr>
                                         <tr>
-                                            <td class="field">Person Other Names : </td>
-                                            <td>{{ person_details.other_names }}</td>
-                                        </tr>
-                                        <tr>
                                             <td class="field">Person Surname : </td>
                                             <td>{{ person_details.surname }}</td>
                                         </tr>
+                                        {% if person_details.other_names %}
+                                        <tr>
+                                            <td class="field">Person Other Names : </td>
+                                            <td>{{ person_details.other_names }}</td>
+                                        </tr>
+                                        {% endif %}
                                         <tr>
                                             <td class="field">Sex: </td>
                                             <td>{{ person_details.sex_id|gen_value:vals }}</td>
                                         </tr>
                                         <tr>
+                                            <td class="field">Date Of Birth : </td>
+                                            <td>{{ person_details.date_of_birth }} (
+                                            {% if person_details.age == '116 years' or person_details.date_of_birth == None %}
+                                            Not Provided
+                                            {% else %}
+                                            {{ person_details.age }}
+                                            {% endif %}
+                                            )</td>
+                                        </tr>
+                                        <tr class="highlight">
+                                            <td class="field">Contact and Location Details</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
                                             <td class="field">Phone Number : </td>
                                             <td>{{ person_details.des_phone_number }}</td>
                                         </tr>
-                                        <tr>
-                                            <td class="field">Date Of Birth : </td>
-                                            <td>{{ person_details.date_of_birth }}</td>
-                                        </tr>
+                                        {% if person_details.email %}
                                         <tr>
                                             <td class="field">Email Address : </td>
                                             <td>{{ person_details.email}}</td>
                                         </tr>
-                                        
-                                        {% for pgeoloc in person_details.pgeolocs %}
+                                        {% endif %}
+                                        {% if 'TBVC' in person_details.person_types or 'TBGR' in person_details.person_types %}
                                         <tr>
-                                            <td class="field">Living in : </td>
-                                            <td>{{ pgeoloc.area_name }}</td>
+                                            <td class="field">Living in (Sub-county) : </td>
+                                            <td>{{ person_details.pgeos }}</td>
                                         </tr>
-                                        {% endfor %}
-
-
-                                        {% for porg in person_details.porgs%}
+                                        {% if person_details.geo_wards %}
+                                        <tr>
+                                            <td class="field">Living in (Ward) : </td>
+                                            <td>{{ person_details.geo_wards }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% else %}
+                                        {% if person_details.geo_county %}
+                                        <tr>
+                                            <td class="field">Working in (County): </td>
+                                            <td>{{ person_details.geo_county }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <td class="field">Working in (Sub-county): </td>
+                                            <td>
+                                            {% if person_details.pgeos %}
+                                                {{ person_details.pgeos }}
+                                            {% else %}
+                                                National
+                                            {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if person_details.geo_wards %}
+                                        <tr>
+                                            <td class="field">Working in (Ward): </td>
+                                            <td>{{ person_details.geo_wards }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endif %}
+                                        {% if person_details.porgs %}
                                         <tr>
                                             <td class="field">Organizational Unit(s) : </td>
-                                            <td>{{ porg.org_unit_name }}</td>
-                                            
+                                            <td>{{ person_details.porgs }}</td>                                          
                                         </tr>
-                                        {% endfor %}
-
-                                        {% for pextid in person_details.pextids %}
+                                        {% endif %}
                                         <tr>
-                                            <td class="field">{{ pextid.identifier_type_id|gen_value:vals }} : </td>
-                                            <td>{{ pextid.identifier }}</td>
+                                            <td class="field">Record creation details: </td>
+                                            <td>By {{ person_details.created_by.reg_person.full_name }}; on {{ person_details.created_at }}</td>                                          
                                         </tr>
-                                        {% endfor %} 
-
-                                        <tr>
-                                            <td class="field">Relationship(s) : </td>
-                                            {% if person_details.relationship_type_id %}
-                                            <td>{{ person_details.relationship_type_id|gen_value:vals }}</td>
-                                            {% else %}
-                                            <td>No relationships to view</td>
-                                            {% endif %}
-                                        </tr>
-
                                         <tr>
                                         <td class="field"></td>
                                         <td>
+                                            <button onclick="goBack()" class="btn  btn-sm btn-primary m-r-5"><i class="fa fa-arrow-left"></i> &nbsp;<b>Back to search</b>&nbsp; </button>
+                                            {% if person_details.date_of_death == None %}
                                             <button id="btn_edit_details" onClick="window.location.href='{% url 'edit_person' id=person_details.pk %}'" class="btn  btn-sm btn-primary m-r-5">
-                                            <b> Edit Person Details</b>&nbsp&nbsp<i class="fa fa-edit"></i>
+                                            <b> Edit Person Details</b>&nbsp; <i class="fa fa-edit"></i>
                                             </button>
+                                            {% endif %}
 
                                             {% if person_details.person_id != None %}
-                                            <button id="btn_edit_details" onClick="window.location.href='{% url 'roles_home' %}{{ person_details.person_id }}'" class="btn  btn-sm btn-primary m-r-5">
-                                            <b> Assign Permissions</b> <i class="fa fa-edit"></i>
+                                            <button id="btn_edit_details" onClick="window.location.href='{% url 'roles_edit' user_id=person_details.person_id %}'" class="btn  btn-sm btn-primary m-r-5">
+                                            <b> Manage Roles</b>&nbsp; <i class="fa fa-edit"></i>
                                             </button>
+                                            {% else %}
+                                            {% if person_details.workforce_id %}
+                                            <button id="btn_create_account" type="submit" onClick="window.location.href='{% url 'new_user' id=person_details.pk %}'" class="btn  btn-sm btn-primary m-r-5">
+                                            <b>Create Account</b>&nbsp; <i class="fa fa-lock"></i>
+                                            </button>
+                                            {% endif %}
                                             {% endif %}
                                         </td>
                                         </tr>
@@ -187,11 +217,51 @@
                     <div class="row">
                         <!-- begin col-4 -->
                         <div class="col-md-4">
-                            <h4 class="title">Message <small>0 messages</small></h4>
+                            <h4 class="title">Account details <small>
+                            {% if appuser %} 6 {% else %} 0 {% endif %}
+                            available</small></h4>
                             <!-- begin scrollbar -->
                             <div data-scrollbar="true" data-height="280px" class="bg-silver">
                                 <!-- begin chats -->
-                                
+                                {% if appuser %}
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Username :</td>
+                                            <td>{{ appuser.username }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Last login :</td>
+                                            <td>{{ appuser.last_login }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Active :</td>
+                                            <td>{{ appuser.is_active }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Date created :</td>
+                                            <td>{{ appuser.timestamp_created }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Date modified :</td>
+                                            <td>{{ appuser.timestamp_updated }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Last password change :</td>
+                                            <td>{{ appuser.password_changed_timestamp }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                {% else %}
+                                    <br>
+                                    <p>&nbsp; Person does not have a log in account</p>
+                                {% endif %}
                                 <!-- end chats -->
                             </div>
                             <!-- end scrollbar -->
@@ -199,11 +269,31 @@
                         <!-- end col-4 -->
                         <!-- begin col-4 -->
                         <div class="col-md-4">
-                            <h4 class="title">Other details <small>0 incomplete</small></h4>
+                            <h4 class="title">Other details <small>{{ person_details.pextids.count }} provided</small></h4>
                             <!-- begin scrollbar -->
                             <div data-scrollbar="true" data-height="280px" class="bg-silver">
                                 <!-- begin table -->
-                                
+                                {% if person_details.pextids %}
+                                 <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for pextid in person_details.pextids %}
+                                        <tr>
+                                            <td class="field">{{ pextid.identifier_type_id|gen_value:vals }} : </td>
+                                            <td>{{ pextid.identifier|gen_value:vals }}</td>
+                                        </tr>
+                                        {% endfor %} 
+                                    </tbody>
+                                </table>
+                                {% else %}
+                                    <br>
+                                    <p>&nbsp;Please provide more identification details for this person.</p>  
+                                {% endif %}                              
                                 <!-- end table -->
                             </div>
                             <!-- end scrollbar -->
@@ -211,11 +301,72 @@
                         <!-- end col-4 -->
                         <!-- begin col-4 -->
                         <div class="col-md-4">
-                            <h4 class="title">Tasks <small>20 pending</small></h4>
+                            <h4 class="title">Related <small> {{ siblings.count|add:guardians.count|add:osiblings.count|add:oguardians.count }} provided</small></h4>
                             <!-- begin scrollbar -->
                             <div data-scrollbar="true" data-height="280px" class="bg-silver">
                                 <!-- begin todolist -->
-                                
+                                {% if guardians or siblings or osiblings or oguardians %}
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Relation</th>
+                                            <th>Age</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for guardian in guardians %}
+                                        <tr>
+                                            <td><a href="{% url 'view_person' id=guardian.guardian_person.id %}">{{ guardian.guardian_person.full_name }}</a></td>
+                                            <td>{{ guardian.relationship|gen_value:vals }}</td>
+                                            <td>{{ guardian.guardian_person.age }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% for oguardian in oguardians %}
+                                        <tr>
+                                            <td><a href="{% url 'view_person' id=oguardian.child_person.id %}">{{ oguardian.child_person.full_name }}</a></td>
+                                            <td>
+                                            {% if oguardian.child_person.sex_id == 'SFEM' %}
+                                            Daughter
+                                            {% else %}
+                                            Son
+                                            {% endif %}
+                                            </td>
+                                            <td>{{ oguardian.child_person.age }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% for sibling in siblings %}
+                                        <tr>
+                                            <td><a href="{% url 'view_person' id=sibling.sibling_person.id %}">{{ sibling.sibling_person.full_name }}</a></td>
+                                            <td>
+                                            {% if sibling.sibling_person.sex_id == 'SFEM' %}
+                                            Sister
+                                            {% else %}
+                                            Brother
+                                            {% endif %}
+                                            </td>
+                                            <td>{{ sibling.sibling_person.age }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% for osibling in osiblings %}
+                                        <tr>
+                                            <td><a href="{% url 'view_person' id=osibling.child_person.id %}">{{ osibling.child_person.full_name }}</a></td>
+                                            <td>
+                                            {% if osibling.child_person.sex_id == 'SFEM' %}
+                                            Sister
+                                            {% else %}
+                                            Brother
+                                            {% endif %}
+                                            </td>
+                                            <td>{{ osibling.child_person.age }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                {% else %}
+                                    <br>
+                                    <p>&nbsp;No relative details provided for this person.</p>  
+                                {% endif %}
                                 <!-- end todolist -->
                             </div>
                             <!-- end scrollbar -->
@@ -234,10 +385,5 @@
 
 
 {% block lazy_javascript_code %}
-<script src="{% static 'js/apps.js' %}"></script>
-<script>
-    $(document).ready(function() {
-        App.init();
-    });
-</script>
+
 {% endblock lazy_javascript_code %}

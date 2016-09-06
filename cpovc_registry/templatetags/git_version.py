@@ -1,27 +1,17 @@
+"""Method to create template tag."""
 from django import template
-from django.conf import settings
-import subprocess
+
 
 register = template.Library()
 
 
 @register.assignment_tag(takes_context=True)
 def git_version(context):
+    """Hard coded version numbering."""
     try:
-        cmd = 'cd ' + settings.GIT_ROOT + ';'
-        # --pretty=format:'%h %ai'
-        cmd += "git log --abbrev-commit --date=local -1" + ';'
-        # cmd += 'cd -'
-        head = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
-        git_revision = str(head.stdout.readlines())
-        git_vals = git_revision.replace('\\n', '')
-        git_values = eval(git_vals)
-        git_short = git_values[0], git_values[1], git_values[2]
+        git_short = '1.4.3'
     except Exception, e:
         print str(e)
-        git_short = '3.0.0'
-        return git_short
+        return '1.3.6'
     else:
         return git_short
