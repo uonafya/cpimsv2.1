@@ -95,10 +95,8 @@ def home(request):
                            'message': message, 'vals': vals})
         form = FormRegistry()
         query = request.GET.get('q')
-        query_id = request.GET.get('id')
         if query:
-            qid = int(query_id) if str(query_id) else 0
-            results = auto_suggest_person(request, query, qid)
+            results = auto_suggest_person(request, query)
             return JsonResponse(results, content_type='application/json',
                                 safe=False)
         return render(request, 'registry/org_units_index.html',
@@ -121,10 +119,10 @@ def register_new(request):
             org_unit_type = request.POST.get('org_unit_type')
             org_unit_name = request.POST.get('org_unit_name')
             reg_date = request.POST.get('reg_date')
-            if not reg_date:
-                reg_date = None
-            else:
+            if str(reg_date):
                 reg_date = convert_date(reg_date)
+            else:
+                reg_date = None
             county = request.POST.getlist('county')
             sub_county = request.POST.getlist('sub_county')
             ward = request.POST.getlist('ward')
@@ -208,16 +206,16 @@ def register_edit(request, org_id):
             area_list.append(area_id['area_id'])
         county_list = counties_from_aids(area_list)
         if request.method == 'POST':
-            units = RegOrgUnit.objects.get(pk=org_id, is_void=False)
             form = FormRegistry(data=request.POST)
             cform = FormContact(data=request.POST)
             edit_type = int(request.POST.get('edit_org'))
             org_unit_name = request.POST.get('org_unit_name')
             org_unit_type = request.POST.get('org_unit_type')
             reg_date = request.POST.get('reg_date')
-            if reg_date:
+            if str(reg_date):
                 reg_date = convert_date(reg_date)
-            parent_org_unit = request.POST.get('parent_org_unit')
+            else:
+                reg_date = None
             county = request.POST.getlist('county')
             sub_county = request.POST.getlist('sub_county')
             ward = request.POST.getlist('ward')
@@ -228,7 +226,6 @@ def register_edit(request, org_id):
                 units.org_unit_name = org_unit_name.upper()
                 units.org_unit_type_id = org_unit_type
                 units.date_operational = reg_date
-                #units.parent_org_unit_id = parent_org_unit
                 units.save(update_fields=["org_unit_name", "org_unit_type_id",
                                           "date_operational"])
                 # Update registration details
@@ -883,7 +880,7 @@ def edit_person(request, id):
             audit_date = request.POST.get('audit_date')
             audit_workforce_id = request.POST.get('workforce_id')
             edit_type = int(request.POST.get('edit_person'))
-            dob = convert_date(date_of_birth) if date_of_birth else None
+            dob = convert_date(date_of_birth) if str(date_of_birth) else None
             # Update RegPerson
             eperson_id = int(id)
             if edit_type == 1:
@@ -955,6 +952,7 @@ def edit_person(request, id):
                 for new_ptype in person_types:
                     if new_ptype not in type_check_list:
                         new_ptypes.append(new_ptype)
+                print 'add', new_ptypes, 'remove', remove_ptypes
                 save_person_type(new_ptypes, eperson_id)
                 remove_person_type(remove_ptypes, eperson_id)
 
@@ -1361,13 +1359,13 @@ def person_actions(request):
                 for ncg in attached_cg:
                     dob = None
                     if len(attached_cg[ncg]) > 2:
-                        cpims_id = int(attached_cg[ncg]['cpid'])
+                        caregiver_id = int(attached_cg[ncg]['cpid'])
                         sex_id = attached_cg[ncg]['gender']
                         date_of_birth = attached_cg[ncg]['dob']
                         first_name = attached_cg[ncg]['fname']
                         other_names = attached_cg[ncg]['oname']
                         surname = attached_cg[ncg]['sname']
-                        if cpims_id == 0:
+                        if caregiver_id == 0:
                             if date_of_birth:
                                 dob = convert_date(date_of_birth)
                             person = RegPerson(
@@ -1386,7 +1384,7 @@ def person_actions(request):
                             person_types = ['TBGR']
                             save_person_type(person_types, cpims_id)
                             # Copy paste locations from child
-                            copy_locations(person_id, cpims_id)
+                            copy_locations(person_id, cpims_id, request)
                         # Now save this record to Guardians
                         is_adult = attached_cg[ncg]['adult']
                         relationship = attached_cg[ncg]['ctype']

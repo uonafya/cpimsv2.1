@@ -24,9 +24,13 @@ inst_vars = (('', 'Select Type'),
              ('TNCI', 'Charitable Children Institution'),
              ('TNSI', 'Statutory Institution'))
 
+usg_reports = (('', 'Select Report'), (1, 'DATIM'),
+               (2, 'Services by Domain (PEPFAR Summary)'),
+               (3, 'Key Performance Indicator'))
 report_period = ()
 
 YEAR_CHOICES = create_year_list()
+YEAR_ICHOICES = create_year_list(i_report=True)
 
 
 class CaseLoad(forms.Form):
@@ -37,8 +41,11 @@ class CaseLoad(forms.Form):
         self.user = user
         super(CaseLoad, self).__init__(*args, **kwargs)
         org_units = get_specific_orgs(self.user.reg_person_id)
+        org_inst = get_specific_orgs(self.user.reg_person_id, 1)
         if user.is_superuser:
             org_units = get_org_units_list('Please select Unit')
+            inst_types = ['TNRH', 'TNRB', 'TNRR', 'TNRS', 'TNAP', 'TNRC']
+            org_inst = get_org_units_list('Please select Unit', inst_types)
         org_unit = forms.ChoiceField(
             choices=org_units,
             initial='',
@@ -46,6 +53,15 @@ class CaseLoad(forms.Form):
                 attrs={'class': 'form-control',
                        'autofocus': 'true'}))
         self.fields['org_unit'] = org_unit
+
+        org_inst = forms.ChoiceField(
+            choices=org_inst,
+            initial='',
+            widget=forms.Select(
+                attrs={'class': 'form-control',
+                       'autofocus': 'true',
+                       'id': 'id_org_unit'}))
+        self.fields['org_inst'] = org_inst
 
     county = forms.ChoiceField(
         choices=county_list,
@@ -88,6 +104,14 @@ class CaseLoad(forms.Form):
                    'data-parsley-required': 'true',
                    'autofocus': 'true'}))
 
+    report_years = forms.ChoiceField(
+        choices=YEAR_ICHOICES,
+        initial='',
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'data-parsley-required': 'true',
+                   'autofocus': 'true', 'id': 'report_year'}))
+
     report_period = forms.ChoiceField(
         choices=report_period,
         initial='',
@@ -126,4 +150,11 @@ class CaseLoad(forms.Form):
         widget=forms.Select(
             attrs={'class': 'form-control',
                    'data-parsley-required': 'false',
+                   'autofocus': 'true'}))
+
+    report_ovc = forms.ChoiceField(
+        choices=usg_reports,
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'data-parsley-required': 'true',
                    'autofocus': 'true'}))

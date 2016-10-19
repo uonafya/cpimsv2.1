@@ -26,13 +26,17 @@
     <li class="active">Forms</li>
 </ol>
 <!-- end breadcrumb -->
+
 <!-- begin page-header -->
-<h1 class="page-header">Forms <small>View Placement | <span<i>
-                                                {% for data in init_data %}
-                                                   {{ data.first_name }} {{ data.surname }}
-                                                {% endfor %}
-                                                </i></p></span></small></h1>
+{% for data in init_data %}
+<h1 class="page-header">Forms <small>View Institutional Placement <b>{{ data.first_name }} {{ data.surname }} | {{ data.sex_id|gen_value:vals }} | {% if data.date_of_birth|gen_age == 0 %}
+                            UNDER 1 YEAR
+                        {% else %}
+                            {{ data.date_of_birth|gen_age }} YRS 
+                        {% endif %}</b></small></h1>
+{% endfor %}
 <!-- end page-header -->
+
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
     <i class="fa fa-check fa-2x pull-left"></i>
@@ -102,7 +106,7 @@
                                     <div class="form-group">
                                         <label class="control-label col-md-4 col-sm-4" for="admission_reason">Reason Of Admission :</label>
                                         <div class="col-md-6 col-sm-6">
-                                                {{ resultset.admission_reason }}
+                                                {{ resultset.admission_reason|gen_value:vals }}
                                         </div>
                                     </div>                                               
                                 </div>
@@ -214,7 +218,11 @@
                                     <div id="div_placement_notes" class="form-group">
                                          <label class="control-label col-md-4 col-sm-4" for="placement_notes">Placement Notes :</label>
                                          <div class="col-md-6 col-sm-6">
+                                         {% if resultset.placement_notes %}
                                             {{ resultset.placement_notes }}
+                                         {% else %}
+                                            None
+                                         {% endif %}
                                          </div>
                                     </div>
 

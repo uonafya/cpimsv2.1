@@ -22,14 +22,16 @@ from reportlab.graphics import renderPDF
 from cpovc_main.functions import get_general_list, get_dict
 from cpovc_main.models import SetupGeography
 
+from cpovc_ovc.models import OVCAggregate
+
 from .config import reports
 from cpovc_registry.models import (
     RegOrgUnitGeography, RegPerson, RegOrgUnit, RegPersonsSiblings,
-    RegPersonsGeo, RegPersonsGuardians)
+    RegPersonsGeo, RegPersonsGuardians, RegPersonsExternalIds)
 
 from cpovc_forms.models import (
     OVCCaseCategory, OVCCaseGeo, OVCCaseEventServices,
-    OVCAdverseMedicalEventsFollowUp, OVCPlacement,
+    OVCAdverseEventsFollowUp, OVCPlacement, OVCAdverseEventsOtherFollowUp,
     OVCDischargeFollowUp, OVCCaseRecord, OVCAdverseEventsFollowUp)
 
 from django.conf import settings
@@ -93,7 +95,7 @@ def get_report_body(params, report='DSCE'):
             field_values = repo_val.strip()
             field_vals = field_values.split(':', 1)
             field_txt = None if len(field_vals) < 2 else field_vals[1]
-            if '<' in field_vals[0] and '>' in field_vals[0]:
+            if '<' in field_vals[0] and '>' in field_vals[0] and 'br/' not in field_vals[0]:
                 cnt += 1
                 fields[field_vals[0].replace('>', '_%s>' % cnt)] = field_txt
             else:
@@ -114,9 +116,10 @@ def get_case_details(field_names):
         return case_categories
 
 
-def case_load_header(report_type=1, header=False, ages=True):
+def case_load_header(report_type=1, header=False, params=[]):
     """Method to generate reports headings."""
     try:
+        report_region = 0
         age_ranges = ['0 - 5 yrs', '6 - 10 yrs', '11 - 15 yrs',
                       '16 - 17 yrs', '18+ yrs', 'Sub-Total']
         genders = ['M', 'F']
@@ -126,6 +129,10 @@ def case_load_header(report_type=1, header=False, ages=True):
                   3: 'List of Diseases', 4: 'Situation of Children'}
         report_type_id = report_type if report_type in titles else 1
         title = titles[report_type_id]
+        # Params filter
+        if params:
+            rrg = 'report_region'
+            report_region = params[rrg] if rrg in params else 0
         if header:
             html = ("<tr><td colspan='3'>County</td><td colspan='6'>"
                     "{county}</td><td colspan='3'>Year</td>"
@@ -133,7 +140,7 @@ def case_load_header(report_type=1, header=False, ages=True):
             html += ("<tr><td colspan='3'>Sub County</td><td colspan='6'>"
                      "{sub_county}</td><td colspan='3'>Month</td>"
                      "<td colspan='4'>{month}</td></tr>")
-            if report_type == 4:
+            if report_region == 4:
                 html = ("<tr><td colspan='3'>Organisation</td><td colspan='6'>"
                         "{org_unit_name}</td><td colspan='3'>Year</td>"
                         "<td colspan='4'>{years}</td></tr>")
@@ -247,6 +254,7 @@ def simple_documents(params, document_name='CPIMS', report_name='letter'):
         story.append(Spacer(1, 24))
         vals = get_report_body(params, report_name)
         ptext = '%s' % (vals)
+        print 'BODY', ptext
         story.append(Paragraph(ptext, styles["Justify"]))
         story.append(Spacer(1, 12))
         doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page,
@@ -359,7 +367,7 @@ def simple_document(params, document_name='CPIMS', report_name='letter'):
         story = []
         normal_style = get_style("Normal")
         center_style = get_style("Centered")
-        heading = 'Ministry of Labour and East African Community Affairs'
+        heading = 'Ministry of East African Community (EAC), Labour and Social Protection'
         sub_heading = 'DEPARTMENT OF CHILDREN SERVICES'
         ptext = '<font size=14><b>%s</b></font>' % heading.upper()
         story.append(Paragraph(ptext, center_style))
@@ -382,7 +390,7 @@ def simple_document(params, document_name='CPIMS', report_name='letter'):
         report_id = report_name.split('_')[0]
         fields = get_report_body(params, report=report_id)
 
-        row_num = height - 280
+        row_num = height - 300
         child_name = params['child_name']
         params = child_data(params)
         siblings = params['siblings']
@@ -725,13 +733,23 @@ def data_from_results(datas, gid='D', intv=False):
 def filter_org_unit(params, sub_county_case_ids):
     """Method to filter by org unit."""
     try:
+        org_unit_tree = []
+        org_unit_ids = []
+        if 'org_unit_tree' in params:
+            org_unit_tree = params['org_unit_tree']
+            print 'tquery', org_unit_tree
+            if len(org_unit_tree) > 1:
+                org_unit_ids = org_unit_tree
         if 'org_unit' in params:
             org_unit = params['org_unit']
-            if org_unit:
-                org_unit_id = int(org_unit)
-                sub_county_case_ids = sub_county_case_ids.filter(
-                    report_orgunit_id=org_unit_id)
-    except Exception:
+            if org_unit and len(org_unit_ids) == 0:
+                print 'for one', org_unit
+                org_unit_ids = [int(org_unit)]
+        if org_unit_ids:
+            sub_county_case_ids = sub_county_case_ids.filter(
+                report_orgunit_id__in=org_unit_ids)
+    except Exception, e:
+        print "could not filter by OU - %s" % (str(e))
         return sub_county_case_ids
     else:
         return sub_county_case_ids
@@ -767,6 +785,7 @@ def get_data(params, report='CASE_LOAD'):
             sub_county_case_ids = OVCCaseGeo.objects.filter(
                 is_void=False).values_list('case_id_id', flat=True)
             if org_unit:
+                print 'by ou', org_unit
                 sub_county_case_ids = filter_org_unit(params,
                                                       sub_county_case_ids)
         cl_queryset = cl_queryset.filter(
@@ -935,6 +954,10 @@ def child_data(data):
         areas['GPRV'] = 'child_county'
         areas['GDIS'] = 'child_sub_county'
         areas['GWRD'] = 'child_ward'
+        # External ids
+        extids = {}
+        extids['ICOU'] = 'nationality'
+        extids['IREL'] = 'religion'
 
         sibs, guards = {}, {}
         child_id = data['child_id']
@@ -975,6 +998,18 @@ def child_data(data):
             county = SetupGeography.objects.get(area_id=parent_id)
             county_name = county.area_name
             data[areas['GPRV']] = county_name.upper()
+        # Get child other details
+        child_infos = RegPersonsExternalIds.objects.filter(
+            is_void=False, person_id=child_id)
+        ext_ids = {}
+        for child_info in child_infos:
+            child_ident = child_info.identifier_type_id
+            child_ident_val = child_info.identifier
+            ext_ids[child_ident] = child_ident_val
+        for ffv in extids:
+            ffv_key = extids[ffv]
+            c_data = ext_ids[ffv] if ffv in ext_ids else 'N/A'
+            data[ffv_key] = c_data
         return data
     except Exception, e:
         print 'Error getting child - %s' % (str(e))
@@ -992,7 +1027,9 @@ def get_raw_data(params, data_type=1):
     blanks = ['0'] * 13
     try:
         report_type = int(params['report_id'])
-        if report_type == 5:
+        if report_type == 6:
+            data, raw_data = get_ovc_values(params)
+        elif report_type == 5:
             data, raw_data = get_raw_values(params)
         elif report_type == 4:
             # Other values
@@ -1012,8 +1049,9 @@ def get_raw_data(params, data_type=1):
             dt = '<table class="table table-bordered"><thead>'
             dt += "<tr><th colspan='16'>%s" % (r_title)
             dt += '</th></tr>'
-            dt += "<tr><th colspan='16'>{cci_si_name}</th></tr></thead>"
+            dt += "<tr><th colspan='16'>{cci_si_name}</th></tr>"
             dt += case_load_header(report_type=3)
+            dt += "</thead>"
             # Fetch raw data
             rdatas = get_institution_data(params, report_type)
             rdata = get_totals(rdatas['data'], vls_ids)
@@ -1104,7 +1142,7 @@ def get_raw_data(params, data_type=1):
             rtotals = col_totals(data)
             print 'ROWS', rdatas
             rtotal = write_row([rtotals])
-            rtitle = 'KNBS ECONOMIC SURVEY %s %s' % (
+            rtitle = 'KNBS REPORT %s %s' % (
                 params['month'], params['year'])
             # Just add title whether there is data or not
             knb_head = ['', rtitle.upper(), ''] + [''] * 13
@@ -1114,8 +1152,8 @@ def get_raw_data(params, data_type=1):
                 raw_data.append(knb_title)
             dt = '<table class="table table-bordered"><thead>'
             dt += '<tr><th colspan="16">%s</th></tr>' % (rtitle.upper())
-            dt += '</thead>'
             dt += case_load_header(report_type=4)
+            dt += "</thead>"
             knbcnt = 1
             if data:
                 for val in ids:
@@ -1178,8 +1216,8 @@ def get_raw_data(params, data_type=1):
             dt = '<table class="table table-bordered"><thead>'
             dt += "<tr><th colspan='16'>%s" % (r_title)
             dt += "</th></tr><tr><th colspan='16'>{cci_si_name}</th></tr>"
-            dt += "</thead>"
             dt += case_load_header(report_type=2)
+            dt += "</thead>"
             # This is it
             popdata, popdatas = {}, {}
             opdata, opdatas = {}, {}
@@ -1275,6 +1313,60 @@ def get_raw_data(params, data_type=1):
         raise e
     else:
         return data, raw_data
+
+
+def get_age_bracket(age):
+    """Method to do any age grouping."""
+    val = 0
+    agesets = ['', '0 - 5 yrs', '6 - 10 yrs', '11 - 15 yrs',
+               '16 - 17 yrs', '18+ yrs']
+    ranges = [(0, 6), (6, 11), (11, 16), (16, 18)]
+    for i, (lval, uval) in enumerate(ranges):
+        if (lval <= age <= uval):
+            val = i + 1
+    if age >= 18:
+        val = 5
+    bracket = agesets[val]
+    return bracket
+
+
+def get_ovc_values(params, data_type=1):
+    """Get OVC report."""
+    data = []
+    ovc_filters = {'YEAR': 'ANNUAL', 'Qtr1': 'QUARTER1',
+                   'Qtr3': 'QUARTER3', 'SemiAnnual': 'SEMIANNUAL'}
+    try:
+        print params
+        rhead = ['OVCCount', 'Age', 'Agebracket', 'Domain', 'Gender',
+                 'CBO', 'District', 'County', 'Ward']
+        period = str(params['label'])
+        year = params['year']
+        rperiod = ovc_filters[period] if period in ovc_filters else 'ANNUAL'
+        dt = '<table class="table table-bordered">'
+        dt += '<thead><tr>'
+        for hh in rhead:
+            dt += '<th>%s</th>' % (hh)
+        dt += '</tr></thead><tbody>'
+        aggrs = OVCAggregate.objects.filter(
+            project_year=year, reporting_period=rperiod)
+        data.append(rhead)
+        dt += '<tr><td colspan="9">Total Count %s</td></tr>' % (aggrs.count())
+        for aggr in aggrs:
+            a_1 = aggr.indicator_count
+            a_2 = aggr.age
+            ab = get_age_bracket(a_2)
+            a_3 = aggr.indicator_name
+            a_4 = aggr.gender
+            a_5 = aggr.cbo
+            a_6 = aggr.subcounty
+            a_7 = aggr.county
+            a_8 = aggr.ward
+            data.append([a_1, a_2, ab, a_3, a_4, a_5, a_6, a_7, a_8])
+        dt += '</tbody></table>'
+    except Exception, e:
+        raise e
+    else:
+        return dt, data
 
 
 def get_raw_values(params, data_type=1):
@@ -1410,6 +1502,7 @@ def get_population_data(params):
             # This is a hack since Danet put this field as char and not int
             org_list = [str(o_list) for o_list in orgs_list]
         # Filter by date only first
+        print 0
         start_date = params['start_date']
         end_date = params['end_date']
         ip_queryset = OVCPlacement.objects.filter(
@@ -1425,6 +1518,7 @@ def get_population_data(params):
             item['cid'] = cl.placement_id
             data.append(item)
         # Last period population data
+        print 1
         dis_lists = OVCDischargeFollowUp.objects.filter(
             is_void=False, date_of_discharge__lt=start_date)
         dis_list = dis_lists.values_list('placement_id_id', flat=True)
@@ -1442,6 +1536,7 @@ def get_population_data(params):
             oitem['cid'] = ol.placement_id
             old_data.append(oitem)
         # All discharges
+        print 2
         dis_queryset = OVCDischargeFollowUp.objects.filter(
             is_void=False, date_of_discharge__range=(start_date, end_date))
         dis_data = []
@@ -1454,6 +1549,7 @@ def get_population_data(params):
             ditem['cid'] = dl.placement_id_id
             dis_data.append(ditem)
         # Get all deaths within this period
+        print 3
         death_qs = OVCAdverseEventsFollowUp.objects.filter(
             is_void=False, adverse_condition_description='AEDE',
             adverse_event_date__range=(start_date, end_date))
@@ -1521,18 +1617,18 @@ def get_health_data(params):
             placement_id__residential_institution_name__in=org_list,
             is_void=False, adverse_event_date__range=(start_date, end_date))
         ae_lists = ae_queryset.values_list('adverse_condition_id', flat=True)
-        ip_queryset = OVCAdverseMedicalEventsFollowUp.objects.all()
+        ip_queryset = OVCAdverseEventsOtherFollowUp.objects.all()
         ip_queryset = ip_queryset.filter(
-            is_void=False, adverse_condition_id_id__in=ae_lists)
+            is_void=False, adverse_condition_id__in=ae_lists)
         for cl in ip_queryset:
             item = {}
             person = cl.adverse_condition_id.person
-            item['cat'] = cl.adverse_medical_condition
+            item['cat'] = cl.adverse_condition
             item['sex'] = person.sex_id
             item['age'] = person.years
             # For generating summaries
             item['kid'] = person.id
-            item['cid'] = cl.adverse_medical_condition
+            item['cid'] = cl.adverse_condition
             data.append(item)
         raw_data = data_from_results(data)
         raw_vals = {'data': raw_data}
@@ -1706,11 +1802,12 @@ def write_row(data, is_raw=False):
         return {}
 
 
-def create_year_list(year_type='F'):
+def create_year_list(year_type='F', i_report=False):
     """Method to create year list for drop downs."""
     year_choices = []
     try:
-        for yr in range(2015, (datetime.now().year + 1)):
+        start_year = 2000 if i_report else 2015
+        for yr in range(start_year, (datetime.now().year + 1)):
             yr_text = '%d/%d' % (yr, yr + 1) if year_type == 'F' else yr
             year_choices.append((yr, yr_text))
         return year_choices
@@ -1758,6 +1855,29 @@ def merge_two_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
+
+
+def org_unit_tree(org_unit_id):
+    """Method to get all org units with all the children."""
+    try:
+        ou_ids = []
+        print len(org_unit_id)
+        qou_id = int(org_unit_id) if len(org_unit_id) > 0 else 0
+        print 'here'
+        if qou_id not in ou_ids and qou_id > 0:
+            ou_ids.append(qou_id)
+        org_units = RegOrgUnit.objects.filter(
+            parent_org_unit_id=qou_id, is_void=False)
+        for org_unit in org_units:
+            ou_id = org_unit.pk
+            print 'ou append', ou_id
+            ou_ids.append(ou_id)
+            # org_unit_tree(ou_id, ou_ids)
+    except Exception, e:
+        print "Error getting units tree - %s" % (str(e))
+    else:
+        return list(set(ou_ids))
+
 
 if __name__ == '__main__':
     pass

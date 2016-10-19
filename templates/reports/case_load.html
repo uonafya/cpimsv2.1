@@ -105,7 +105,8 @@
         <!-- end panel -->
         <center><div id="report_results"></div></center>
         <br/>
-        <div id="report_html"></div>
+        <div id="report_html"><div id="report_vhtml"></div></div>
+        
         
     </div>
     <!-- end col-12 -->       
@@ -133,7 +134,7 @@ jQuery(document).ready(function() {
     $('#case_load_report').on('submit', function(event){
         event.preventDefault();
         $('#report_results').html("Processing Report...");
-        $('#report_html').empty();
+        $('#report_vhtml').empty();
         var oname = $("#id_org_unit option:selected").text();
         $.ajax({
             url : "{% url 'caseload_reports' %}",
@@ -154,13 +155,13 @@ jQuery(document).ready(function() {
                 var xlsx = url.replace('0000', file_name+'.xlsx');
                 xlsx += '<button type="button" class="btn btn-success m-r-5 m-b-5">';
                 xlsx += '<i class="fa fa-file-excel-o"></i> Excel</button></a>';
-                var prnt = '<button type="button" class="btn btn-success m-r-5 m-b-5" onclick="PrintElem(\'#report_html\')"><i class="fa fa-print"></i> Print report</button>';
+                var prnt = '<button type="button" class="btn btn-success m-r-5 m-b-5" onclick="printReport()"><i class="fa fa-print"></i> Print report</button>';
                 if (status == 0){
                     $('#report_results').html(prnt + xlsx);//pdf + xlsx
                 }else{
                     $('#report_results').html(message);                
                 }
-                $('#report_html').html(response.report);  
+                $('#report_vhtml').html(response.report);  
             },
             // handle a non-successful response
             error : function(xhr, errmsg, err) {
@@ -311,5 +312,47 @@ function PrintElem(elem)
 
         return true;
     }
+
+function printReport() {
+      var body               = $('body');
+      var reportContainer       = $('#report_vhtml');
+      var reportContainerParent = reportContainer.parent();
+      var printContainer     = $('<div>');
+      var inithtml = $('#report_vhtml').html();
+
+      printContainer
+        .addClass('print-container')
+        .css('width', '100%')
+        .css('height', '800px')
+        .height(reportContainer.height())
+        .append(reportContainer)
+        .prependTo(body);
+
+      var content = body
+        .children()
+        .not('script')
+        .not(printContainer)
+        .detach();
+      
+
+      var patchedStyle = $('<style>')
+        .attr('media', 'print')
+        .text('img { max-width: auto !important; }' +
+              'a[href]:after { content: ""; }')
+        .appendTo('head');
+
+      window.print();
+
+      body.prepend(content);
+      reportContainerParent.prepend(reportContainer);
+
+      printContainer.remove();
+      patchedStyle.remove();
+      //Rewrite the html back to the page
+      $('#report_html').hide();
+      $('#report_vhtml').html(inithtml);
+      $('#report_html').show();
+}
+
 </script>
 {% endblock lazy_javascript_code %}

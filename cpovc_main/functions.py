@@ -288,7 +288,7 @@ def get_list(field_name=[], default_txt=False, category=False):
         return my_list
 
 
-def get_org_units_list(default_txt=False):
+def get_org_units_list(default_txt=False, org_types=[]):
     '''
      Get all org_unit_name + org_unit__id
     '''
@@ -300,7 +300,12 @@ def get_org_units_list(default_txt=False):
         for a_list in my_list:
             unit_names = '%s - %s' % (a_list.org_unit_id_vis,
                                       a_list.org_unit_name)
-            all_list[a_list.id] = unit_names
+            unit_type = str(a_list.org_unit_type_id)
+            if org_types:
+                if unit_type in org_types:
+                    all_list[a_list.id] = unit_names
+            else:
+                all_list[a_list.id] = unit_names
     except Exception, e:
         error = 'Error getting list - %s' % (str(e))
         print error

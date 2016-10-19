@@ -8,6 +8,14 @@
 
 {% block style_code %}
 <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
+<style type="text/css">
+.dialog_paragraph {
+  color: #f00;
+}
+.divider{
+    margin-left: 2px;
+}
+</style>
 {% endblock %}
 
 {% block javascript_code%}
@@ -111,13 +119,13 @@
                             <td>{{ result.timestamp_created }}</td>
                             <td>
                                 <a href="#" class="btn  btn-sm btn-primary m-r-5" data-toggle="modal" onClick="window.location.href='{% url 'view_case_record_sheet' id=result.form_id %}'">
-                                <b>View</b>&nbsp&nbsp<i class="fa fa-binoculars"></i></a>
+                                <b>View</b>&nbsp;&nbsp;<i class="fa fa-binoculars"></i></a>
 
                                 <a href="#" class="btn  btn-sm btn-primary m-r-5" data-toggle="modal" onClick="window.location.href='{% url 'edit_case_record_sheet' id=result.form_id %}'">
-                                <b>Edit</b>&nbsp&nbsp<i class="fa fa-edit"></i></a>
+                                <b>Edit</b>&nbsp;&nbsp;<i class="fa fa-edit"></i></a>
                                 
                                <a href="#" class="btn  btn-sm btn-primary m-r-5" data-toggle="modal" onClick="window.location.href='{% url 'case_events' id=result.form_id %}'">
-                                <b>Follow-up</b>&nbsp&nbsp<i class="fa fa-paw"></i></a>
+                                <b>Follow-up</b>&nbsp;&nbsp;<i class="fa fa-paw"></i></a>
                            </td>
                         </tr>
                         {% endfor %}
@@ -142,7 +150,8 @@
                             <th>Surname</th>
                             <th>Sex</th>
                             <th>Institution</th>
-                            <th>Date Created</th>                                
+                            <th>Date Created</th>
+                            <th>Resident Status</th>                                
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -156,16 +165,23 @@
                             <td>{{ result.sex_id|gen_value:vals }}</td>
                             <td>{{ result.institution_id|gen_orgunitname }}</td>
                             <td>{{ result.timestamp_created}}</td>
+                            <td>
+                            Discharged : {{ result.discharged }} <br> Dead : {{ result.dead }}</td>
                             
                             <td>
                             <a href="#" class="btn  btn-sm btn-primary m-r-5" onClick="window.location.href='{% url 'view_placement' id=result.form_id %}'">
                             <b>View</b>&nbsp;&nbsp;<i class="fa fa-binoculars"></i></a>
                             
                             <a href="#" class="btn  btn-sm btn-primary m-r-5" onClick="window.location.href='{% url 'edit_placement' id=result.form_id %}'">
-                            <b>Edit</b>&nbsp;&nbsp;<i class="fa fa-edit"></i></a>                            
+                            <b>Edit</b>&nbsp;&nbsp;<i class="fa fa-edit"></i></a>   
 
-                            <a href="#" class="btn  btn-sm btn-primary m-r-5" onClick="window.location.href='{% url 'placement_followup' id=result.id %}'">
-                            <b>Follow-up</b>&nbsp&nbsp<i class="fa fa-paw"></i></a>
+                            {% if result.discharged or result.dead %}
+                                <a href="#" class="btn  btn-sm btn-danger m-r-5">
+                                <b>No Follow-ups !</b></a>                              
+                            {% else %} 
+                                <a href="#" class="btn  btn-sm btn-primary m-r-5" onClick="window.location.href='{% url 'placement_followup' id=result.id %}'">
+                                <b>Follow-up</b>&nbsp;&nbsp;<i class="fa fa-paw"></i></a>
+                            {% endif %} 
                             </td>
                         </tr>
                         {% endfor %}

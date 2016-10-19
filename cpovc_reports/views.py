@@ -20,7 +20,7 @@ from .functions import (
     get_case_details, case_load_header, get_data_element,
     simple_document, draw_page, get_geo_locations, get_data, get_period,
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
-    get_case_data)
+    get_case_data, org_unit_tree)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -54,7 +54,8 @@ def reports_cpims(request, id):
                 2: 'NCCS',
                 3: 'SI and CCI Population Returns',
                 4: 'Health',
-                5: 'Ad Hoc'}
+                5: 'Ad Hoc',
+                6: 'OVC'}
         if doc_id in docs:
             report_name = docs[doc_id]
         cal_years = create_year_list(year_type='C')
@@ -149,7 +150,7 @@ def reports_home(request):
 def write_html(data, file_name, report_variables):
     """Method to write html given data."""
     try:
-        report_type = report_variables['report_region']
+        report_type = report_variables['report_type']
         row_cnt = 0
         table_string = ""
         for val in data:
@@ -161,10 +162,13 @@ def write_html(data, file_name, report_variables):
                 "</td>" + \
                 "</tr>\n"
         html = '<table class="table table-bordered">'
-        category_title = case_load_header(report_type=report_type, header=True)
+        html += "<thead>"
+        category_title = case_load_header(
+            report_type=report_type, header=True, params=report_variables)
         category_title = category_title.format(**report_variables)
-        html += '%s%s' % (category_title, table_string)
-        html += '</table>'
+        html += "%s</thead>" % (category_title)
+        html += '<tbody>%s' % (table_string)
+        html += '</tbody></table>'
         return html
     except Exception, e:
         raise e
@@ -174,29 +178,40 @@ def write_xlsx(data, file_name, params):
     """Method to write xls given data."""
     try:
         report_type = params['report_region']
+        xltm_tmp = params['xltm'] if 'xltm' in params else 'case_load'
         # Define some style for borders
+        row_start = 9 if xltm_tmp == 'case_load' else 2
         border = Border(left=Side(style='thin'),
                         right=Side(style='thin'),
                         top=Side(style='thin'),
                         bottom=Side(style='thin'))
         sheet_name = params['sheet'] if 'sheet' in params else 'Sheet'
-        xls_tmp = '_orgs' if report_type == 4 else ''
-        wb = load_workbook('%s/case_load%s.xltm' % (DOC_ROOT, xls_tmp))
-        ws = wb.active
+        xls_tmp = '_orgs.xltm' if report_type == 4 else '.xltm'
+        wb = load_workbook(
+            '%s/%s%s' % (DOC_ROOT, xltm_tmp, xls_tmp),
+            data_only=True)
+        ws = wb.active if row_start == 9 else wb.get_sheet_by_name(sheet_name)
         # Lets write some data to the file
         for i, value in enumerate(data):
             for c, stats in enumerate(value):
-                ws.cell(row=i + 9, column=c + 1).value = stats
-                ws.cell(row=i + 9, column=c + 1).border = border
+                ws.cell(row=i + row_start, column=c + 1).value = stats
+                if row_start == 9:
+                    ws.cell(row=i + row_start, column=c + 1).border = border
         # Fill my placeholders with actual parameters
-        for idx, row in enumerate(ws.iter_rows('A2:P5')):
-            for cell in row:
-                if cell.value and "{" in cell.value:
-                    cell.value = cell.value.format(**params)
+        if row_start == 9:
+            for idx, row in enumerate(ws['A2:P5']):
+                for cell in row:
+                    if cell.value and "{" in cell.value:
+                        print cell.value
+                        cell.value = cell.value.format(**params)
+                        print cell.value
+        file_ext = '.xlsm' if row_start == 2 else '.xlsx'
         ws.title = sheet_name
-        xls_name = '%s/%s.xlsx' % (MEDIA_ROOT, file_name)
+        xls_name = '%s/%s%s' % (MEDIA_ROOT, file_name, file_ext)
+        print xls_name
         wb.save(xls_name)
     except Exception, e:
+        print "error writing excel - %s" % (str(e))
         raise e
 
 
@@ -292,6 +307,7 @@ def reports_caseload(request):
             if report_region == 4:
                 rep_unit = report_unit if report_unit else False
                 variables['org_unit'] = rep_unit
+                variables['county'] = ''
             else:
                 variables['org_unit'] = False
             rpd = rperiod[:3] if report_type == 'M' else rperiod
@@ -304,6 +320,10 @@ def reports_caseload(request):
                 report_type=report_type, year=year, month=month)
             report_variables = merge_two_dicts(variables, period_params)
             print "CASE load params ", report_variables
+            # -----------------------------------------------
+            ou_ids = org_unit_tree(report_unit)
+            print 'OUS', len(ou_ids)
+            report_variables['org_unit_tree'] = ou_ids
             all_datas = get_data(report_variables)
             all_data = all_datas['data']
             all_itvs = all_datas['itv']
@@ -329,6 +349,7 @@ def reports_caseload(request):
             report_variables['org_unit_name'] = org_unit_name
             report_variables['org_units_name'] = org_unit_name
             report_variables['report_region'] = report_region
+            report_variables['report_type'] = 1
             # Prepare the data
             data = get_totals(all_data, categories)
             data_itv = get_totals(all_itvs, categories)
@@ -443,11 +464,32 @@ def get_caseload_summary(all_datas, categories):
                     key_data = {val_name: all_data}
                     summs = get_totals(key_data, categories, val_name)
                     sum_vals[val] = summs[0]
+        perc_ints = get_interven_perc(sum_vals)
+        print perc_ints
+        sum_vals[4] = perc_ints
         return sum_vals
     except Exception, e:
         error = 'Error getting summary - %s' % (str(e))
         print error
         return {}
+
+
+def get_interven_perc(case_data):
+    """Method to calculate percentage interventions."""
+    try:
+        int_perc = []
+        cases = case_data[2]
+        intervens = case_data[3]
+        for val in range(0, 13):
+            case = int(cases[val])
+            interven = int(intervens[val])
+            intp = interven * 100.0 / case if case > 0 else 0
+            int_perc.append(round(intp, 1))
+    except Exception, e:
+        print 'Error calculating inteven percentage %s' % (str(e))
+        return []
+    else:
+        return int_perc
 
 
 def reports_generate(request):
@@ -469,8 +511,10 @@ def reports_generate(request):
             report_type = request.POST.get('report_type')
             rperiod = request.POST.get('report_period')
             rpt_years = request.POST.get('report_year')
+            rpt_iyears = request.POST.get('report_years')
             report_id = request.POST.get('report_id')
             report_unit = request.POST.get('org_unit')
+            report_inst = request.POST.get('org_inst')
             org_unit_name = request.POST.get('org_unit_name')
             report_region = int(request.POST.get('report_region'))
             results = {'res': sub_county_ids}
@@ -478,9 +522,14 @@ def reports_generate(request):
             institution_type = request.POST.get('institution_type')
             adhoc_id = request.POST.get('report_vars')
             org_type = request.POST.get('org_type')
+            ovc_type = request.POST.get('report_ovc')
             categories = {}
 
             print 'ID', report_id
+
+            if int(report_id) in [3, 4]:
+                report_unit = report_inst
+                rpt_years = rpt_iyears
             region_names = {1: 'National', 2: 'County',
                             3: 'Sub-county', 4: 'Organisation Unit'}
             is_fin = '/' in rpt_years
@@ -589,6 +638,17 @@ def reports_generate(request):
             html = all_data.format(**report_variables)
             # Write the csv
             write_csv(raw_data, file_name, report_variables)
+            # Write xlsx
+            if int(report_id) == 6:
+                xltms = {1: 'datim', 2: 'pepfar', 3: 'datim'}
+                sheets = {'datim': 'RAWDATA', 'pepfar': 'Sheet1'}
+                xltm = xltms[int(ovc_type)]
+                sheet = sheets[xltm]
+                report_variables['xltm'] = xltm
+                report_variables['sheet'] = sheet
+                report_variables['sheet_start'] = 5
+                del raw_data[0]
+                write_xlsx(raw_data, file_name, report_variables)
             results = {'status': 0, 'file_name': file_name, 'report': html,
                        'message': 'No data matching your query.'}
             return JsonResponse(results, content_type='application/json',
@@ -686,7 +746,7 @@ def manage_reports(request):
             return JsonResponse(results, content_type='application/json',
                                 safe=False)
         rtypes = ['Case Load', 'KNBS', 'NCCS', 'Population',
-                  'Health', 'Ad Hoc']
+                  'Health', 'Ad Hoc', 'OVC']
         doctypes = {'DSUM': 'Summon', 'DSCE': 'Social Enquiry'}
         cnt, dusage = 0, 0
         for path, dirs, files in os.walk(MEDIA_ROOT):

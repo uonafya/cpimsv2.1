@@ -142,7 +142,7 @@ def person_duplicate(request, person='child'):
             date_of_birth=date_of_birth, sex_id=gender, is_void=False)
         if other_names:
             children_qs = children_qs.filter(
-                other_names_iexact=other_names)
+                other_names__iexact=other_names)
         # Check in Geo locations
         pers_geo = RegPersonsGeo.objects.filter(
             area_id=sub_county, is_void=False)
@@ -159,7 +159,7 @@ def person_duplicate(request, person='child'):
         return resp
     except Exception, e:
         print 'Error checking child duplicate - %s' % (str(e))
-        return {'status': 9}
+        return {'status': 99}
 
 
 def get_list_types(list_type=['organisation_type_id']):
@@ -387,7 +387,7 @@ def save_sibling(request, attached_sb, person_id):
         return new_sib_ids
 
 
-def copy_locations(person_id, relative_id):
+def copy_locations(person_id, relative_id, request):
     """Method to copy owners locations to sibling / guardian."""
     try:
         todate = timezone.now()
@@ -404,6 +404,16 @@ def copy_locations(person_id, relative_id):
                               'area_type': area_type,
                               'date_linked': todate,
                               'is_void': False},)
+        else:
+            print 'Child does not exist but create CG'
+            area_id = request.POST.get('living_in_subcounty')
+            nloc, created = RegPersonsGeo.objects.update_or_create(
+                person_id=relative_id, area_id=area_id, is_void=False,
+                defaults={'area_id': area_id,
+                          'person_id': relative_id,
+                          'area_type': 'GLTL',
+                          'date_linked': todate,
+                          'is_void': False},)
     except Exception, e:
         raise e
 
@@ -617,32 +627,43 @@ def extract_post_params(request, naming='cc_'):
         raise e
 
 
-def create_olists(org_lists, org_detail, org_ids, ltype=0):
+def create_olists(org_lists, org_detail, org_ids, ltype=0, i_type=0):
     """Method to create org list of units, sub-units and sub-sub-units."""
+    inst_types = ['TNRH', 'TNRB', 'TNRR', 'TNRS', 'TNAP', 'TNRC']
     try:
         if ltype == 0:
             for org_list in org_lists:
                 unit_id = org_list.org_unit.id
                 unit_vis = org_list.org_unit.org_unit_id_vis
                 unit_name = org_list.org_unit.org_unit_name
+                unit_type = org_list.org_unit.org_unit_type_id
                 unit_names = '%s - %s' % (unit_vis, unit_name)
                 org_detail[unit_id] = unit_names
-                org_ids.append(unit_id)
+                if i_type == 1:
+                    if unit_type in inst_types:
+                        org_ids.append(unit_id)
+                else:
+                    org_ids.append(unit_id)
         else:
             for org_list in org_lists:
                 unit_id = org_list.id
                 unit_vis = org_list.org_unit_id_vis
                 unit_name = org_list.org_unit_name
+                unit_type = org_list.org_unit_type_id
                 unit_names = '%s - %s' % (unit_vis, unit_name)
                 org_detail[unit_id] = unit_names
-                org_ids.append(unit_id)
+                if i_type == 1:
+                    if unit_type in inst_types:
+                        org_ids.append(unit_id)
+                else:
+                    org_ids.append(unit_id)
     except Exception, e:
         raise e
     else:
         return org_detail, org_ids
 
 
-def get_specific_orgs(user_id):
+def get_specific_orgs(user_id, i_type=0):
     """Get specific Organisational units based on user id."""
     org_detail, result = {'': 'Select Parent Unit'}, ()
     try:
@@ -650,19 +671,20 @@ def get_specific_orgs(user_id):
         org_lists = RegPersonsOrgUnits.objects.select_related().filter(
             person_id=user_id, is_void=False)
         if org_lists:
-            org_detail, org_ids = create_olists(org_lists, org_detail, org_ids)
+            org_detail, org_ids = create_olists(
+                org_lists, org_detail, org_ids, 0, i_type)
             # Get sub units
             sub_results = RegOrgUnit.objects.select_related().filter(
                 parent_org_unit_id__in=org_ids, is_void=False)
             if sub_results:
                 org_detail, sub_org_ids = create_olists(
-                    sub_results, org_detail, org_ids, 1)
+                    sub_results, org_detail, org_ids, 1, i_type)
                 # Get sub sub units
                 ssub_results = RegOrgUnit.objects.select_related().filter(
                     parent_org_unit_id__in=sub_org_ids, is_void=False)
                 if ssub_results:
                     org_detail, ssub_org_ids = create_olists(
-                        ssub_results, org_detail, org_ids, 2)
+                        ssub_results, org_detail, org_ids, 2, i_type)
         result = org_detail.items()
     except Exception, e:
         error = 'Error getting specific orgs - %s' % (str(e))

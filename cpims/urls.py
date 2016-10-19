@@ -53,6 +53,9 @@ urlpatterns = [
         name='password_change'),
     url(r'^accounts/password/change/done/$', password_change_done,
         {'template_name': 'registration/password_change_done.html'}),
+    url(r'^F57665A859FE7CFCDB6C8935196374AD\.txt$',
+        TemplateView.as_view(template_name='comodo.txt',
+                             content_type='text/plain')),
     url(r'^robots\.txt$', TemplateView.as_view(template_name='robots.txt',
                                                content_type='text/plain'))]
 

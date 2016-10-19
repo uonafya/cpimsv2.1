@@ -126,6 +126,8 @@ urlpatterns = patterns(
         name='manage_placementfollowup'),
     url(r'^manage_schools/$', 'manage_schools',
         name='manage_schools'),
+    url(r'^manage_countries/$', 'manage_countries',
+        name='manage_countries'),
     # ---------------------------------------------------------------
     url(r'^userorgunits_lookup/$', 'userorgunits_lookup',
         name='userorgunits_lookup'),
@@ -168,4 +170,8 @@ urlpatterns = patterns(
         'bursary_followup', name='bursary_followup'),
     url(r'^manage_bursary/$',
         'manage_bursary', name='manage_bursary'),
+    
+    # OVC Care
+    url(r'^ovc_registry/$',
+        'ovc_registry', name='ovc_registry'),
 )

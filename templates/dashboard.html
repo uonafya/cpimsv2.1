@@ -145,6 +145,7 @@
 {% block lazy_javascript_code %}
     <script src="{% static 'plugins/flot/jquery.flot.min.js' %}"></script>
     <script src="{% static 'plugins/flot/jquery.flot.pie.min.js' %}"></script>
+    <script src="{% static 'js/curvedLines.js' %}"></script>
     <script>
         var Kdata = [{% autoescape off %}{{ kvals }}{% endautoescape %}];
         var Cdata = [{% autoescape off %}{{ cvals }}{% endautoescape %}];

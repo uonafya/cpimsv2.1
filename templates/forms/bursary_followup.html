@@ -27,21 +27,31 @@
 
 <!-- begin page-header -->
 {% for data in init_data %}
-    <h1 class="page-header">Forms <small>Bursary Followup | {{ data.first_name }} {{ data.surname }}</small></h1>
+    <h1 class="page-header">Forms <small>Bursary Followup <b>{{ data.first_name }} {{ data.surname }} | {{ data.sex_id|gen_value:vals }} | {% if data.date_of_birth|gen_age == 0 %}
+                            UNDER 1 YEAR
+                        {% else %}
+                            {{ data.date_of_birth|gen_age }} YRS 
+                        {% endif %}</b></small></h1>
 {% endfor %}
 <!-- end page-header -->
-
-
 
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
     <i class="fa fa-close fa-2x pull-left"></i>
     <ul class="messages">
-       <p>Please fill the missing values</p>
+       <p></p>
     </ul>
 </div>
 
 <div id="success_messages" class="alert alert-success fade in" style="display: none;" tabindex="1">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-check fa-2x pull-left"></i>
+    <ul class="messages">
+       <p></p>
+    </ul>
+</div>
+
+<div id="error_messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
     <i class="fa fa-close fa-2x pull-left"></i>
     <ul class="messages">
@@ -215,6 +225,7 @@ function fnSaveBursary()
     else
     {
         $("#messages").css({ 'display': "block" });
+        $("#messages p").html('Please fill the missing values');
         $("#bursary_msgs1").css({ 'display': "block" }); 
         return false;
     }
@@ -226,6 +237,7 @@ function fnSaveBursary()
     else
     {
         $("#messages").css({ 'display': "block" });
+        $("#messages p").html('Please fill the missing values');
         $("#bursary_msgs2").css({ 'display': "block" }); 
         return false;
     }
@@ -237,6 +249,7 @@ function fnSaveBursary()
     else
     {
         $("#messages").css({ 'display': "block" });
+        $("#messages p").html('Please fill the missing values');
         $("#bursary_msgs3").css({ 'display': "block" }); 
         return false;
     }
@@ -248,6 +261,7 @@ function fnSaveBursary()
     else
     {
         $("#messages").css({ 'display': "block" });
+        $("#messages p").html('Please fill the missing values');
         $("#bursary_msgs4").css({ 'display': "block" }); 
         return false;
     }
@@ -259,26 +273,41 @@ function fnSaveBursary()
     else
     {
         $("#messages").css({ 'display': "block" });
+        $("#messages p").html('Please fill the missing values');
         $("#bursary_msgs5").css({ 'display': "block" }); 
         return false;
     }
 
     $.ajax({
                 url: '{% url 'new_bursary_info' %}',
-                dataType: 'text',
+                dataType: 'json',
                 method: 'POST',
                 contentType: 'application/x-www-form-urlencoded',
                 data: values,
                 success: function(result)
                 {
+                    var message;
+                    var status;
+                    $.each(result, function(i, val) {
+                        message = val.msg;
+                        status = val.status;                        
+                    });
+
+                    if(status == 'Issue' || status == 'Error')
+                    {
+                        $('#error_messages p').html(message);
+                        $('#error_messages').css({ 'display': 'block' });
+                    }
+                    else
+                    {
+                        $('#success_messages p').html(message);
+                        $('#success_messages').css({ 'display': 'block' });
+                    }
                     // reset controls
                     fnCancel();
 
                     // load bursary grid
                     LoadBursary();
-
-                    $('#success_messages p').html('Save bursary success');
-                    $('#success_messages').css({ 'display': 'block' });
                 },
                 error: function(xhr, status, error)
                 {
@@ -292,8 +321,10 @@ function fnUpdateBursary()
 {
     var data = new Array();
     var csrftoken = $.cookie('csrftoken');
+    var person_id = $('#person_id').val();
     var bursary_id = $('#bursary_id').val();
     var values = { 
+                    'person_id' : person_id,
                     'bursary_id' : bursary_id,
                     'csrfmiddlewaretoken': csrftoken
                  };
@@ -361,20 +392,35 @@ function fnUpdateBursary()
 
     $.ajax({
                 url: '{% url 'edit_bursary_info' %}',
-                dataType: 'text',
+                dataType: 'json',
                 method: 'POST',
                 contentType: 'application/x-www-form-urlencoded',
                 data: values,
                 success: function(result)
                 {
+                    var message;
+                    var status;
+                    $.each(result, function(i, val) {
+                        message = val.msg;
+                        status = val.status;                        
+                    });
+
+                    if(status == 'Issue' || status == 'Error')
+                    {
+                        $('#error_messages p').html(message);
+                        $('#error_messages').css({ 'display': 'block' });
+                    }
+                    else
+                    {
+                        $('#success_messages p').html(message);
+                        $('#success_messages').css({ 'display': 'block' });
+                    }
+
                     // reset controls
                     fnCancel();
 
                     // load bursary grid
                     LoadBursary();
-
-                    $('#success_messages p').html('Update bursary success');
-                    $('#success_messages').css({ 'display': 'block' });
                 },
                 error: function(xhr, status, error)
                 {

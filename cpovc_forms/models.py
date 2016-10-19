@@ -365,6 +365,8 @@ class OVCCaseEvents(models.Model):
     case_event_outcome = models.CharField(max_length=250, null=True)
     next_hearing_date = models.DateField(null=True)  # For Court Adjournments
     next_mention_date = models.DateField(null=True)  # For Court Mentions
+    plea_taken = models.CharField(max_length=4, null=True)  # For Plea Taken (Guilty/Not Guilty)
+    application_outcome = models.CharField(max_length=4, null=True)  # For Application Outcome (Granted/Not Granted)
     placement_id = models.ForeignKey(OVCPlacement, null=True) # To track children who went to court from institutions
     timestamp_created = models.DateTimeField(default=timezone.now)
     is_void = models.BooleanField(default=False)
@@ -419,6 +421,7 @@ class OVCCaseEventSummon(models.Model):
     summon_date = models.DateField(null=True)
     # summon_date_next = models.DateField(null=True)
     summon_note = models.CharField(max_length=250, null=True)
+    # visit_date = models.DateField(null=True)
     case_event_id = models.ForeignKey(OVCCaseEvents, on_delete=models.CASCADE)
     timestamp_created = models.DateTimeField(default=timezone.now)
     case_category = models.ForeignKey(
@@ -597,6 +600,8 @@ class OVCAdverseEventsFollowUp(models.Model):
     adverse_condition_id = models.UUIDField(
         primary_key=True, default=uuid.uuid1, editable=False)
     adverse_condition_description = models.CharField(max_length=20)
+    attendance_type = models.CharField(max_length=4, null=True)
+    referral_type = models.CharField(max_length=4, null=True)
     adverse_event_date = models.DateField(default=timezone.now, null=True)
     placement_id = models.ForeignKey(OVCPlacement)
     person = models.ForeignKey(RegPerson)
@@ -609,6 +614,18 @@ class OVCAdverseEventsFollowUp(models.Model):
         db_table = 'ovc_adverseevents_followup'
 
 
+class OVCAdverseEventsOtherFollowUp(models.Model):
+    adverse_condition = models.CharField(max_length=20)
+    adverse_condition_id = models.ForeignKey(OVCAdverseEventsFollowUp)
+    # created_by = models.IntegerField(null=True, default=404)
+    timestamp_created = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+    sync_id = models.UUIDField(default=uuid.uuid1, editable=False)
+
+    class Meta:
+        db_table = 'ovc_adverseevents_other_followup'
+
+"""
 class OVCAdverseMedicalEventsFollowUp(models.Model):
     adverse_medical_condition = models.CharField(max_length=20)
     adverse_condition_id = models.ForeignKey(OVCAdverseEventsFollowUp)
@@ -619,7 +636,7 @@ class OVCAdverseMedicalEventsFollowUp(models.Model):
 
     class Meta:
         db_table = 'ovc_adverse_medical_events_followup'
-
+"""
 
 class OVCFamilyCare(models.Model):
     familycare_id = models.UUIDField(

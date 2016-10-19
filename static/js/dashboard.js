@@ -111,15 +111,24 @@ var handleInteractiveChart = function () {
                     label: "Case Records", 
                     color: red,
                     lines: { show: true, fill:false, lineWidth: 2 },
-                    points: { show: true, radius: 3, fillColor: '#fff' },
-                    shadowSize: 0
+                    points: { show: false, radius: 2, fillColor: '#fff' },
+                    shadowSize: 0,
+                    curvedLines:  {
+                        apply: true,
+                        active: true,
+                        monotonicFit: true
+                    }
                 }, {
                     data: Kdata,
                     label: 'Child Registration',
                     color: green,
                     lines: { show: true, fill:false, lineWidth: 2 },
-                    points: { show: true, radius: 3, fillColor: '#fff' },
-                    shadowSize: 0
+                    points: { show: false, radius: 2, fillColor: '#fff' },
+                    shadowSize: 0,
+                    curvedLines:  {
+                        apply: true,
+                        monotonicFit: true
+                    }
                 }
             ], 
             {
@@ -138,6 +147,11 @@ var handleInteractiveChart = function () {
                     margin: 10,
                     noColumns: 1,
                     show: true
+                },
+                series: {
+                     curvedLines: {
+                        active: true
+                    }
                 }
             }
         );
@@ -180,7 +194,11 @@ var handleDonutChart = function () {
 			},
 			legend: {
 				show: true
-			}
+			},
+            grid: {
+                hoverable: true,
+                clickable: true
+            }
 		});
     }
 };

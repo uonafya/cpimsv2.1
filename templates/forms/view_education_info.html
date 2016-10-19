@@ -25,7 +25,11 @@
 
 <!-- begin page-header -->
 {% for data in init_data %}
-    <h1 class="page-header">Forms <small>View Child School Details | {{ data.first_name }} {{ data.surname }}</small></h1>
+    <h1 class="page-header">Forms <small>View Child School Details <b>{{ data.first_name }} {{ data.surname }} | {{ data.sex_id|gen_value:vals }} | {% if data.date_of_birth|gen_age == 0 %}
+                            UNDER 1 YEAR
+                        {% else %}
+                            {{ data.date_of_birth|gen_age }} YRS 
+                        {% endif %}</b></small></h1>
 {% endfor %}
 <!-- end page-header -->
 
@@ -109,14 +113,16 @@
                                         <div id="div_admmission_class" class="form-group">
                                             <label class="control-label col-md-4 col-sm-4">Admission Class/Level : <span class="asteriskField">*  </label>
                                                 <div class="col-md-6 col-sm-6">
-                                                    {{ ovceducationlevelfollowup.admission_level|gen_value:vals }}
+                                                {% for ovcedulevelfollowup in ovceducationlevelfollowup %}
+                                                    {{ ovcedulevelfollowup.admission_level|gen_value:vals }}
                                                     <span id="sel_admmission_class"></span>
                                                     <br>
-                                                    {% if ovceducationlevelfollowup.admission_sublevel %}
+                                                    {% if ovcedulevelfollowup.admission_sublevel %}
                                                     <div id="div_admmission_subclass">
-                                                        <h6>Specify Vocational Training: </h6>{{ ovceducationlevelfollowup.admission_sublevel|gen_value:vals }}
+                                                        <h6>Specify Vocational Training: </h6>{{ ovcedulevelfollowup.admission_sublevel|gen_value:vals }}
                                                     </div>
                                                     {% endif %}
+                                                {% endfor %}
                                                 </div>
                                         </div>
                                     {% endif %}                                    

@@ -27,7 +27,11 @@
 
 <!-- begin page-header -->
 {% for data in init_data %}
-    <h1 class="page-header">Forms <small>New Alternative Family Care  | {{ data.first_name }} {{ data.surname }}</small></h1>
+    <h1 class="page-header">Forms <small>New Alternative Family Care <b>{{ data.first_name }} {{ data.surname }} | {{ data.sex_id|gen_value:vals }} | {% if data.date_of_birth|gen_age == 0 %}
+                            UNDER 1 YEAR
+                        {% else %}
+                            {{ data.date_of_birth|gen_age }} YRS 
+                        {% endif %}</b></small></h1>
 {% endfor %}
 <!-- end page-header -->
 
@@ -254,8 +258,11 @@ jQuery(document).ready(function()
     // populate institution names with this list
     getUserOrgUnits();
 
+    // get countries list
+    getCountries();
+
     //multi selects
-    $('#adoption_subcounty, #adopting_agency, #children_office, #residential_institution_name, #fostered_from').multiselect({
+    $('#adoption_country, #adoption_subcounty, #adopting_agency, #children_office, #residential_institution_name, #fostered_from').multiselect({
         selectAllValue: 'multiselect-all',
         includeSelectAllOption: true,
         enableCaseInsensitiveFiltering: true,
@@ -282,6 +289,7 @@ jQuery(document).ready(function()
         $('#div_residential_institution').css({'display': 'none'});
         $('#div_children_office').css({'display': 'none'});        
         $('#div_parental_status').css({'display': 'block'});
+        $('#div_date_of_certificate_expiry').css({'display': 'block'});
 
         $('#certificate_number').attr('data-parsley-required', 'true');
         $('#type_of_adoption').attr('data-parsley-required', 'true');
@@ -311,6 +319,7 @@ jQuery(document).ready(function()
         $('#div_type_of_adoption').css({'display': 'none'});
         $('#div_court').css({'display': 'block'});
         $('#div_parental_status').css({'display': 'block'});
+        $('#div_date_of_certificate_expiry').css({'display': 'block'});
 
         $('#certificate_number').attr('data-parsley-required', 'true');
         $('#children_office').attr('data-parsley-required', 'true');
@@ -502,7 +511,8 @@ jQuery(document).ready(function()
 
         $('#div_adoption_country').css({'display': 'none'});
         $('#adoption_country').attr('data-parsley-required', 'false');
-        $('#adoption_country').val('');
+        $('#adoption_country').multiselect('clearSelection');
+        $('#adoption_country').multiselect('refresh');
     }
     else if(type_of_adoption == 'AFCI')
     {
@@ -523,7 +533,8 @@ jQuery(document).ready(function()
 
         $('#div_adoption_country').css({'display': 'none'});
         $('#adoption_country').attr('data-parsley-required', 'false');
-        $('#adoption_country').val('');
+        $('#adoption_country').multiselect('clearSelection');
+        $('#adoption_country').multiselect('refresh');
     }
 
     $('html,body').scrollTop(0);
@@ -541,7 +552,8 @@ $("#type_of_adoption").change(function(event)
 
         $('#div_adoption_country').css({'display': 'none'});
         $('#adoption_country').attr('data-parsley-required', 'false');
-        $('#adoption_country').val('');
+        $('#adoption_country').multiselect('clearSelection');
+        $('#adoption_country').multiselect('refresh');
     }
     else if(type_of_adoption == 'AFCI')
     {
@@ -562,7 +574,8 @@ $("#type_of_adoption").change(function(event)
 
         $('#div_adoption_country').css({'display': 'none'});
         $('#adoption_country').attr('data-parsley-required', 'false');
-        $('#adoption_country').val('');
+        $('#adoption_country').multiselect('clearSelection');
+        $('#adoption_country').multiselect('refresh');
     }
 });
 
@@ -660,6 +673,7 @@ $("#type_of_care").change(function(event)
         $('#div_residential_institution').css({'display': 'none'});
         $('#div_children_office').css({'display': 'none'});        
         $('#div_parental_status').css({'display': 'block'});
+        $('#div_date_of_certificate_expiry').css({'display': 'block'});
 
         $('#certificate_number').attr('data-parsley-required', 'true');
         $('#type_of_adoption').attr('data-parsley-required', 'true');
@@ -689,6 +703,7 @@ $("#type_of_care").change(function(event)
         $('#div_type_of_adoption').css({'display': 'none'});
         $('#div_court').css({'display': 'block'});
         $('#div_parental_status').css({'display': 'block'});
+        $('#div_date_of_certificate_expiry').css({'display': 'block'});
 
         $('#certificate_number').attr('data-parsley-required', 'true');
         $('#children_office').attr('data-parsley-required', 'true');
@@ -794,6 +809,57 @@ $("#type_of_care").change(function(event)
     }
 });
 
+function getCountries()
+{
+    var data = new Array();
+    var csrftoken = $.cookie('csrftoken');
+    var values = {
+                    'csrfmiddlewaretoken': csrftoken
+                 }; 
+    $.ajax({
+            url: '{% url 'manage_countries' %}',
+            dataType: 'json',
+            method: 'POST',
+            data: values,
+            success: function(result)
+            {
+                var multiselect_data = [];
+                var multiselect_dict = {};
+                var multiselect_dict_initial = { label:'Please Select', value:''};
+                multiselect_data.push(multiselect_dict_initial);
+
+                $.each(result, function(i, val) {  
+                    
+                    // Prepopulate multiselects from json 
+                    var country_code = val.country_code;
+                    var country_name = val.country_name;
+                    var multiselect_dict = { label: country_name, value: country_code};
+                    multiselect_data.push(multiselect_dict);
+                });
+
+                console.log(multiselect_data);
+
+                //Case To Attach - multi selects
+                $('#adoption_country').multiselect({
+                    selectMultiple: false,
+                    selectAllValue: 'multiselect-all',
+                    includeSelectAllOption: true,
+                    enableCaseInsensitiveFiltering: true,
+                    numberDisplayed: 1,
+                    maxHeight: 300,
+                    buttonWidth: '100%',
+                    buttonClass: 'btn btn-white'
+                });                           
+                $("#adoption_country").multiselect('dataprovider', multiselect_data);
+                $("#adoption_country").multiselect('refresh');
+            },
+            error: function(xhr, status, error)
+            {
+                alert(error);
+            }
+        }); 
+}
+
 function getUserOrgUnits()
 {
     var data = new Array();
@@ -845,5 +911,13 @@ function getUserOrgUnits()
             }
         }); 
 }
+</script>
+
+<script>
+$("#adoption_country").change(function(event) 
+{ 
+    var adoption_country = $('#adoption_country').val();
+    alert(adoption_country);
+});
 </script>
 {% endblock %}

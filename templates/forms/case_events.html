@@ -59,6 +59,14 @@
     </ul>
 </div>
 
+<div id="error_msgs" class="alert alert-danger fade in" style="display:none;">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-close fa-2x pull-left"></i>
+    <ul class="messages">
+       <p></p>
+    </ul>
+</div>
+
 <!-- begin page-header -->
 <div class="profile-section">
     <!-- begin row -->
@@ -67,8 +75,13 @@
         <div class="col-md-4">
             <h4 class="title"><small>About Child</small></h4>
             {% for data in init_data %}
-                <h1 class="page-header">Forms <small>Manage Case Events | {{ data.first_name }} {{ data.surname }}</small></h1>
+                <h1 class="page-header">Forms <small>Manage Case Events <b>{{ data.first_name }} {{ data.surname }} | {{ data.sex_id|gen_value:vals }} | {% if data.date_of_birth|gen_age == 0 %}
+                            UNDER 1 YEAR
+                        {% else %}
+                            {{ data.date_of_birth|gen_age }} YRS 
+                        {% endif %}</b></small></h1>
 
+                <!--
                 <h6>NAME : <i> {{ data.first_name }} {{ data.surname }}</i></h6>
                 <h6>SEX : <i> {{ data.sex_id|gen_value:vals }}</i></h6>
                 <h6>DATE OF BIRTH : <i> {{ data.date_of_birth }}</i></h6>
@@ -82,6 +95,7 @@
                         {% endif %}
                      </i>
                 </h6>
+                -->
             {% endfor %}
         </div>
     </div>
@@ -99,7 +113,7 @@
 <div>
     <div id="case_status_msg" align="right">
     <small>
-        <button id="btn_case_status" class="btn  btn-sm btn-primary active m-r-5" onClick="fnNavigateBack()">  
+        <button class="btn  btn-sm btn-primary active m-r-5" onClick="fnNavigateBack()">  
         <i class="fa fa-arrow-left"></i>&nbsp; <b>BACK TO FOLLOW-UPS </b>                       
         </button>
     </small>
@@ -264,7 +278,7 @@
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
                                     <div id="services-dialog-header">
-                                        <p>Manage Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i></p>      
+                                        <p>Manage Encounters / Services &nbsp;&nbsp;<i class="fa fa-gears"></i></p>      
                                     </div>
                                     </h4>
                                 </div>
@@ -395,8 +409,10 @@
                                     </div>
 
                                     <div class="row">
-                                        {{ form.case_event_id_court }} 
-                                        <div class="form-group">
+
+                                        {{ form.case_event_id_court }}
+
+                                        <div class="row">
                                             <h6><label class="control-label col-md-3 col-sm-3">Case Category <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                 {{ form.court_session_case }}
@@ -405,8 +421,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <br><br><br>                              
-                                        <div class="form-group">
+
+                                        <div class="row">
                                             <h6><label class="control-label col-md-3 col-sm-3">Date Of Court Session <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                     {{ form.date_of_court_event }}
@@ -414,9 +430,9 @@
                                                          <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                                     </div>
                                             </div>
-                                        </div> 
-                                        <br><br><br>                               
-                                        <div class="form-group">
+                                        </div>
+
+                                        <div class="row">
                                             <h6><label class="control-label col-md-3 col-sm-3">Court Session Type <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                     {{ form.court_session_type }}
@@ -425,8 +441,18 @@
                                                     </div>
                                             </div>
                                         </div>
-                                        <br><br><br>
-                                        <div id="div_next_mention_date" class="form-group" style="display:none;">
+
+                                        <div class="row" id="div_plea_taken" style="display:none;">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Plea Taken <span class="asteriskField">*</span> :</label></h6>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.plea_taken }}
+                                                    <div id="court_msgs8" style="display:none;">
+                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                    </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row" id="div_next_mention_date" style="display:none;">
                                             <h6><label class="control-label col-md-3 col-sm-3">Date of Next Mention <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                     {{ form.next_mention_date }}
@@ -435,9 +461,19 @@
                                                     </div>
                                             </div>
                                         </div>
-                                        <br><br><br> 
-                                        <div id="div_court_outcome" class="form-group" style="display:none;">
-                                        <h6><label class="control-label col-md-3 col-sm-3">Court Outcome <span class="asteriskField">*</span> :</label></h6>
+
+                                        <div class="row" id="div_application_outcome" style="display:none;">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Application Outcome : <span class="asteriskField">*</span> :</label></h6>
+                                            <div class="col-md-6 col-sm-6">
+                                                    {{ form.application_outcome }}
+                                                    <div id="court_msgs9" style="display:none;">
+                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                                    </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row" id="div_court_outcome" style="display:none;">
+                                            <h6><label class="control-label col-md-3 col-sm-3">Court Outcome <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6 form-group block1">
                                                 {{ form.court_outcome }}
                                                 <div id="court_msgs4" style="display:none;">
@@ -445,18 +481,18 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <br><br><br>
-                                        <div id="div_next_hearing_date" class="form-group" style="display:none;">
+
+                                        <div class="row" id="div_next_hearing_date" style="display:none;">
                                             <h6><label class="control-label col-md-3 col-sm-3">Date of Next Hearing <span class="asteriskField">*</span> :</label></h6>
-                                                <div class="col-md-6 col-sm-6">
-                                                    {{ form.next_hearing_date }}
-                                                    <div id="court_msgs5" style="display:none;">
-                                                         <small><span><p class="dialog_paragraph">This value is required</p></span></small>
-                                                    </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                {{ form.next_hearing_date }}
+                                                <div id="court_msgs5" style="display:none;">
+                                                     <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                                 </div>
+                                            </div>
                                         </div>
-                                        <br><br><br>                                  
-                                        <div id="div_court_order" class="form-group" style="display:none;">
+
+                                        <div class="row" id="div_court_order" style="display:none;">
                                             <h6><label class="control-label col-md-3 col-sm-3">Court Order(s) <span class="asteriskField">*</span> :</label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                 {{ form.court_order }}
@@ -467,8 +503,8 @@
                                                 <br>
                                             </div>
                                         </div>
-                                        <br><br><br> <br>                                      
-                                        <div class="form-group">
+
+                                        <div class="row">
                                             <h6><label class="control-label col-md-3 col-sm-3">Court Session Notes:</label></h6>
                                             <div class="col-md-6 col-sm-6">
                                                     {{ form.court_notes }}
@@ -476,22 +512,7 @@
                                                          <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                                     </div>
                                             </div>
-                                        </div>
-                                        <br><br>
-                                        <!--
-                                        <br><br><br>
-                                        <div class="form-group">
-                                            <label class="control-label col-md-4 col-sm-4">Workforce Member/SCCO Name <span class="asteriskField">*</span> :</label>
-                                            <div class="col-md-6 col-sm-6">
-                                                    {{ form.workforce_member_court }}
-                                                    <div id="court_msgs4" style="display:none;">
-                                                        <span><p class="dialog_paragraph">This value is required</p></span>
-                                                    </div>
-                                            </div>
-                                        </div>
-                                        -->
-                                        <br><br><br>
-
+                                        </div> 
                                     </div>
                                 </div>
                                 <div class="modal-footer" >
@@ -534,7 +555,37 @@
                                 <br><br>
                                 -->
                                 {{ form.case_event_id_summon }}
-                                
+
+                                <div class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Summon Count: </label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        <b>{{ summon_count }}</b><span id="summon_count" style="display:none;">{{ summon_count }}</span>
+                                    </div>
+                                </div>
+
+                                <!--
+                                <br><br>
+                                <div class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Date Of Visit:<span class="asteriskField"> *</span></label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        {{ form.visit_date }}
+                                        <div id="summons_msgs5" style="display:none;">
+                                            <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                -->
+                                <br><br> 
+                                <div id="div_honoured_date" class="form-group">
+                                    <h6><label class="control-label col-md-4 col-sm-4">Date Of Visit:<span class="asteriskField"> *</span></label></h6>
+                                    <div class="col-md-6 col-sm-6">
+                                        {{ form.honoured_date }}
+                                        <div id="summons_msgs2" style="display:none;">
+                                            <small><span><p class="dialog_paragraph">This value is required</p></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><br>                                 
                                 <div class="form-group">
                                     <h6><label class="control-label col-md-4 col-sm-4">Summon Honored ? :<span class="asteriskField"> *</span></label></h6>
                                     <div class="col-md-6 col-sm-6">
@@ -544,17 +595,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <br><br>
-                                <div id="div_honoured_date" style="display:none;" class="form-group">
-                                    <h6><label class="control-label col-md-4 col-sm-4">Date Honoured:<span class="asteriskField"> *</span></label></h6>
-                                    <div class="col-md-6 col-sm-6">
-                                        {{ form.honoured_date }}
-                                        <div id="summons_msgs2" style="display:none;">
-                                            <small><span><p class="dialog_paragraph">This value is required</p></span></small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <br><br>
+                                <br><br>                                                               
                                 <div id="div_summon_date" style="display:none;" class="form-group">
                                     <h6><label class="control-label col-md-4 col-sm-4">Date Of Next Summon:<span class="asteriskField"> *</span></label></h6>
                                     <div class="col-md-6 col-sm-6">
@@ -563,7 +604,7 @@
                                             <small><span><p class="dialog_paragraph">This value is required</p></span></small>
                                         </div>
                                     </div>
-                                </div>
+                                </div>                                
                                 <br><br>
                                 <div class="form-group">
                                     <h6><label class="control-label col-md-4 col-sm-4">Notes :<span class="asteriskField"> *</span></label></h6>
@@ -728,7 +769,7 @@
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                     <h4 class="modal-title">Case Closure
-                                    &nbsp&nbsp<i class="fa fa-close"></i></h4>
+                                    &nbsp;&nbsp;<i class="fa fa-close"></i></h4>
                                 </div>
                                 <div class="modal-body">
                                     <div id="closure_msgs" class="alert alert-danger fade in" style="display:none;">
@@ -753,7 +794,8 @@
                                         <br><br>
                                         -->
                                         {{ form.case_event_id_closure }}
-                                        <div class="form-group">
+
+                                        <div class="row">
                                             <h6><label class="control-label col-md-4 col-sm-4">Case Outcome :<span class="asteriskField"> *</span></label></h6>
                                             <div class="col-md-7 col-sm-7">
                                                     {{ form.case_outcome }}
@@ -762,8 +804,8 @@
                                                     </div>
                                             </div>
                                         </div>
-                                        <br><br>
-                                        <div id="div_transfered_to" class="form-group" style="display:none;">
+
+                                        <div class="row" id="div_transfered_to" style="display:none;">
                                             <h6><label class="control-label col-md-4 col-sm-4">Transferred To :<span class="asteriskField"> *</span></label></h6>
                                             <div class="col-md-7 col-sm-7">
                                                     {{ form.transfered_to }}
@@ -772,33 +814,77 @@
                                                     </div>
                                             </div>
                                         </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <h6><label class="control-label col-md-4 col-sm-4">Date Closed/Transferred :<span class="asteriskField"> *</span></label></h6>
+
+                                        <div class="row" id="div_intervention">
+                                            <br>
+                                            <div id="closure_msgs6" style="display:none;">
+                                                <small><span><p class="dialog_paragraph">One or more intervention(s) is required</p></span></small>
+                                            </div>
+                                            <table id="interventions_manager_table" class="table">
+                                                <thead>
+                                                    <tr id="id_inputHeaders">                                                        
+                                                        <th width="5%"><h6><b>#</b></h6></th>
+                                                        <th width="30%"><h6><b>Case Category</b></h6></th>
+                                                        <th width="40%"><h6><b>Intervention(s)</b></h6></th>
+                                                        <th width="10%"><h6><b>Actions</b></h6></th> 
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr id="id_inputElements">
+                                                        <td width="5%">#</td>
+                                                        <td width="30%">
+                                                        {{ form.case_closure_case }}
+                                                        <div id="case_closure_case_errormsg" style="display:none;">
+                                                            <small><p class="dialog_paragraph">This value is required</p></span></small><span>
+                                                        </div>
+                                                        </td>
+
+                                                        <td width="40%">
+                                                        {{ form.intervention }}
+                                                        <div id="intervention_errormsg" style="display:none;">
+                                                            <small><p class="dialog_paragraph">This value is required</p></span></small><span>
+                                                        </div>
+                                                        </td>
+
+                                                        <td  width="10%">
+                                                        <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(3)">
+                                                            <i class="fa fa-plus"></i>&nbsp; <b>Add Intervention(s)</b>
+                                                        </button>
+                                                        </td>
+                                                    <tr>
+                                                </tbody>
+                                            </table>
+                                            {{ form.intervention_list }}
+                                            <br>
+                                        </div>
+
+                                        <div class="row">
+                                            <h6><label class="control-label col-md-4 col-sm-4">Date Of Outcome :<span class="asteriskField"> *</span></label></h6>
                                             <div class="col-md-7 col-sm-7">
                                                     {{ form.date_of_case_closure }}
                                                     <div id="closure_msgs4" style="display:none;">
                                                         <span><p class="dialog_paragraph">This value is required</p></span>
                                                     </div>
-                                            </div>
+                                            </div>                                            
                                         </div>
-                                        <br><br>
-                                        <div class="form-group">
-                                            <h6><label class="control-label col-md-4 col-sm-4">Case Closure Notes :<span class="asteriskField"> *</span></label></h6>
+
+                                        <div class="row">
+                                            <h6><label class="control-label col-md-4 col-sm-4">Case Closure Notes :</label></h6>
                                             <div class="col-md-7 col-sm-7">
                                                     {{ form.case_closure_notes }}
                                                     <div id="closure_msgs5" style="display:none;">
                                                         <span><p class="dialog_paragraph">This value is required</p></span>
                                                     </div>
-                                            </div>
+                                            </div>                                            
                                         </div>
-                                    </div>
-                                    <br><br><br><br>                                    
+
+                                        <br><br>
+                                                                          
                                     <div class="modal-footer" >
                                         <button class="btn btn-sm btn-white" data-dismiss="modal">Cancel</button>
                                         <button id="btn_save_closure" class="btn btn-sm btn-success" onClick="fnSaveClosure()">Save</button>
                                     </div>
-                            </div>
+                                </div>
                         </div>
                     </div>
                     <!-- #end close-case-dialog -->
@@ -811,24 +897,25 @@
         <div align="center">
             <!--
             <a href="#services-dialog" class="btn  btn-sm btn-inverse m-r-5"  data-toggle="modal">
-                <b>Add Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
+                <b>Add Encounter / Services</b>&nbsp;&nbsp;<i class="fa fa-gears"></i>
             </a>
             -->
             <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Services')">
-                <b>Manage Encounter / Services</b>&nbsp&nbsp<i class="fa fa-gears"></i>
+                <b>Manage Encounter / Services</b>&nbsp;&nbsp;<i class="fa fa-gears"></i>
             </button>
             <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Court')">
-                <b>Manage Court Session</b>&nbsp&nbsp<i class="fa fa-legal"></i>
+                <b>Manage Court Session</b>&nbsp;&nbsp;<i class="fa fa-legal"></i>
             </button>
              <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Summon')">
-                <b>Manage Summons</b>&nbsp&nbsp<i class="fa fa-wechat"></i>
+                <b>Manage Summons</b>&nbsp;&nbsp;<i class="fa fa-wechat"></i>
             </button>
             <button class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Referral')">
-                <b>Manage Referals</b>&nbsp&nbsp<i class="fa fa-share"></i>
+                <b>Manage Referals</b>&nbsp;&nbsp;<i class="fa fa-share"></i>
             </button>
             <button href="#close-case-dialog" class="btn  btn-sm btn-inverse m-r-5" onClick="fnOpenDialog('Closure')">
-                <b>Close Case</b>&nbsp&nbsp<i class="fa fa-close"></i>
+                <b>Close Case</b>&nbsp;&nbsp;<i class="fa fa-close"></i>
             </button>
+
         </div>
 
         <br><br>
@@ -884,6 +971,8 @@ function ResetEventsDialog(event_type)
         $("#court_outcome").trigger("change");
         $('#next_hearing_date').val('');
         $('#next_mention_date').val('');
+        $('#plea_taken').val('');
+        $('#application_outcome').val('');
         $('#court_notes').val(''); 
         $("#court_order").multiselect("clearSelection");
         $("#court_session_case").multiselect("refresh");
@@ -896,8 +985,10 @@ function ResetEventsDialog(event_type)
     {
         // Reset All Controls/Table
         $('#honoured').val('');
+        $('#honoured').trigger('change');
         $('#honoured_date').val('');
         $('#summon_date').val('');
+        $('#visit_date').val('');
         $('#summon_note').val('');
         $("#summon_msgs").css({ 'display': 'none'})        
         $("#btn_save_summon").text('Save');
@@ -941,7 +1032,18 @@ function fnOpenDialog(dialog_type)
     }
     if(dialog_type == 'Closure')
     {
-        $('#close-case-dialog').modal('show');
+        var case_status = $('#btn_case_status').text();
+        case_status = $.trim(case_status);
+        console.log(case_status);
+        if(case_status == 'ACTIVE')
+        {            
+            $('#close-case-dialog').modal('show');            
+        }
+        else
+        {
+            $('#error_msgs').css({'display': 'block'});
+            $('#error_msgs p').html('This case has been closed or transferred.');
+        }
     }
     if(dialog_type == 'CaseStatus')
     {
@@ -983,15 +1085,17 @@ function LoadCaseEvents()
                         var btnViewCe = 'btnViewCe' + i;
                         var btnEditCe = 'btnEditCe' + i;
                         var btnDeleteCe = 'btnDeleteCe' + i;
+                        var btnManageCe = 'btnManageCe' + i;
                         var tableRowId = 'tableRowId' + i;
 
                         //Actions Item
                         var editItem = '<button id=' + btnEditCe + ' type="submit" class="btn  btn-sm btn-primary m-r-5"><i class="fa fa-edit"></i></button>';
                         var deleteItem = '<button id=' + btnDeleteCe + ' type="submit" class="btn  btn-sm btn-danger m-r-5"><i class="fa fa-trash"></i></button>';
+                        var manageItem = '<button id=' + btnManageCe + ' type="submit" class="btn  btn-sm btn-primary m-r-5">Manage <i class="fa fa-share"></i></button>';
 
                         if (case_event_type == 'REFERRAL')
                         {
-                            editItem = '';
+                            editItem = manageItem;
                             deleteItem ='';
                         }
 
@@ -1008,11 +1112,16 @@ function LoadCaseEvents()
                             '</td></tr>');
 
                         // Add Click Event To Buttons      edit_view_delete_CaseEvent(event_type, event_id, action)
+                        $("#" + btnManageCe + "").click(function(e)
+                        {
+                            fnOpenDialog('Referral');
+                        });
+
                         $("#" + btnEditCe + "").click(function(e)
                         {
                             // edit_view_delete_CaseEvent(case_event_type, case_event_id,'EDIT');
                             $('#operation_mode').val('EDIT');
-                            if(case_event_type == 'COURT MENTION' || case_event_type == 'COURT HEARING') { fnViewCourtSession(case_event_id);}
+                            if(case_event_type == 'COURT MENTION' || case_event_type == 'COURT HEARING' || case_event_type == 'COURT PLEA' || case_event_type == 'COURT APPLICATION') { fnViewCourtSession(case_event_id);}
                             if(case_event_type == 'SERVICES') { fnViewEncounter(case_event_id);}
                             if(case_event_type == 'CLOSURE') { fnViewClosure(case_event_id);}
                             if(case_event_type == 'SUMMON') { fnViewSummon(case_event_id);}                            
@@ -1020,7 +1129,7 @@ function LoadCaseEvents()
 
                         $("#" + btnDeleteCe + "").click(function(e)
                         {
-                            if(case_event_type == 'COURT MENTION' || case_event_type == 'COURT HEARING') { fnDeleteCourtSession(case_event_id);}
+                            if(case_event_type == 'COURT MENTION' || case_event_type == 'COURT HEARING' || case_event_type == 'COURT PLEA' || case_event_type == 'COURT APPLICATION') { fnDeleteCourtSession(case_event_id);}
                             if(case_event_type == 'SERVICES') { fnDeleteEncounter(case_event_id);}
                             if(case_event_type == 'CLOSURE') { fnDeleteClosure(case_event_id); }
                             if(case_event_type == 'SUMMON') { fnDeleteSummon(case_event_id); }
@@ -1520,7 +1629,7 @@ function AddRow(x)
                         // Add some text to the new cells:
                         var hservice_provided = "<input id='hservice_provided' type='hidden' value='"+service_provided+"'>"
                         var hservice_provider = "<input id='hservice_provider' type='hidden' value='"+service_provider+"'>"
-                        var hservice_status= "<input id='hservice_status' value='new'>"
+                        var hservice_status= "<input id='hservice_status' type='hidden' value='new'>"
 
                         cell0.innerHTML = '<h6>#</h6>';        
                         cell1.innerHTML = '<h6>' + displayVals3("service_provided") + hservice_provided + '</h6>';
@@ -1590,6 +1699,92 @@ function AddRow(x)
         {
             $("#service_provided_errormsg").css({ 'display': "block" }); 
         }       
+    }
+
+    if(x==3)
+    {
+        var case_category = $("#case_closure_case").val();
+        var intervention = $("#intervention").val();
+        var csrftoken = $.cookie('csrftoken');        
+        var values = {  
+            'csrfmiddlewaretoken': csrftoken
+        };
+        var InterventionsData = new Array();
+
+        if(case_category)
+        {
+            if(intervention)
+            {
+                // Find a <table> element with id="myTable":
+                var table = $('#interventions_manager_table')[0]; 
+
+                // Create an empty <tr> element with id and add it to the 1st position of the table:
+                var rows_length = table.rows.length;
+                var row = table.insertRow(rows_length);
+                var index = rows_length - 2;
+                row_id = 'rowid_' + index;
+                row.id = row_id;
+                var btnRemoveIntvId = 'btnRemoveIntv' + index;
+
+                // Insert new cells (<td> elements) of the "new" <tr> element:
+                var cell0 = row.insertCell(0);
+                var cell1 = row.insertCell(1);
+                var cell2 = row.insertCell(2);
+                var cell3 = row.insertCell(3);
+
+                // Add some text to the new cells:
+                var hcase_category = "<input id='hcase_category' type='hidden' value='"+case_category+"'>"
+                var hintervention = "<input id='hintervention' type='hidden' value='"+intervention+"'>"
+                var hintervention_status= "<input id='hintervention_status' type='hidden' value='new'>"
+
+                cell0.innerHTML = '<h6>#</h6>';        
+                cell1.innerHTML = '<h6>' + displayVals3("case_closure_case") + hcase_category + '</h6>';
+                cell2.innerHTML = '<h6>' + displayVals3("intervention") + hintervention + '</h6>';
+                cell3.innerHTML  = '<h6>' + "<a id=" + btnRemoveIntvId + " class='btn btn-sm btn-link m-r-5 href='#'>Remove</a>" + '</h6>';
+
+                // AddClick Event To Remove Button
+                $("#" + btnRemoveIntvId + "").click(function(e)
+                {
+                    RemoveRow(1, '', row_id);
+                });
+
+                // Reset Input Elements/Error Divs
+                $("#case_closure_case").multiselect("clearSelection");
+                $("#case_closure_case").multiselect("refresh");
+                $("#intervention").multiselect("clearSelection");
+                $("#intervention").multiselect("refresh");
+                $('#intervention_list').val(''); 
+
+                $('#interventions_manager_table tr').each(function(row, tr)
+                {                            
+                    var case_category = $(tr).find('input[id="hcase_category"]').val();
+                    var intervention = $(tr).find('input[id="hintervention"]').val();
+                    var intervention_status = $(tr).find('input[id="hintervention_status"]').val();
+
+                    InterventionsData[row]= {
+                        "case_category" : case_category,
+                        "intervention" : intervention,
+                        "intervention_status" : intervention_status
+                        }                                
+                    
+                });
+                
+                InterventionsData.shift(); //remove first row(headers stuff)
+                InterventionsData.shift(); //remove second row(controls stuff)
+                InterventionsData = JSON.stringify(InterventionsData); 
+
+                // Set intervention_list
+                $('#intervention_list').val(InterventionsData);
+            }
+            else
+            {
+                $("#intervention_errormsg").css({ 'display': "block" }); 
+            }
+        }
+        else
+        {
+            $("#case_closure_case_errormsg").css({ 'display': "block" }); 
+        }
     }    
 }
 function EditRow(x, id)
@@ -1772,7 +1967,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                     //disable inputs - view mode
                     $('#encounter_notes').prop("readonly", true); 
 
-                    $('#services-dialog-header p').html('View Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i>');  
+                    $('#services-dialog-header p').html('View Encounters / Services &nbsp;&nbsp;<i class="fa fa-gears"></i>');  
                     $("#btn_save_encounter").hide();
                 }
                 if(action == 'EDIT')
@@ -1788,7 +1983,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                     $('#date_of_encounter_event').prop("readonly", false);
                     $('#encounter_notes').prop("readonly", false); 
 
-                    $('#services-dialog-header p').html('Edit Encounters / Services &nbsp&nbsp<i class="fa fa-gears"></i>');  
+                    $('#services-dialog-header p').html('Edit Encounters / Services &nbsp;&nbsp;<i class="fa fa-gears"></i>');  
                     $("#btn_save_encounter").show();
                 } 
                 if(action == 'DELETE')
@@ -1890,7 +2085,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                         $('#next_hearing_date').prop("readonly", true);
                         $('#court_notes').prop("readonly", true);
 
-                        $('#court-sessions-dialog p').html('View Court Session &nbsp&nbsp<i class="fa fa-legal"></i>');     
+                        $('#court-sessions-dialog p').html('View Court Session &nbsp;&nbsp;<i class="fa fa-legal"></i>');     
                         $("#btn_save_court").hide();
                     }
                     if(action == 'EDIT')
@@ -1906,7 +2101,7 @@ function edit_view_delete_CaseEvent(event_type, event_id, action)
                         $('#next_hearing_date').prop("readonly", true);
                         $('#court_notes').prop("readonly", false);
 
-                        $('#court-sessions-dialog p').html('Edit Court Session &nbsp&nbsp<i class="fa fa-legal"></i>');     
+                        $('#court-sessions-dialog p').html('Edit Court Session &nbsp;&nbsp;<i class="fa fa-legal"></i>');     
                         $("#btn_save_court").show();
                     } 
                     if(action == 'DELETE')
@@ -1971,7 +2166,10 @@ function getJsonObject001()
 
                 
                 $("#refferal_case").multiselect("refresh");
-                $("#refferal_case").multiselect('dataprovider', multiselect_data);      
+                $("#refferal_case").multiselect('dataprovider', multiselect_data);
+
+                $("#case_closure_case").multiselect("refresh");
+                $("#case_closure_case").multiselect('dataprovider', multiselect_data);      
             },
             error: function(xhr, status, error)
             {
@@ -2099,6 +2297,7 @@ function fnSaveClosure()
     // var case_status = $('#case_status').val();
     var case_outcome = $('#case_outcome').val(); 
     var transfered_to = $('#transfered_to').val(); 
+    var intervention_list = $('#intervention_list').val(); 
     var case_closure_notes = $('#case_closure_notes').val(); 
     var date_of_case_closure = $('#date_of_case_closure').val();
     var values = {  
@@ -2124,6 +2323,21 @@ function fnSaveClosure()
             }
         }
 
+        if(case_outcome == 'COOT')
+        {
+            if(intervention_list)
+            {
+                values['intervention_list'] = intervention_list.toString();
+            }
+            else
+            {
+                $("#closure_msgs6").css({ 'display': "block" });
+                $("#closure_msgs").css({ 'display': "block" });
+                $('#closure_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
         if(date_of_case_closure)
         {
             values['date_of_case_closure'] = date_of_case_closure;
@@ -2140,7 +2354,7 @@ function fnSaveClosure()
 
         $.ajax({
                     url: '{% url 'save_closure' %}',
-                    dataType: 'text',
+                    dataType: 'json',
                     method: 'POST',
                     data: values,
                     success: function(result)
@@ -2387,120 +2601,18 @@ function fnSaveCourtSession(){
     var court_outcome = $('#court_outcome').val();
     var next_hearing_date = $('#next_hearing_date').val();
     var next_mention_date = $('#next_mention_date').val();
+    var plea_taken = $('#plea_taken').val();
+    var application_outcome = $('#application_outcome').val();
     var court_order = $('#court_order').val();
     var court_notes = $('#court_notes').val();
 
     // values['action'] = action;
-    values['court_session_case'] = court_session_case;
-    values['date_of_court_event'] = date_of_court_event;
-    values['court_session_type'] = court_session_type;
     values['court_notes'] = court_notes;
 
     if(court_session_case)
     {
-        if(date_of_court_event)
-        {
-            if(court_session_type)
-            {
-                if(court_session_type == 'STHR')
-                {
-                    if(court_outcome)
-                    {
-                        values['court_outcome'] = court_outcome;
-                        if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
-                        {
-                            if(court_order)
-                            {
-                                values['court_order'] = court_order.toString();
-                            }
-                            else
-                            {
-                                $("#court_msgs6").css({ 'display': "block" });
-                                $("#court_msgs").css({ 'display': "block" }); 
-                                $('#court_msgs p').html('Please fill the missing values');
-                                return false;
-                            }  
-                        }  
-                        if(court_outcome == 'CADJ')
-                        {
-                            if(next_hearing_date)
-                            {
-                                values['next_hearing_date'] = next_hearing_date;
-                            }
-                            else
-                            {
-                                $("#court_msgs5").css({ 'display': "block" });
-                                $("#court_msgs").css({ 'display': "block" }); 
-                                $('#court_msgs p').html('Please fill the missing values');
-                                return false;
-                            }
-                        }                    
-                    }
-                    else
-                    {
-                        $("#court_msgs4").css({ 'display': "block" });
-                        $("#court_msgs").css({ 'display': "block" }); 
-                        $('#court_msgs p').html('Please fill the missing values');
-                        return false;
-                    }
-                }
-                if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
-                {
-                    if(next_mention_date)
-                    {
-                        values['next_mention_date'] = next_mention_date;
-                    }
-                    else
-                    {
-                        $("#court_msgs3").css({ 'display': "block" });
-                        $("#court_msgs").css({ 'display': "block" }); 
-                        $('#court_msgs p').html('Please fill the missing values');
-                        return false;
-                    }
-                }
-
-                // Save Court
-                $.ajax({
-                        url: '{% url 'save_court' %}',
-                        dataType: 'text',
-                        method: 'POST',
-                        contentType: 'application/x-www-form-urlencoded',
-                        data: values,
-                        success: function(result)
-                        {
-                            $("#ce_msgs").css({ 'display': "block" });  
-                            $('#ce_msgs p').html(crudMsg);
-
-                            LoadCaseEvents();
-
-                            ResetEventsDialog('Court');
-
-                            //close courtsessions-dialog
-                            $('#court-sessions-dialog').modal('hide');
-                            $("#court_msgs").css({ 'display': "none" });
-                        },
-                        error: function(xhr, status, error)
-                        {
-                            console.log(error)
-                        }
-                    });
-            }
-            else
-            {
-                $("#court_msgs2").css({ 'display': "block" });
-                $("#court_msgs").css({ 'display': "block" }); 
-                $('#court_msgs p').html('Please fill the missing values');
-                return false;
-            }
-        }
-        else
-        {
-            $("#court_msgs1").css({ 'display': "block" });
-            $("#court_msgs").css({ 'display': "block" }); 
-            $('#court_msgs p').html('Please fill the missing values');
-            return false;
-        }
-    } 
+        values['court_session_case'] = court_session_case;
+    }
     else
     {
         $("#court_msgs0").css({ 'display': "block" });
@@ -2508,6 +2620,203 @@ function fnSaveCourtSession(){
         $('#court_msgs p').html('Please fill the missing values');
         return false;
     }
+
+    if(date_of_court_event)
+    {
+        values['date_of_court_event'] = date_of_court_event;
+    }
+    else
+    {
+        $("#court_msgs1").css({ 'display': "block" });
+        $("#court_msgs").css({ 'display': "block" }); 
+        $('#court_msgs p').html('Please fill the missing values');
+        return false;
+    }
+
+    if(court_session_type)
+    {
+        values['court_session_type'] = court_session_type;
+
+        if(court_session_type == 'STHR')
+        {
+            if(court_outcome)
+            {
+                values['court_outcome'] = court_outcome;
+                if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+                {
+                    if(court_order)
+                    {
+                        values['court_order'] = court_order.toString();
+                    }
+                    else
+                    {
+                        $("#court_msgs6").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }  
+                }  
+                if(court_outcome == 'CADJ')
+                {
+                    if(next_hearing_date)
+                    {
+                        values['next_hearing_date'] = next_hearing_date;
+                    }
+                    else
+                    {
+                        $("#court_msgs5").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }
+                }                    
+            }
+            else
+            {
+                $("#court_msgs4").css({ 'display': "block" });
+                $("#court_msgs").css({ 'display': "block" }); 
+                $('#court_msgs p').html('Please fill the missing values');
+                return false;
+            } 
+        }
+        if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
+        {
+            if(court_session_type=='STMN')
+            {
+                if(next_mention_date)
+                {
+                    values['next_mention_date'] = next_mention_date;
+                }
+                else
+                {
+                    $("#court_msgs3").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }                    
+            }
+
+            if(court_session_type=='STPL')
+            {
+                if(next_mention_date)
+                {
+                    values['next_mention_date'] = next_mention_date;
+                }
+                else
+                {
+                    $("#court_msgs3").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }    
+
+                if(plea_taken)
+                {
+                    values['plea_taken'] = plea_taken;
+                }
+                else
+                {
+                    $("#court_msgs8").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }                    
+            }
+
+            if(court_session_type=='STAP')
+            {
+                if(application_outcome)
+                {
+                    values['application_outcome'] = application_outcome;
+
+                    if(application_outcome == 'APGR')
+                    {
+                        if(court_outcome)
+                        {
+                            values['court_outcome'] = court_outcome;
+                            if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+                            {
+                                if(court_order)
+                                {
+                                    values['court_order'] = court_order.toString();
+                                }
+                                else
+                                {
+                                    $("#court_msgs6").css({ 'display': "block" });
+                                    $("#court_msgs").css({ 'display': "block" }); 
+                                    $('#court_msgs p').html('Please fill the missing values');
+                                    return false;
+                                }  
+                            }  
+                            if(court_outcome == 'CADJ')
+                            {
+                                if(next_hearing_date)
+                                {
+                                    values['next_hearing_date'] = next_hearing_date;
+                                }
+                                else
+                                {
+                                    $("#court_msgs5").css({ 'display': "block" });
+                                    $("#court_msgs").css({ 'display': "block" }); 
+                                    $('#court_msgs p').html('Please fill the missing values');
+                                    return false;
+                                }
+                            }                    
+                        }
+                        else
+                        {
+                            $("#court_msgs4").css({ 'display': "block" });
+                            $("#court_msgs").css({ 'display': "block" }); 
+                            $('#court_msgs p').html('Please fill the missing values');
+                            return false;
+                        } 
+                    }
+                }
+                else
+                {
+                    $("#court_msgs9").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }                    
+            }            
+        }
+    }
+    else
+    {
+        $("#court_msgs2").css({ 'display': "block" });
+        $("#court_msgs").css({ 'display': "block" }); 
+        $('#court_msgs p').html('Please fill the missing values');
+        return false;
+    }
+
+    
+
+    // Save Court
+    $.ajax({
+            url: '{% url 'save_court' %}',
+            dataType: 'text',
+            method: 'POST',
+            contentType: 'application/x-www-form-urlencoded',
+            data: values,
+            success: function(result)
+            {
+                $("#ce_msgs").css({ 'display': "block" });  
+                $('#ce_msgs p').html(crudMsg);
+
+                LoadCaseEvents();
+
+                ResetEventsDialog('Court');
+
+                //close courtsessions-dialog
+                $('#court-sessions-dialog').modal('hide');
+                $("#court_msgs").css({ 'display': "none" });
+            },
+            error: function(xhr, status, error)
+            {
+                console.log(error)
+            }
+        });
 }
 
 function fnViewCourtSession(case_event_id){
@@ -2534,45 +2843,83 @@ function fnViewCourtSession(case_event_id){
             $.each(result, function(i, val) {
                 var date_of_court_event = val.date_of_event;
                 var court_outcome = val.court_outcome;
-                var court_session_type = val.case_event_type_id;
+                var court_session_type = val.court_session_type;
                 var date_of_court_event = val.date_of_event;
                 var next_hearing_date = val.next_hearing_date;
                 var next_mention_date = val.next_mention_date;
+                var plea_taken = val.plea_taken;
+                var application_outcome = val.application_outcome
                 var court_notes = val.case_event_notes;
-                var court_orders = ((val.ovc_court_orders).toString()).split(",");
+                var court_order = ((val.ovc_court_orders).toString()).split(",");
                 var case_category_id = ((val.ovc_category_ids).toString()).split(",");
 
-                $('#court_session_type').val(court_session_type); 
-                $("#court_session_type").multiselect("refresh");
-                $("#court_session_type").trigger("change");
-
-                $('#court_outcome').val(court_outcome); 
-                $("#court_outcome").multiselect("refresh");
-                $("#court_outcome").trigger("change");
-
-                if(next_hearing_date)
-                { $('#next_hearing_date').datepicker('setDate', dateHandler(next_hearing_date)); }
-
-                if(next_mention_date)
-                { $('#next_mention_date').datepicker('setDate', dateHandler(next_mention_date)); }
-
-                for(var i =0; i < court_orders.length; i++)
-                {
-                    $("#court_order option[value='" + court_orders[i] + "']").prop("selected", true);
-                }
-                $("#court_order").multiselect("refresh");
-                $('#court_order').trigger('change');
-
-                $('#date_of_court_event').datepicker('setDate', dateHandler(date_of_court_event));
-                $('#court_notes').val(court_notes);
-
+                // LoadData 
                 $('#court_session_case').val(case_category_id); 
                 $("#court_session_case").multiselect("refresh");
+                $('#court_session_type').val(court_session_type)
+                $('#court_session_type').multiselect('refresh')                
+                $('#date_of_court_event').val(date_of_court_event);
+
+                if(court_session_type == 'STHR') {
+                    $('#div_court_outcome').css({'display': 'block'})
+                    $('#court_outcome').val(court_outcome)
+                    $('#court_outcome').multiselect('refresh')
+
+                    if(court_outcome == 'CADJ') {
+                        $('#div_next_hearing_date').css({'display': 'block'})
+                        $('#next_hearing_date').val(next_hearing_date)
+                    }
+                    if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT') {
+                        $('#div_court_order').css({'display': 'block'})
+                        $('#court_order').val(court_order)
+                        $('#court_order').multiselect('refresh')
+                        displayVals('court_order');
+                    }
+                }  
+
+                if(court_session_type == 'STMN'){
+                    $('#div_next_mention_date').css({'display': 'block'})
+                    $('#next_mention_date').val(next_mention_date)
+                } 
+
+                if(court_session_type == 'STPL'){
+                    $('#div_plea_taken').css({'display': 'block'})
+                    $('#plea_taken').val(plea_taken)
+
+                    $('#div_next_mention_date').css({'display': 'block'})
+                    $('#next_mention_date').val(next_mention_date)
+                } 
+
+                if(court_session_type == 'STAP'){
+                    $('#div_application_outcome').css({'display': 'block'})
+                    $('#application_outcome').val(application_outcome)
+
+                    if(application_outcome=='APGR')
+                    {
+                        $('#div_court_outcome').css({'display': 'block'})
+                        $('#court_outcome').val(court_outcome )
+                        $('#court_outcome').multiselect('refresh')
+                    }                      
+
+                    if(court_outcome == 'CADJ') {
+                        $('#div_next_hearing_date').css({'display': 'block'})
+                        $('#next_hearing_date').val(next_hearing_date)
+                    }
+                    if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+                    {
+                        $('#div_court_order').css({'display': 'block'})
+                        $('#court_order').val(court_order)
+                        $('#court_order').multiselect('refresh')
+                        displayVals('court_order');
+                    }
+                } 
+
+                $('#court_notes').val(court_notes);
             });
     },
     error: function(xhr, status, error)
     {
-    alert(error);
+        alert(error);
     }
     });  
 }
@@ -2595,123 +2942,18 @@ function fnUpdateCourtSession(){
     var court_outcome = $('#court_outcome').val();
     var next_hearing_date = $('#next_hearing_date').val();
     var next_mention_date = $('#next_mention_date').val();
+    var plea_taken = $('#plea_taken').val();
+    var application_outcome = $('#application_outcome').val();
     var court_order = $('#court_order').val();
     var court_notes = $('#court_notes').val();
 
     // values['action'] = action;
-    values['court_session_case'] = court_session_case;
-    values['date_of_court_event'] = date_of_court_event;
-    values['court_session_type'] = court_session_type;
     values['court_notes'] = court_notes;
 
     if(court_session_case)
     {
-        if(date_of_court_event)
-        {
-            if(court_session_type)
-            {
-                if(court_session_type == 'STHR')
-                {
-                    if(court_outcome)
-                    {
-                        values['court_outcome'] = court_outcome;
-                        if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
-                        {
-                            if(court_order)
-                            {
-                                values['court_order'] = court_order.toString();
-                            }
-                            else
-                            {
-                                $("#court_msgs6").css({ 'display': "block" });
-                                $("#court_msgs").css({ 'display': "block" }); 
-                                $('#court_msgs p').html('Please fill the missing values');
-                                return false;
-                            }  
-                        }  
-                        if(court_outcome == 'CADJ')
-                        {
-                            if(next_hearing_date)
-                            {
-                                values['next_hearing_date'] = next_hearing_date;
-                            }
-                            else
-                            {
-                                $("#court_msgs5").css({ 'display': "block" });
-                                $("#court_msgs").css({ 'display': "block" }); 
-                                $('#court_msgs p').html('Please fill the missing values');
-                                return false;
-                            }
-                        }                    
-                    }
-                    else
-                    {
-                        $("#court_msgs4").css({ 'display': "block" });
-                        $("#court_msgs").css({ 'display': "block" }); 
-                        $('#court_msgs p').html('Please fill the missing values');
-                        return false;
-                    }
-                }
-                if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
-                {
-                    if(next_mention_date)
-                    {
-                        values['next_mention_date'] = next_mention_date;
-                    }
-                    else
-                    {
-                        $("#court_msgs3").css({ 'display': "block" });
-                        $("#court_msgs").css({ 'display': "block" }); 
-                        $('#court_msgs p').html('Please fill the missing values');
-                        return false;
-                    }
-                }
-
-                // Update Court
-                $.ajax({
-                        url: '{% url 'edit_court' %}',
-                        dataType: 'text',
-                        method: 'POST',
-                        contentType: 'application/x-www-form-urlencoded',
-                        data: values,
-                        success: function(result)
-                        {
-                            $("#ce_msgs").css({ 'display': "block" });  
-                            $('#ce_msgs p').html(crudMsg);
-
-                            LoadCaseEvents();
-
-                            ResetEventsDialog('Court');
-
-                            //close courtsessions-dialog
-                            $('#court-sessions-dialog').modal('hide');
-                            $("#court_msgs").css({ 'display': "none" });
-
-                            $("#btn_save_court").text('Save');
-                            $("#operation_mode").val('');
-                        },
-                        error: function(xhr, status, error)
-                        {
-                            console.log(error)
-                        }
-                    });
-            }
-            else
-            {
-                $("#court_msgs2").css({ 'display': "block" });
-                $("#court_msgs").css({ 'display': "block" }); 
-                $('#court_msgs p').html('Please fill the missing values');
-                return false;
-            }
-        }
-        else
-        {
-            $("#court_msgs1").css({ 'display': "block" });
-            $("#court_msgs").css({ 'display': "block" }); 
-            $('#court_msgs p').html('Please fill the missing values');
-            return false;
-        }
-    } 
+        values['court_session_case'] = court_session_case;
+    }
     else
     {
         $("#court_msgs0").css({ 'display': "block" });
@@ -2719,7 +2961,205 @@ function fnUpdateCourtSession(){
         $('#court_msgs p').html('Please fill the missing values');
         return false;
     }
+
+    if(date_of_court_event)
+    {
+        values['date_of_court_event'] = date_of_court_event;
+    }
+    else
+    {
+        $("#court_msgs1").css({ 'display': "block" });
+        $("#court_msgs").css({ 'display': "block" }); 
+        $('#court_msgs p').html('Please fill the missing values');
+        return false;
+    }
+
+    if(court_session_type)
+    {
+        values['court_session_type'] = court_session_type;
+
+        if(court_session_type == 'STHR')
+        {
+            if(court_outcome)
+            {
+                values['court_outcome'] = court_outcome;
+                if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+                {
+                    if(court_order)
+                    {
+                        values['court_order'] = court_order.toString();
+                    }
+                    else
+                    {
+                        $("#court_msgs6").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }  
+                }  
+                if(court_outcome == 'CADJ')
+                {
+                    if(next_hearing_date)
+                    {
+                        values['next_hearing_date'] = next_hearing_date;
+                    }
+                    else
+                    {
+                        $("#court_msgs5").css({ 'display': "block" });
+                        $("#court_msgs").css({ 'display': "block" }); 
+                        $('#court_msgs p').html('Please fill the missing values');
+                        return false;
+                    }
+                }                    
+            }
+            else
+            {
+                $("#court_msgs4").css({ 'display': "block" });
+                $("#court_msgs").css({ 'display': "block" }); 
+                $('#court_msgs p').html('Please fill the missing values');
+                return false;
+            } 
+        }
+        if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
+        {
+            if(court_session_type=='STMN')
+            {
+                if(next_mention_date)
+                {
+                    values['next_mention_date'] = next_mention_date;
+                }
+                else
+                {
+                    $("#court_msgs3").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }                    
+            }
+
+            if(court_session_type=='STPL')
+            {
+                if(next_mention_date)
+                {
+                    values['next_mention_date'] = next_mention_date;
+                }
+                else
+                {
+                    $("#court_msgs3").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }    
+
+                if(plea_taken)
+                {
+                    values['plea_taken'] = plea_taken;
+                }
+                else
+                {
+                    $("#court_msgs8").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }                    
+            }
+
+            if(court_session_type=='STAP')
+            {
+                if(application_outcome)
+                {
+                    values['application_outcome'] = application_outcome;
+
+                    if(application_outcome == 'APGR')
+                    {
+                        if(court_outcome)
+                        {
+                            values['court_outcome'] = court_outcome;
+                            if(court_outcome == 'CRUL'||court_outcome == 'CRJD'||court_outcome == 'CRCT')
+                            {
+                                if(court_order)
+                                {
+                                    values['court_order'] = court_order.toString();
+                                }
+                                else
+                                {
+                                    $("#court_msgs6").css({ 'display': "block" });
+                                    $("#court_msgs").css({ 'display': "block" }); 
+                                    $('#court_msgs p').html('Please fill the missing values');
+                                    return false;
+                                }  
+                            }  
+                            if(court_outcome == 'CADJ')
+                            {
+                                if(next_hearing_date)
+                                {
+                                    values['next_hearing_date'] = next_hearing_date;
+                                }
+                                else
+                                {
+                                    $("#court_msgs5").css({ 'display': "block" });
+                                    $("#court_msgs").css({ 'display': "block" }); 
+                                    $('#court_msgs p').html('Please fill the missing values');
+                                    return false;
+                                }
+                            }                    
+                        }
+                        else
+                        {
+                            $("#court_msgs4").css({ 'display': "block" });
+                            $("#court_msgs").css({ 'display': "block" }); 
+                            $('#court_msgs p').html('Please fill the missing values');
+                            return false;
+                        } 
+                    }
+                }
+                else
+                {
+                    $("#court_msgs9").css({ 'display': "block" });
+                    $("#court_msgs").css({ 'display': "block" }); 
+                    $('#court_msgs p').html('Please fill the missing values');
+                    return false;
+                }                    
+            }            
+        }
+    }
+    else
+    {
+        $("#court_msgs2").css({ 'display': "block" });
+        $("#court_msgs").css({ 'display': "block" }); 
+        $('#court_msgs p').html('Please fill the missing values');
+        return false;
+    }
     
+
+    // Update Court
+    $.ajax({
+            url: '{% url 'edit_court' %}',
+            dataType: 'text',
+            method: 'POST',
+            contentType: 'application/x-www-form-urlencoded',
+            data: values,
+            success: function(result)
+            {
+                $("#ce_msgs").css({ 'display': "block" });  
+                $('#ce_msgs p').html(crudMsg);
+
+                LoadCaseEvents();
+
+                ResetEventsDialog('Court');
+
+                //close courtsessions-dialog
+                $('#court-sessions-dialog').modal('hide');
+                $("#court_msgs").css({ 'display': "none" });
+
+                $("#btn_save_court").text('Save');
+                $("#operation_mode").val('');
+            },
+            error: function(xhr, status, error)
+            {
+                console.log(error)
+            }
+        });    
 }
 
 function fnDeleteCourtSession(case_event_id){
@@ -3023,68 +3463,52 @@ function fnSaveSummons(){
     var honoured = $('#honoured').val();
     var honoured_date = $('#honoured_date').val();
     var summon_date = $('#summon_date').val();
+    // var visit_date = $('#visit_date').val();
     var summon_note = $('#summon_note').val();
     
     values['summon_note'] = summon_note;
+
+    if(honoured_date)
+    {
+        values['honoured_date'] = honoured_date;
+    }
+    else
+    {
+        $("#summons_msgs2").css({ 'display': "block" });
+        $("#summon_msgs").css({ 'display': "block" });
+        $('#summon_msgs p').html('Please fill the missing values');
+        return false;
+    }
 
     if(honoured)
     {
         values['honoured'] = honoured;
         if(honoured=='AYES')
         {
-            if(honoured_date)
-            {
-                values['honoured_date'] = honoured_date;
-            }
-            else
-            {
-                $("#summons_msgs2").css({ 'display': "block" });
-                $("#summon_msgs").css({ 'display': "block" });
-                $('#summon_msgs p').html('Please fill the missing values');
-                return false;
-            }
+            values['summon_date'] = summon_date;            
         }
-
         if(honoured=='ANNO')
         {
-            if(summon_date)
+            var summon_count = parseInt($('#summon_count').html());
+            if(summon_count >= 2)
             {
-                values['summon_date'] = summon_date;
+                values['summon_date'] = null;
             }
             else
             {
-                $("#summons_msgs3").css({ 'display': "block" });
-                $("#summon_msgs").css({ 'display': "block" });
-                $('#summon_msgs p').html('Please fill the missing values');
-                return false;
-            }
-        }
-
-        // Save Summons
-        $.ajax({
-                url: '{% url 'save_summon' %}',
-                dataType: 'text',
-                method: 'POST',
-                contentType: 'application/x-www-form-urlencoded',
-                data: values,
-                success: function(result)
+                if(summon_date)
                 {
-                    $("#ce_msgs").css({ 'display': "block" });
-                    $('#ce_msgs p').html(crudMsg);
-
-                    LoadCaseEvents();
-
-                    ResetEventsDialog('Summon');
-
-                    //close courtsessions-dialog
-                    $('#summons-dialog').modal('hide');
-                    $("#summon_msgs").css({ 'display': "none" });
-                },
-                error: function(xhr, status, error)
-                {
-                    console.log(error)
+                    values['summon_date'] = summon_date;
                 }
-            });
+                else
+                {
+                    $("#summons_msgs3").css({ 'display': "block" });
+                    $("#summon_msgs").css({ 'display': "block" });
+                    $('#summon_msgs p').html('Please fill the missing values');
+                    return false;
+                }
+            }            
+        }
     }
     else
     {
@@ -3092,7 +3516,34 @@ function fnSaveSummons(){
         $("#summon_msgs").css({ 'display': "block" });
         $('#summon_msgs p').html('Please fill the missing values');
         return false;
-    }    
+    } 
+
+    // Save Summons
+    $.ajax({
+            url: '{% url 'save_summon' %}',
+            dataType: 'text',
+            method: 'POST',
+            contentType: 'application/x-www-form-urlencoded',
+            data: values,
+            success: function(result)
+            {
+                $("#ce_msgs").css({ 'display': "block" });
+                $('#ce_msgs p').html(crudMsg);
+
+                LoadCaseEvents();
+
+                ResetEventsDialog('Summon');
+
+                //close courtsessions-dialog
+                $('#summons-dialog').modal('hide');
+                $("#summon_msgs").css({ 'display': "none" });
+            },
+            error: function(xhr, status, error)
+            {
+                console.log(error)
+            }
+        });
+      
 }
 
 function fnViewSummon(case_event_id){
@@ -3122,13 +3573,27 @@ function fnViewSummon(case_event_id){
                 $.each(result, function(i, val) {
                     var honoured = val.honoured;
                     var date_of_event = val.date_of_event;
+                    var summon_date =val.summon_date;
                     var summon_note = val.summon_note;
+                    var visit_date = val.visit_date;
                     var case_event_id = val.case_event_id;
 
                     $('#honoured').val(honoured);
-                    $('#honoured').trigger('change');
-                    if(honoured=='AYES'){ $('#honoured_date').val(date_of_event); }
-                    if(honoured=='ANNO'){ $('#summon_date').val(date_of_event); }
+                    // $('#honoured').trigger('change');
+                    // $('#visit_date').val(visit_date);
+                    $('#honoured_date').val(date_of_event);
+                    if(honoured=='ANNO'){ 
+                        if(summon_date)
+                        {  
+                            $('#div_summon_date').css({'display': 'block'});                          
+                            $('#summon_date').val(summon_date);                             
+                        }
+                        else
+                        {
+                            $('#div_summon_date').css({'display': 'none'});                          
+                            $('#summon_date').val('');                             
+                        }
+                    }
                     $('#summon_note').val(summon_note);
                 });
             },
@@ -3150,71 +3615,56 @@ function fnUpdateSummons(case_event_id){
                     'case_id':case_id,
                     'case_event_id': case_event_id
                  };
+
     var honoured = $('#honoured').val();
     var honoured_date = $('#honoured_date').val();
     var summon_date = $('#summon_date').val();
+    // var visit_date = $('#visit_date').val();
     var summon_note = $('#summon_note').val();
     
     values['summon_note'] = summon_note;
+
+    if(honoured_date)
+    {
+        values['honoured_date'] = honoured_date;
+    }
+    else
+    {
+        $("#summons_msgs2").css({ 'display': "block" });
+        $("#summon_msgs").css({ 'display': "block" });
+        $('#summon_msgs p').html('Please fill the missing values');
+        return false;
+    }
 
     if(honoured)
     {
         values['honoured'] = honoured;
         if(honoured=='AYES')
         {
-            if(honoured_date)
-            {
-                values['honoured_date'] = honoured_date;
-            }
-            else
-            {
-                $("#summons_msgs2").css({ 'display': "block" });
-                $("#summon_msgs").css({ 'display': "block" });
-                $('#summon_msgs p').html('Please fill the missing values');
-                return false;
-            }
+            values['summon_date'] = summon_date;            
         }
-
         if(honoured=='ANNO')
         {
-            if(summon_date)
+            var summon_count = parseInt($('#summon_count').html());
+            if(summon_count >= 2)
             {
-                values['summon_date'] = summon_date;
+                values['summon_date'] = null;
             }
             else
             {
-                $("#summons_msgs3").css({ 'display': "block" });
-                $("#summon_msgs").css({ 'display': "block" });
-                $('#summon_msgs p').html('Please fill the missing values');
-                return false;
-            }
-        }
-
-        // Save Summons
-        $.ajax({
-                url: '{% url 'edit_summon' %}',
-                dataType: 'text',
-                method: 'POST',
-                contentType: 'application/x-www-form-urlencoded',
-                data: values,
-                success: function(result)
+                if(summon_date)
                 {
-                    $("#ce_msgs").css({ 'display': "block" });
-                    $('#ce_msgs p').html(crudMsg);
-
-                    LoadCaseEvents();
-
-                    ResetEventsDialog('Summon');
-
-                    //close courtsessions-dialog
-                    $('#summons-dialog').modal('hide');
-                    $("#summon_msgs").css({ 'display': "none" });
-                },
-                error: function(xhr, status, error)
-                {
-                    console.log(error)
+                    values['summon_date'] = summon_date;
                 }
-            });
+                else
+                {
+                    $("#summons_msgs3").css({ 'display': "block" });
+                    $("#summon_msgs").css({ 'display': "block" });
+                    $('#summon_msgs p').html('Please fill the missing values');
+                    return false;
+                }
+            }            
+        }
     }
     else
     {
@@ -3222,7 +3672,34 @@ function fnUpdateSummons(case_event_id){
         $("#summon_msgs").css({ 'display': "block" });
         $('#summon_msgs p').html('Please fill the missing values');
         return false;
-    }  
+    }     
+
+
+    // Update Summons
+    $.ajax({
+            url: '{% url 'edit_summon' %}',
+            dataType: 'text',
+            method: 'POST',
+            contentType: 'application/x-www-form-urlencoded',
+            data: values,
+            success: function(result)
+            {
+                $("#ce_msgs").css({ 'display': "block" });
+                $('#ce_msgs p').html(crudMsg);
+
+                LoadCaseEvents();
+
+                ResetEventsDialog('Summon');
+
+                //close courtsessions-dialog
+                $('#summons-dialog').modal('hide');
+                $("#summon_msgs").css({ 'display': "none" });
+            },
+            error: function(xhr, status, error)
+            {
+                console.log(error)
+            }
+        });
 }
 
 function fnDeleteSummon(case_event_id){
@@ -3329,7 +3806,7 @@ $(document).ready(function()
     });
 
     //multi selects
-    $('#refferal_case, #service_provided_case, #court_session_case, #court_session_type, #service_provided, #court_order, #court_outcome, #refferals_made, #service_provider, #refferals_actor, #refferals_actor_specify, #transfered_to').multiselect({
+    $('#refferal_case, #service_provided_case, #court_session_case, #court_session_type, #service_provided, #court_order, #court_outcome, #refferals_made, #service_provider, #refferals_actor, #refferals_actor_specify, #transfered_to, #intervention, #case_closure_case').multiselect({
         selectAllValue: 'multiselect-all',
         includeSelectAllOption: true,
         enableCaseInsensitiveFiltering: true,
@@ -3469,12 +3946,22 @@ $("#honoured").change(function(event)
     if(honoured == 'AYES')
     {
         $('#div_summon_date').css({'display': 'none'});
-        $('#div_honoured_date').css({'display': 'block'});       
+        // $('#div_honoured_date').css({'display': 'block'});       
     }
     else if(honoured == 'ANNO')
     {
-        $('#div_summon_date').css({'display': 'block'});
-        $('#div_honoured_date').css({'display': 'none'});
+        // $('#div_honoured_date').css({'display': 'none'});
+        // $('#honoured_date').val('');
+
+        var summon_count = parseInt($('#summon_count').html());
+        if(summon_count >= 2)
+        {
+            $('#div_summon_date').css({'display': 'none'});
+            $('#summon_date').val('');
+        }
+        else{
+            $('#div_summon_date').css({'display': 'block'});            
+        }
 
         // Reconfigure date_of_summon
         $('#summon_date').datepicker('remove');
@@ -3486,7 +3973,7 @@ $("#honoured").change(function(event)
     else
     {
         $('#div_summon_date').css({'display': 'none'});
-        $('#div_honoured_date').css({'display': 'none'});
+        $('#summon_date').val('')
     }
     $("#summons_msgs1").css({ 'display': "none" });
 });
@@ -3593,31 +4080,152 @@ $('#date_of_court_event').datepicker().on('change.dp', function(e) {
 $("#court_session_type").change(function(event) 
 { 
     var court_session_type = $('#court_session_type').val();
-    if(court_session_type == 'STMN'||court_session_type == 'STPL'||court_session_type == 'STAP')
+
+    if(court_session_type == 'STMN')
     {
+        // Display
         $('#div_next_mention_date').css({'display': 'block'});
+
+        // Hide
+        $('#div_plea_taken').css({'display': 'none'});
+        $('#plea_taken').val('');
+
+        $('#div_application_outcome').css({'display': 'none'});
+        $('#application_outcome').val('');
+
+        $('#div_next_hearing_date').css({'display': 'none'});
+        $('#next_hearing_date').val('');
 
         $('#div_court_outcome').css({'display': 'none'});
         $('#court_outcome').multiselect('clearSelection');
-        $('#court_outcome').multiselect('refresh')
-        $('#court_outcome').trigger('change');
+
+        $('#div_court_order').css({'display': 'none'}) 
+        $('#court_order').multiselect('clearSelection');
+        $('#court_order').multiselect('refresh')
+        $('#sel_court_order').html(''); 
     }
-    else if(court_session_type == 'STHR')
+    
+    else if(court_session_type == 'STPL')
     {
+        // Display
+        $('#div_next_mention_date').css({'display': 'block'});
+        $('#div_plea_taken').css({'display': 'block'});
+
+        // Hide
+        $('#div_application_outcome').css({'display': 'none'});
+        $('#application_outcome').val('');
+
+        $('#div_next_hearing_date').css({'display': 'none'});
+        $('#next_hearing_date').val('');
+
+        $('#div_court_outcome').css({'display': 'none'});
+        $('#court_outcome').multiselect('clearSelection');
+        $('#court_outcome').multiselect('refresh');
+        // $('#court_outcome').trigger('change');
+
+        $('#div_court_order').css({'display': 'none'}) 
+        $('#court_order').multiselect('clearSelection');
+        $('#court_order').multiselect('refresh')
+        $('#sel_court_order').html('');
+    }
+
+    else if(court_session_type == 'STAP')
+    {
+        // Display
+        $('#div_application_outcome').css({'display': 'block'});
+
+        // Hide
+        $('#div_plea_taken').css({'display': 'none'});
+        $('#plea_taken').val('');
+
         $('#div_next_mention_date').css({'display': 'none'});
         $('#next_mention_date').val('');
+
+        $('#div_next_hearing_date').css({'display': 'none'});
+        $('#next_hearing_date').val('');
+
+        $('#div_court_outcome').css({'display': 'none'});
+        $('#court_outcome').multiselect('clearSelection');
+        //$('#court_outcome').multiselect('refresh');
+        // $('#court_outcome').trigger('change');
+
+        $('#div_court_order').css({'display': 'none'}) 
+        $('#court_order').multiselect('clearSelection');
+        $('#court_order').multiselect('refresh')
+        $('#sel_court_order').html(''); 
+    }
+
+    else if(court_session_type == 'STHR')
+    {
+        // Display
         $('#div_court_outcome').css({'display': 'block'});
+        $('#court_outcome').multiselect('clearSelection');
+        $('#court_outcome').multiselect('refresh')
+        $('#court_outcome').trigger('change');
+
+        // Hide
+        $('#div_plea_taken').css({'display': 'none'});
+        $('#plea_taken').val('');
+
+        $('#div_application_outcome').css({'display': 'none'});
+        $('#application_outcome').val('');
+
+        $('#div_next_mention_date').css({'display': 'none'});
+        $('#next_mention_date').val('');
+
+        $('#div_next_hearing_date').css({'display': 'none'});
+        $('#next_hearing_date').val('');
+
+    }
+
+    else
+    {
+        // Hide All
+        $('#div_plea_taken').css({'display': 'none'});
+        $('#plea_taken').val('');
+
+        $('#div_application_outcome').css({'display': 'none'});
+        $('#application_outcome').val('');
+
+        $('#div_next_mention_date').css({'display': 'none'});
+        $('#next_mention_date').val('');
+
+        $('#div_next_hearing_date').css({'display': 'none'});
+        $('#next_hearing_date').val('');
+
+        $('#div_court_outcome').css({'display': 'none'});
+        $('#court_outcome').multiselect('clearSelection');
+        $('#court_outcome').multiselect('refresh');
+        // $('#court_outcome').trigger('change');
+
+        $('#div_court_order').css({'display': 'none'}) 
+        $('#court_order').multiselect('clearSelection');
+        $('#court_order').multiselect('refresh')
+        $('#sel_court_order').html('');
+    }
+
+    
+    $("#court_msgs2").css({ 'display': "none" });
+});
+
+$("#application_outcome").change(function(event) 
+{ 
+    // if GRANTED pick Court Orders
+    var application_outcome = $('#application_outcome').val();
+    if(application_outcome == 'APGR')
+    {
+        $('#court_outcome').css({'display': 'block'});
+        $('#court_outcome').multiselect('clearSelection');
+        $('#court_outcome').multiselect('refresh')
+        $('#court_outcome').trigger('change');
     }
     else
     {
         $('#div_court_outcome').css({'display': 'none'});
         $('#court_outcome').multiselect('clearSelection');
-        $('#court_outcome').multiselect('refresh')
-
-        $('#div_next_mention_date').css({'display': 'none'});
-        $('#next_mention_date').val('');
+        $('#court_outcome').multiselect('refresh') 
+        $('#court_outcome').trigger('change') ;      
     }
-    $("#court_msgs2").css({ 'display': "none" });
 });
 
 $("#court_outcome").change(function(event) 
@@ -3735,31 +4343,71 @@ $("#refferals_made").change(function(event)
 /* Closure Dialog */
 $('#date_of_case_closure').datepicker({ format: 'dd-M-yyyy' });
 $('#date_of_case_closure').datepicker().on('change.dp', function(e) {
-    $("#closure_msgs3").css({ 'display': "none" });
+    $("#closure_msgs4").css({ 'display': "none" });
 });
+
 $('#case_closure_notes').keyup(function() {
     if($(this).val()) // get the current value of the input field    
     {
         $("#closure_msgs2").css({ 'display': "none" }); 
     }
 });
+
 $("#case_status").change(function(event) 
 { 
     $("#closure_msgs1").css({ 'display': "none" }); 
 });
+
 $("#case_outcome").change(function(event) 
 { 
     var case_outcome = $('#case_outcome').val();
     if(case_outcome =='COTR')
     {
         $("#div_transfered_to").css({ 'display': "block" });
+        $("#div_intervention").css({ 'display': "none" });
+        $("#intervention").multiselect('clearSelection');
+        $("#intervention").multiselect('refresh');
+        $("#case_closure_case").multiselect('clearSelection');
+        $("#case_closure_case").multiselect('refresh');
+        $("#intervention_list").val('');
+        $('#interventions_manager_table').find("tr:gt(2)").remove();
     } 
+    else if(case_outcome =='COOT')
+    {
+        $("#div_intervention").css({ 'display': "block" });
+        $("#div_transfered_to").css({ 'display': "none" });
+        $("#transfered_to").multiselect('clearSelection');
+        $("#transfered_to").multiselect('refresh');
+    }
     else
     {
         $("#div_transfered_to").css({ 'display': "none" });
         $("#transfered_to").multiselect('clearSelection');
         $("#transfered_to").multiselect('refresh');
+
+        $("#div_intervention").css({ 'display': "none" });
+        $("#intervention").multiselect('clearSelection');
+        $("#intervention").multiselect('refresh');
+        $("#case_closure_case").multiselect('clearSelection');
+        $("#case_closure_case").multiselect('refresh');
+        $("#intervention_list").val('');
+        $('#interventions_manager_table').find("tr:gt(2)").remove();
     }
+
+    $("#closure_msgs2").css({ 'display': "none" });
+    $("#closure_msgs6").css({ 'display': "none" });
+});
+
+$("#intervention").change(function(event) 
+{ 
+    //displayVals('intervention');
+    $("#intervention_errormsg").css({ 'display': "none" }); 
+});
+
+$("#case_closure_case").change(function(event) 
+{ 
+    //displayVals('intervention');
+    $("#case_closure_case_errormsg").css({ 'display': "none" }); 
 });
 
 // Reconfigure date_of_case_closure
