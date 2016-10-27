@@ -370,7 +370,7 @@ def save_sibling(request, attached_sb, person_id):
                               'date_linked': todate, 'remarks': sibling_rmk,
                               'is_void': False},)
                 # Use Owners location details to create/update sibling details
-                copy_locations(person_id, sibling_id)
+                copy_locations(person_id, sibling_id, request)
                 new_sib_ids.append(sibling_id)
                 # Audit trail required here for tracking creators
                 params = {}
@@ -581,7 +581,7 @@ def auto_suggest_person(request, query, qid=0):
                 val['fname'] = person.first_name
                 val['sname'] = person.surname
                 val['onames'] = person.other_names
-            if qid == 1:
+            if query_id == 1:
                 # Get case records belonging to this child
                 cases = []
                 all_cases = OVCCaseRecord.objects.filter(
