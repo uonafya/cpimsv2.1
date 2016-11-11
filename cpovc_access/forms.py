@@ -3,6 +3,7 @@ import logging
 from collections import OrderedDict
 
 from django import forms
+from django.utils import timezone
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import authenticate, get_user_model
@@ -164,6 +165,7 @@ class StrictSetPasswordForm(forms.Form):
         """Method to do the actual save."""
         self.user.set_password(self.cleaned_data['new_password1'])
         if commit:
+            self.user.password_changed_timestamp = timezone.now()
             self.user.save()
         return self.user
 
