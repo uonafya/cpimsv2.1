@@ -154,12 +154,12 @@ jQuery(document).ready(function() {
         if(cases){
           has_case = 1;
           $.each(cases, function(i, item) {
-            dt += '<input type="radio" name="case_id" value="'+item.id+'">';
+            dt += '<input type="radio" name="case_id" value="'+item.id+'" data-parsley-required="true">';
             dt += item.serial+' | '+item.case_date+'<br>';
           });
         }else{
           has_case = 0;
-          dt += "No active Case Record";
+          dt += "No active Case Record or Have no access";
         }       
   	    $('#case_data').html(dt);
         $('#cpims_child_id').val(ui.item.id);

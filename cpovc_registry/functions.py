@@ -14,7 +14,7 @@ from .models import (
     RegOrgUnitsAuditTrail)
 
 from cpovc_auth.models import CPOVCUserRoleGeoOrg
-from cpovc_forms.models import OVCCaseRecord, OVCCaseCategory
+from cpovc_forms.models import OVCCaseRecord, OVCCaseCategory, OVCCaseGeo
 
 organisation_id_prefix = 'U'
 benficiary_id_prefix = 'B'
@@ -345,9 +345,12 @@ def save_sibling(request, attached_sb, person_id):
                 if sibling_cpid:
                     sibling_id = int(sibling_cpid)
                 else:
+                    child_ovc = request.POST.get('child_ovc')
+                    is_ovc = True if child_ovc == 'AYES' else False
+                    designation = 'COSI' if is_ovc else 'CGSI'
                     # Save as a person if has no sibling id
                     person = RegPerson(
-                        designation='',
+                        designation=designation,
                         first_name=sibling_first_name.upper(),
                         other_names=sibling_othernames.upper(),
                         surname=sibling_surname.upper(),
@@ -583,7 +586,7 @@ def auto_suggest_person(request, query, qid=0):
                 val['onames'] = person.other_names
             if query_id == 1:
                 # Get case records belonging to this child
-                cases = []
+                cases, case_ids, allowed_cases = [], [], []
                 all_cases = OVCCaseRecord.objects.filter(
                     is_void=False, person_id=person_id)
                 for case in all_cases:
@@ -591,8 +594,25 @@ def auto_suggest_person(request, query, qid=0):
                     cd = {'id': case.case_id, 'serial': str(case.case_serial),
                           'case_date': case_date}
                     cases.append(cd)
+                    case_ids.append(case.case_id)
+                if case_ids:
+                    # Now filter only cases handled by this org unit
+                    my_org_id = request.session.get('ou_primary')
+                    print 'PERMS', my_org_id, case_ids
+                    all_cids = OVCCaseGeo.objects.filter(
+                        is_void=False, case_id_id__in=case_ids,
+                        report_orgunit_id=my_org_id)
+                    for ac in all_cids:
+                        allowed_cases.append(ac.case_id_id)
                 if cases:
-                    val['cases'] = cases
+                    new_case = []
+                    for case in cases:
+                        if case['id'] in allowed_cases:
+                            new_case.append(case)
+                    if new_case:
+                        val['cases'] = new_case
+                    if request.user.is_superuser:
+                        val['cases'] = cases
                 val['label'] = '%s (%s)' % (name, len(cases))
             results.append(val)
     except Exception, e:

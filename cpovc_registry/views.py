@@ -38,6 +38,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 
 from cpovc_main.country import COUNTRIES
+from cpovc_ovc.models import OVCRegistration
 
 
 now = timezone.now()
@@ -118,11 +119,13 @@ def register_new(request):
             # print request.POST
             org_unit_type = request.POST.get('org_unit_type')
             org_unit_name = request.POST.get('org_unit_name')
+            handle_ovc = request.POST.get('handle_ovc')
             reg_date = request.POST.get('reg_date')
             if str(reg_date):
                 reg_date = convert_date(reg_date)
             else:
                 reg_date = None
+            handles_ovc = True if handle_ovc == 'AYES' else False
             county = request.POST.getlist('county')
             sub_county = request.POST.getlist('sub_county')
             ward = request.POST.getlist('ward')
@@ -137,6 +140,7 @@ def register_new(request):
                                  date_operational=reg_date,
                                  parent_org_unit_id=parent_org_unit,
                                  created_by_id=request.user.id,
+                                 handle_ovc=handles_ovc,
                                  is_void=False)
             org_new.save()
             org_unit_id = org_new.pk
@@ -211,11 +215,13 @@ def register_edit(request, org_id):
             edit_type = int(request.POST.get('edit_org'))
             org_unit_name = request.POST.get('org_unit_name')
             org_unit_type = request.POST.get('org_unit_type')
+            handle_ovc = request.POST.get('handle_ovc')
             reg_date = request.POST.get('reg_date')
             if str(reg_date):
                 reg_date = convert_date(reg_date)
             else:
                 reg_date = None
+            handles_ovc = True if handle_ovc == 'AYES' else False
             county = request.POST.getlist('county')
             sub_county = request.POST.getlist('sub_county')
             ward = request.POST.getlist('ward')
@@ -226,8 +232,9 @@ def register_edit(request, org_id):
                 units.org_unit_name = org_unit_name.upper()
                 units.org_unit_type_id = org_unit_type
                 units.date_operational = reg_date
+                units.handle_ovc = handles_ovc
                 units.save(update_fields=["org_unit_name", "org_unit_type_id",
-                                          "date_operational"])
+                                          "date_operational", "handle_ovc"])
                 # Update registration details
                 org_reg_type = request.POST.get('org_reg_type')
                 reg_number = request.POST.get('legal_reg_number')
@@ -285,6 +292,8 @@ def register_edit(request, org_id):
             date_closed = close_date.strftime('%d-%b-%Y')
         unit_type = units.org_unit_type_id
         parent_unit = units.parent_org_unit_id
+        handles_ovc = units.handle_ovc
+        handle_ovc = 'AYES' if handles_ovc else 'ANNO'
         # External ids
         ext_ids = get_external_ids(org_id)
         external = {}
@@ -305,7 +314,7 @@ def register_edit(request, org_id):
                 'reg_date': date_op, 'sub_county': area_list,
                 'ward': area_list, 'close_date': date_closed,
                 'parent_org_unit': parent_unit, 'county': county_list,
-                'org_unit_category': org_cat}
+                'org_unit_category': org_cat, 'handle_ovc': handle_ovc}
         data_dict = merge_two_dicts(external, data)
         form = FormRegistryNew(request.user, data_dict)
         # Get contact details
@@ -470,10 +479,17 @@ def new_person(request):
             country = request.POST.get('country')
             given_name = request.POST.get('given_name')
 
+            child_ovc = request.POST.get('child_ovc')
+
             audit_date = request.POST.get('audit_date')
             audit_workforce_id = request.POST.get('workforce_id')
 
             dob = convert_date(date_of_birth) if date_of_birth else None
+
+            if not email:
+                email = None
+
+            other_names = None if not other_names else other_names.upper()
 
             if not des_phone_number:
                 des_phone_number = None
@@ -481,12 +497,14 @@ def new_person(request):
             person_types = [person_type]
             if 'TBGR' != person_type and is_caregiver:
                 person_types.append('TBGR')
-
+            # Get the type of children
+            if 'TBVC' in person_types:
+                designation = 'COVC' if child_ovc == 'AYES' else 'CGOC'
             # Capture RegPerson Model
             person = RegPerson(
                 designation=designation,
                 first_name=first_name.upper(),
-                other_names=other_names.upper(),
+                other_names=other_names,
                 surname=surname.upper(), sex_id=sex_id,
                 des_phone_number=des_phone_number,
                 email=email, date_of_birth=dob,
@@ -497,6 +515,16 @@ def new_person(request):
 
             reg_person_pk = int(person.pk)
             now = timezone.now()
+
+            # Save child as OVC
+            if designation == 'COVC':
+                reg_date = '1900-01-01'
+                has_bcert = True if birth_reg_id else False
+                ovc = OVCRegistration(
+                    person_id=reg_person_pk, registration_date=reg_date,
+                    has_bcert=has_bcert, is_disabled=False, is_void=False,
+                    exit_date=None, created_at=now)
+                ovc.save()
 
             # Capture RegPersonTypes Model
             if person_types:
@@ -862,6 +890,7 @@ def edit_person(request, id):
             is_caregiver = request.POST.get('is_caregiver')
             date_of_birth = request.POST.get('date_of_birth')
             child_services = request.POST.get('child_services')
+            child_ovc = request.POST.get('child_ovc')
 
             # org_units = request.POST.getlist('org_unit_id')
             national_id = request.POST.get('national_id')
@@ -885,6 +914,8 @@ def edit_person(request, id):
             eperson_id = int(id)
             if edit_type == 1:
                 person_types = [str(person_type)]
+                if 'TBVC' in person_types:
+                    designation = 'COVC' if child_ovc == 'AYES' else 'CGOC'
                 if 'TBGR' != person_type and is_caregiver:
                     person_types.append('TBGR')
                 phone_number = des_phone_number if des_phone_number else None
@@ -1049,6 +1080,9 @@ def edit_person(request, id):
                 person=person)[:3]
 
             # Get person types
+            is_ovc = False
+            if person.designation == 'COVC' and 'TBVC' in person_types:
+                is_ovc = True
             is_caregiver, person_type_id = '', ''
             if len(person_types) == 1:
                 is_caregiver = ''
@@ -1119,6 +1153,7 @@ def edit_person(request, id):
                 if ext_id_name == 'IWKF':
                     is_workforce = ext_id_value
             child_service = 'AYES' if is_workforce else 'ANNO'
+            child_ovc = 'AYES' if is_ovc else 'ANNO'
             # Cadres and designations
             designation = person.designation
             list_types = ['person_type_id', 'title_type_id',
@@ -1146,7 +1181,7 @@ def edit_person(request, id):
                 'cadre_type': person.designation,
                 'first_name': person.first_name,
                 'other_names': person.other_names,
-                'surname': person.surname,
+                'surname': person.surname, 'child_ovc': child_ovc,
                 'des_phone_number': person.des_phone_number,
                 'sex_id': person.sex_id, 'date_of_birth': date_birth,
                 'email': person.email, 'working_in_county': working_in_county,
@@ -1234,7 +1269,7 @@ def new_user(request, id):
                               {'form': form},)
 
             # validate username if__exists
-            username_exists = AppUser.objects.filter(username=username)
+            username_exists = AppUser.objects.filter(username__iexact=username)
             if username_exists:
                 msg = 'Username (%s) is taken. Pick another one.' % username
                 messages.add_message(request, messages.INFO, msg)
@@ -1369,12 +1404,12 @@ def person_actions(request):
                             if date_of_birth:
                                 dob = convert_date(date_of_birth)
                             person = RegPerson(
-                                designation='',
+                                designation='CCGV',
                                 first_name=first_name.upper(),
                                 other_names=other_names.upper(),
                                 surname=surname.upper(),
                                 sex_id=sex_id, date_of_birth=dob,
-                                des_phone_number=None, email='',
+                                des_phone_number=None, email=None,
                                 created_by_id=request.user.id,
                                 is_void=False)
                             person.save()

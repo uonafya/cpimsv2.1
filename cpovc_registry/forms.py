@@ -38,6 +38,9 @@ county_list = get_geo_list(all_list, 'GPRV')
 sub_county_list = get_geo_list(all_list, 'GDIS')
 ward_list = get_geo_list(all_list, 'GWRD')
 
+
+YESNO_CHOICES = get_list('yesno_id')
+
 # org_unit_type_id
 reg_list = get_list('organisation_type_id', 'Select unit type')
 reg_type = get_list('identifier_type_id', 'Select registration type',
@@ -142,7 +145,6 @@ class RegistrationForm(forms.Form):
                        'class': 'form-control'}))
         self.fields['working_in_ward'] = working_in_ward
 
-    YESNO_CHOICES = get_list('yesno_id')
     tribes = get_list('tribe_category_id', 'Please Select')
     religions = get_list('religion_type_id', 'Please Select')
 
@@ -185,6 +187,14 @@ class RegistrationForm(forms.Form):
             attrs={'id': 'child_services',
                    'data-parsley-required': 'true',
                    'data-parsley-errors-container': "#services_error"}))
+
+    child_ovc = forms.ChoiceField(
+        choices=YESNO_CHOICES,
+        widget=forms.RadioSelect(
+            renderer=RadioCustomRenderer,
+            attrs={'id': 'child_ovc',
+                   'data-parsley-required': 'true',
+                   'data-parsley-errors-container': "#child_ovc_error"}))
 
     unit_parent = forms.ChoiceField(
         choices=YESNO_CHOICES,
@@ -514,6 +524,15 @@ class FormRegistry(forms.Form):
         required=False,
         widget=forms.Select(
             attrs={'class': 'form-control'}))
+
+    handle_ovc = forms.ChoiceField(
+        choices=YESNO_CHOICES,
+        widget=forms.RadioSelect(
+            renderer=RadioCustomRenderer,
+            attrs={'id': 'handle_ovc',
+                   'data-parsley-required': 'true',
+                   'data-parsley-group': 'primary1',
+                   'data-parsley-errors-container': "#handle_ovc_error"}))
     org_unit_name = forms.CharField(
         required=False,
         widget=forms.TextInput(
@@ -542,9 +561,8 @@ class FormRegistryNew(forms.Form):
             widget=forms.Select(
                 attrs={'class': 'form-control',
                        'autofocus': 'false',
-                       'data-parsley-ishq': '#id_org_unit_type',
                        'data-parsley-group': 'primary1',
-                       'data-parsley-validate-if-empty': 'true'}))
+                       'data-parsley-required': 'true'}))
         self.fields['parent_org_unit'] = parent_org_unit
 
     org_unit_category = forms.ChoiceField(
@@ -564,6 +582,15 @@ class FormRegistryNew(forms.Form):
                    'autofocus': 'false',
                    'data-parsley-required': 'true',
                    'data-parsley-group': 'primary1'}))
+
+    handle_ovc = forms.ChoiceField(
+        choices=YESNO_CHOICES,
+        widget=forms.RadioSelect(
+            renderer=RadioCustomRenderer,
+            attrs={'id': 'handle_ovc',
+                   'data-parsley-required': 'true',
+                   'data-parsley-group': 'primary1',
+                   'data-parsley-errors-container': "#handle_ovc_error"}))
 
     org_reg_type = forms.ChoiceField(
         choices=reg_type,
@@ -622,10 +649,7 @@ class FormRegistryNew(forms.Form):
         widget=forms.Select(
             attrs={'class': 'form-control',
                    'autofocus': 'false',
-                   'data-parsley-ishq': '#id_org_unit_type',
-                   'data-parsley-group': 'primary1',
-                   'data-parsley-errors-container': "#ward_error",
-                   'data-parsley-validate-if-empty': 'true'}))
+                   'data-parsley-group': 'primary1'}))
     close_date = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Select date'),
                'class': 'form-control',

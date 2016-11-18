@@ -75,7 +75,18 @@
                                     </div>
                                 </div>
                                 <!-- end col-4 -->
-                                
+                                {% if request.session.reg_ovc or request.user.is_superuser %}
+                                <!-- begin col-4 -->
+                                <div class="col-md-4" id="is_ovc">
+                                    <div class="form-group">
+                                        <label for="child_ovc">Child is OVC <span class="asteriskField">*</span></label>
+                                        <br>                                        
+                                        {{ form.child_ovc }}
+                                        <span id="child_ovc_error"></span>
+                                    </div>
+                                </div>
+                                <!-- end col-4 -->
+                                {% endif %}                                
                             </div>
                             <div class="divider pull-left width-full"></div>
                             <div class="row">
@@ -98,7 +109,7 @@
                                 <!-- begin col-4 -->
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="other_names">Other Name(s)</label>
+                                        <label for="other_names">Other Name(s)<span class="asteriskField"></span></label>
                                         {{ form.other_names}}
                                     </div>
                                 </div>
@@ -121,8 +132,8 @@
                                     </div>
                                 </div>
                                 <!-- begin col-4 -->
-                                <div class="col-md-4">
-                                    <div id="title_type_div" class="form-group">
+                                <div class="col-md-4"  id="title_type_div">
+                                    <div class="form-group">
                                         <label for="title_type">Title <span class="asteriskField">*</span></label>
                                         {{ form.title_type }}
                                     </div>
@@ -160,8 +171,13 @@
                                     <small>Child's caregiver(s) / sibling(s) details.</small>
                                 </li>
                                 <li>
-                                    Organisation Units
-                                    <small>Units attached to person.</small>
+                                    {% if request.session.reg_ovc or request.user.is_superuser %}
+                                       CBO and CHV
+                                       <small>CBO and CHV attached to person.</small>
+                                    {% else %}
+                                       Organisation Unit
+                                       <small>Units attached to person.</small>
+                                    {% endif %}
                                 </li>
                             </ol>
                             <!-- begin wizard step-1 -->
@@ -1634,6 +1650,8 @@ function handle_default(){
 
     $('#cadre_type_div').hide(); 
     $('#cadre_type').attr('data-parsley-required', 'false');
+    $('#title_type_div').hide(); 
+    $('#title_type').attr('data-parsley-required', 'false');
 
     $('#provides_service').show();
     $('#child_services_0').attr('data-parsley-required', 'true');
@@ -1682,6 +1700,8 @@ function handle_child(){
 
     $('#cadre_type_div').hide(); 
     $('#cadre_type').attr('data-parsley-required', 'false');
+    $('#title_type_div').hide(); 
+    $('#title_type').attr('data-parsley-required', 'false');
 
     $('#provides_service').hide(); 
     $('#child_services_0').attr('data-parsley-required', 'false');
@@ -1731,6 +1751,8 @@ function handle_caregiver(person_text){
 
     $('#cadre_type_div').hide(); 
     $('#cadre_type').attr('data-parsley-required', 'false');
+    $('#title_type_div').hide(); 
+    $('#title_type').attr('data-parsley-required', 'false');
 
     $('#provides_service').hide(); 
     $('#child_services_0').attr('data-parsley-required', 'false');
@@ -1779,7 +1801,9 @@ function handle_volunteer(person_text){
     $('#id_orgs_selected').attr('data-parsley-required', 'true');
 
     $('#cadre_type_div').show(); 
-    $('#cadre_type').attr('data-parsley-required', 'false'); 
+    $('#cadre_type').attr('data-parsley-required', 'true'); 
+    $('#title_type_div').show(); 
+    $('#title_type').attr('data-parsley-required', 'true');
 
     $('#provides_service').show();
     $('#child_services_0').attr('data-parsley-required', 'true');
@@ -1828,6 +1852,8 @@ function handle_government(person_text){
 
     $('#cadre_type_div').show(); 
     $('#cadre_type').attr('data-parsley-required', 'true');
+    $('#title_type_div').show(); 
+    $('#title_type').attr('data-parsley-required', 'true');
 
     $('#provides_service').show();
     $('#child_services_0').attr('data-parsley-required', 'true');
@@ -1877,6 +1903,8 @@ function handle_ngo_private(person_text){
 
     $('#cadre_type_div').show(); 
     $('#cadre_type').attr('data-parsley-required', 'true');
+    $('#title_type_div').show(); 
+    $('#title_type').attr('data-parsley-required', 'true');
 
     $('#provides_service').show();
     $('#child_services_0').attr('data-parsley-required', 'true');

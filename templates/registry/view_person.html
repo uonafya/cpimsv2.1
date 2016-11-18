@@ -54,7 +54,7 @@
                         <!-- end profile-image -->                      
                         <!-- begin profile-highlight -->
                         <div class="profile-highlight">
-                            <h4><i class="fa fa-cog"></i> Only Registry Persons</h4>
+                            <h4><i class="fa fa-key"></i> ID: {{ person_details.id }} </h4>
                         </div>
                         <!-- end profile-highlight -->
                     </div>
@@ -83,10 +83,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td class="field">Person ID : </td>
-                                            <td>{{ person_details.id}}</td>
-                                        </tr>
                                         <tr>
                                             <td class="field">Person Type(s) : </td>
                                             <td>{{ person_details.person_type_name }}</td>
@@ -123,10 +119,12 @@
                                             <td class="field">Contact and Location Details</td>
                                             <td></td>
                                         </tr>
+                                        {% if person_details.des_phone_number %}
                                         <tr>
                                             <td class="field">Phone Number : </td>
                                             <td>{{ person_details.des_phone_number }}</td>
                                         </tr>
+                                        {% endif %}
                                         {% if person_details.email %}
                                         <tr>
                                             <td class="field">Email Address : </td>

@@ -129,6 +129,10 @@
                                             <td>{{ org_details.registration_number}}</td>
                                         </tr>
                                         {% endif %}
+                                        <tr>
+                                            <td class="field">Record creation details: </td>
+                                            <td>By {{ org_details.created_by.reg_person.full_name }}; on {{ org_details.created_at }}</td>                                          
+                                        </tr>
                                         <tr class="divider">
                                             <td colspan="2"></td>
                                         </tr>                                       

@@ -5,6 +5,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Group, Permission)
 from datetime import datetime
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 class CPOVCUserManager(BaseUserManager):
@@ -154,3 +156,18 @@ class CPOVCUserRoleGeoOrg(models.Model):
 
     class Meta:
         db_table = 'auth_user_groups_geo_org'
+
+
+@receiver(pre_save, sender=AppUser)
+def update_change(sender, instance, **kwargs):
+    """Method to Update pwd change."""
+    try:
+        obj = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        print "User does not exist"
+        pass
+    else:
+        if obj.password != instance.password:
+            print "Password changed so update date."
+        else:
+            print "Password NOT changed so NO update."

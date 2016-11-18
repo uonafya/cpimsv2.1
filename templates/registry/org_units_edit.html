@@ -104,6 +104,14 @@
 										</div>
 										<a href="#" data-toggle="tooltip" title="Type and sub-type are mandatory"><i class="fa fa-info-circle fa-lg"></i></a>
 									</div>
+									<div class="form-group" id="div_handle_ovc">
+										<label class="control-label col-md-4 col-sm-4" for="handle_ovc">Provides services to OVC :</label>
+										<div class="col-md-6 col-sm-6">
+											{{ form.handle_ovc }}
+											<span id="handle_ovc_error"></span>
+										</div>
+										<a href="#" data-toggle="tooltip" title="This is mandatory for NGO's to be used for providing OVC related functionalities."><i class="fa fa-info-circle fa-lg"></i></a>
+									</div>
 									<div class="form-group">
 										<label class="control-label col-md-4 col-sm-4" for="legal_reg_type">Legal Registration type :</label>
 										<div class="col-md-6 col-sm-6">
@@ -524,16 +532,25 @@
             	$("#div_legal_reg_number").hide();
             	$('#id_org_reg_type').attr('data-parsley-required', 'false');
             	$('#id_legal_reg_number').attr('data-parsley-required', 'false');
+            	$("#div_handle_ovc").hide();
+    	        $('#handle_ovc_0').attr('data-parsley-required', 'false');
+                $('#handle_ovc_1').attr('data-parsley-required', 'false');
             }else if ((area_value == 'TNNG') || (area_value == 'TNCI')){
             	$("#div_legal_reg_type").show();
             	$("#div_legal_reg_number").show();
             	$('#id_org_reg_type').attr('data-parsley-required', 'true');
             	$('#id_legal_reg_number').attr('data-parsley-required', 'true');
+            	$("#div_handle_ovc").show();
+    	        $('#handle_ovc_0').attr('data-parsley-required', 'true');
+                $('#handle_ovc_1').attr('data-parsley-required', 'true');
             }else{
             	$("#div_legal_reg_type").show();
             	$("#div_legal_reg_number").show();
             	$('#id_org_reg_type').attr('data-parsley-required', 'false');
             	$('#id_legal_reg_number').attr('data-parsley-required', 'false');
+            	$("#div_handle_ovc").hide();
+    	        $('#handle_ovc_0').attr('data-parsley-required', 'false');
+                $('#handle_ovc_1').attr('data-parsley-required', 'false');
             }
 		}
 		$('[data-toggle="tooltip"]').tooltip({'placement': 'bottom'});

@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from .models import CPOVCRole, CPOVCUserRoleGeoOrg
 from cpovc_main.models import RegTemp
-from cpovc_registry.models import RegPersonsGeo
+from cpovc_registry.models import RegPersonsGeo, RegPersonsOrgUnits
 
 
 def get_allowed_units_county(user_id):
@@ -128,3 +128,46 @@ def check_national(user):
     except Exception, e:
         print 'check national error - %s' % (str(e))
         return False
+
+
+def get_attached_units(user):
+    """"Method to check attached units."""
+    orgs = []
+    try:
+        if user.is_superuser:
+            return {}
+        person_id = user.reg_person_id
+        person_orgs = RegPersonsOrgUnits.objects.filter(
+            person_id=person_id, is_void=False)
+        if person_orgs:
+            reg_pri, reg_ovc = 0, False
+            all_roles, all_ous = [], []
+            for p_org in person_orgs:
+                p_roles = []
+                org_id = p_org.id
+                reg_assist = p_org.reg_assistant
+                if reg_assist:
+                    p_roles.append('REGA')
+                    all_roles.append('REGA')
+                reg_prim = p_org.primary_unit
+                if reg_prim:
+                    reg_pri = org_id
+                reg_ovc = p_org.org_unit.handle_ovc
+                if reg_ovc:
+                    p_roles.append('ROVC')
+                    all_roles.append('ROVC')
+                    reg_ovc = True
+                pvals = {org_id: p_roles}
+                orgs.append(pvals)
+                all_ous.append(str(org_id))
+            allroles = ','.join(list(set(all_roles)))
+            allous = ','.join(all_ous)
+            vals = {'perms': orgs, 'primary_ou': reg_pri,
+                    'attached_ou': allous, 'perms_ou': allroles,
+                    'reg_ovc': reg_ovc}
+            return vals
+        else:
+            return {}
+    except Exception, e:
+        print 'get attached units error - %s' % (str(e))
+        return {}

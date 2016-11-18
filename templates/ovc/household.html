@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block page_title %} OVC Care HouseHold Management {% endblock %}
+
+{% load crispy_forms_tags %}
+
+{% block style_code %}
+
+{% endblock %}
+
+{% block primary %}
+<!-- begin breadcrumb -->
+<ol class="breadcrumb pull-right">
+	<li><a href="#">Home</a></li>
+	<li class="active">OVC Care</li>
+</ol>
+<!-- end breadcrumb -->
+<!-- begin page-header -->
+<h1 class="page-header"><i class="fa fa-child"></i> OVC Care <small>HouseHold Management</small></h1>
+<!-- end page-header -->
+<div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-check fa-2x pull-left"></i>
+    <span class="invalid-form-message" id="invalid-form-message"></span>
+</div>
+<!-- begin row -->
+<div class="row">
+  <!-- begin col-12 -->
+    <div class="col-md-12">
+        <!-- begin panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="#" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
+                </div>                      
+                <h4 class="panel-title">HouseHold details</h4>
+            </div>
+            <!-- start panel body -->
+            <div class="panel-body">
+                <div class="row">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID Number</th>
+                                <th>First Name</th>
+                                <th>Surname</th>
+                                <th>Age</th>
+                                <th>Type</th>
+                                <th>Telephone</th>
+                                <th>Alive</th>
+                                <th>HIV Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hhmember in hhmembers %}
+                            {% with y=hhmember.person_id|stringformat:"s" %}
+                            <tr>
+                                <td>{{ y }}</td>
+                                <td>{{ hhmember.person.first_name }}</td>
+                                <td>{{ hhmember.person.surname }}</td>
+                                <td>{{ hhmember.person.years }}</td>
+                                <td>
+                                {% if hhmember.member_type == 'TBVC' %}
+                                   Child
+                                {% else %}
+                                   Parent/Guardian
+                                {% endif %}
+                                </td>
+                                <td>{{ hhmember.person.des_phone_number }}</td>
+                                <td></td>
+                                <td></td>
+                                <td>
+                                {% if not hhmember.hh_head %}
+                                    <a href="#"><button type="button" class="btn btn-danger"> <i class="fa fa-trash"></i> Remove</button></a>
+                                {% else %}
+                                     <strong>Primary Caretaker</strong>
+                                {% endif %}
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- begin row -->
+                 <div class="row">
+                    <div class="col-md-6">
+                    <h2 class="panel-title"><strong>HouseHold Assessments</strong></h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>01-Jan-2016</td>
+                                <td>
+                                   <a href="#"><button type="button" class="btn btn-primary"> <i class="fa fa-file-text-o"></i> View</button></a> 
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <div class="col-md-6">
+                    </div>
+                </div>
+            </div>
+            <!-- end panel body -->
+        </div>
+        <!-- end panel -->  
+    </div>
+    <!-- end col-12 -->
+</div>
+<!-- end row -->
+{% endblock %}
+
+{% block lazy_javascript_code %}
+
+{% endblock %}

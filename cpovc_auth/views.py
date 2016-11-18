@@ -12,7 +12,7 @@ from django.contrib.auth.models import Group
 
 from .functions import (
     save_group_geo_org, remove_group_geo_org, get_allowed_units_county,
-    get_groups, save_temp_data, check_national)
+    get_groups, save_temp_data, check_national, get_attached_units)
 from .models import AppUser, CPOVCPermission
 from cpovc_registry.models import (
     RegPerson, RegPersonsExternalIds, RegPersonsOrgUnits, RegPersonsGeo)
@@ -60,7 +60,7 @@ def log_in(request):
                         login(request, user)
                         # grps = user.groups.all()
                         perms = user.get_all_permissions()
-                        #print perms
+                        print perms
                         print "**" * 20
                         """
                         group_ids = Group.objects.all().values_list(
@@ -83,6 +83,19 @@ def log_in(request):
                         request.session['names'] = user_names
                         is_national = check_national(user)
                         request.session['is_national'] = is_national
+                        ou_vars = get_attached_units(user)
+                        print ou_vars
+                        primary_ou, reg_ovc = 0, False
+                        attached_ou, perms_ou = '', ''
+                        if ou_vars:
+                            primary_ou = ou_vars['primary_ou']
+                            attached_ou = ou_vars['attached_ou']
+                            perms_ou = ou_vars['perms_ou']
+                            reg_ovc = ou_vars['reg_ovc']
+                        request.session['ou_primary'] = primary_ou
+                        request.session['ou_attached'] = attached_ou
+                        request.session['ou_perms'] = perms_ou
+                        request.session['reg_ovc'] = reg_ovc
                         next_param = request.GET
                         if 'next' in next_param:
                             next_page = next_param['next']
@@ -103,6 +116,7 @@ def log_in(request):
             logout(request)
         return render(request, 'login.html', {'form': form, 'status': 200})
     except Exception, e:
+        print 'Error login - %s' % (str(e))
         raise e
 
 

@@ -16,6 +16,7 @@ class RegOrgUnit(models.Model):
     org_unit_type_id = models.CharField(max_length=4)
     date_operational = models.DateField(null=True, blank=True)
     date_closed = models.DateField(null=True, blank=True)
+    handle_ovc = models.BooleanField(default=False)
     is_void = models.BooleanField(default=False)
     parent_org_unit_id = models.IntegerField(null=True, blank=True)
     created_by = models.ForeignKey(AppUser, null=True)
@@ -105,9 +106,9 @@ class RegPerson(models.Model):
 
     designation = models.CharField(max_length=25, null=True)
     first_name = models.CharField(max_length=255)
-    other_names = models.CharField(max_length=255, default=None)
+    other_names = models.CharField(max_length=255, null=True)
     surname = models.CharField(max_length=255, default=None)
-    email = models.EmailField(blank=True, default=None)
+    email = models.EmailField(blank=True, null=True)
     des_phone_number = models.IntegerField(null=True, blank=True, default=None)
     date_of_birth = models.DateField(null=True)
     date_of_death = models.DateField(null=True, blank=True, default=None)
@@ -122,7 +123,7 @@ class RegPerson(models.Model):
         return _reg_persons_data
 
     def _get_full_name(self):
-        return '%s %s %s' % (self.first_name, self.other_names, self.surname)
+        return '%s %s' % (self.first_name, self.surname)
 
     def make_void(self):
         """Inline call method."""
