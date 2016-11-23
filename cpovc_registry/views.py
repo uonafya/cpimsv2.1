@@ -519,10 +519,13 @@ def new_person(request):
             # Save child as OVC
             if designation == 'COVC':
                 reg_date = '1900-01-01'
+                cbo_id = 1
+                chv_id = 3
                 has_bcert = True if birth_reg_id else False
                 ovc = OVCRegistration(
                     person_id=reg_person_pk, registration_date=reg_date,
                     has_bcert=has_bcert, is_disabled=False, is_void=False,
+                    child_cbo_id=cbo_id, child_chv_id=chv_id,
                     exit_date=None, created_at=now)
                 ovc.save()
 

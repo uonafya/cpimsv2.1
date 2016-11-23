@@ -107,7 +107,21 @@ class RegistrationForm(forms.Form):
             widget=forms.Select(
                 attrs={'class': 'form-control',
                        'id': 'org_unit_id'}))
+        cbo_unit_id = forms.ChoiceField(
+            choices=org_units_list,
+            initial='',
+            widget=forms.Select(
+                attrs={'class': 'form-control',
+                       'id': 'cbo_unit_id'}))
+        chv_unit_id = forms.ChoiceField(
+            choices=(),
+            initial='',
+            widget=forms.Select(
+                attrs={'class': 'form-control',
+                       'id': 'chv_unit_id'}))
         self.fields['org_unit_id'] = org_unit_id
+        self.fields['cbo_unit_id'] = cbo_unit_id
+        self.fields['chv_unit_id'] = chv_unit_id
 
         # All working in selections need to be tied to currently logged in user
         user_geos = get_user_geos(self.user)
