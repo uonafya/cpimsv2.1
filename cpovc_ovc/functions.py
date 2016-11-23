@@ -57,19 +57,23 @@ def ovc_registration(request, ovc_id, edit=0):
                           'is_void': False},)
         cgs = extract_post_params(request, naming='cg_')
         hhrs = extract_post_params(request, naming='hhr_')
+        todate = timezone.now()
         if edit == 0:
             # Create House Hold and populate members
             caretaker_id = cgs[caretaker][0]
             new_hh = OVCHouseHold(
                 head_person_id=caretaker,
-                head_identifier=caretaker_id).save()
+                head_identifier=caretaker_id)
+            new_hh.save()
             hh_id = new_hh.pk
             # Add members to HH
-            hh_members.append('ovc_id')
-            todate = timezone.now()
+            hh_members.append(ovc_id)
             for hh_member in hh_members:
+                hh_head = True if hh_member == caretaker_id else False
+                m_type = hhrs[hh_member][0] if hh_member in hhrs else 'TBVC'
                 OVCHHMembers(
                     house_hold_id=hh_id, person_id=hh_member,
+                    hh_head=hh_head, member_type=m_type,
                     date_linked=todate).save()
         else:
             # Update HH details
@@ -88,7 +92,7 @@ def ovc_registration(request, ovc_id, edit=0):
                     person_id=hh_member, house_hold_id=hhid,
                     defaults={'person_id': hh_member, 'hh_head': hh_head,
                               'member_type': member_type, 'is_void': False,
-                              'date_linked': date_linked},)
+                              'date_linked': todate},)
     except Exception, e:
         raise e
     else:

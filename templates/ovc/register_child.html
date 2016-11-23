@@ -147,7 +147,9 @@
                             <td>{{ guardian.guardian_person.first_name }}</td>
                             <td>{{ guardian.guardian_person.surname }}</td>
                             <td>{{ guardian.guardian_person.years }}</td>
-                            <td>{{ guardian.relationship|gen_value:vals }}</td>
+                            <td>{{ guardian.relationship|gen_value:vals }}
+                             <input type="hidden" name="hhr_{{ guardian.guardian_person.id }}" value="{{ guardian.relationship }}">
+                            </td>
                             <td>{{ guardian.guardian_person.des_phone_number }}</td>
                             <td></td>
                             <td></td>
