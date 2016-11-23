@@ -102,83 +102,7 @@
                         </tr>
                     </tbody>
                 </table>
-
-                <fieldset>
-                <legend class="pull-left width-full">Parents / Caregiver details</legend>
-                <!-- begin row -->
-                 <div class="row">
-                    <div class="col-md-9">
-                    <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID Number</th>
-                            <th>First Name</th>
-                            <th>Surname</th>
-                            <th>Age</th>
-                            <th>Relation</th>
-                            <th>Telephone</th>
-                            <th>Alive</th>
-                            <th>HIV Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for guardian in guardians %}
-                        {% with y=guardian.guardian_person.id|stringformat:"s" %}
-                        <tr>
-                            <td><input type="hidden" name="hh_member" value="{{ guardian.guardian_person.id }}">
-                            {{ y|add:"_INTL"|gen_value:extids }}
-                            </td>
-                            <td>{{ guardian.guardian_person.first_name }}</td>
-                            <td>{{ guardian.guardian_person.surname }}</td>
-                            <td>{{ guardian.guardian_person.years }}</td>
-                            <td>{{ guardian.relationship|gen_value:vals }}</td>
-                            <td>{{ guardian.guardian_person.des_phone_number }}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        {% endwith %}
-                    {% endfor %}
-                    {% for sibling in siblings %}
-                        <tr>
-                            <td>N/A<input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
-                            <td>{{ sibling.sibling_person.first_name }}</td>
-                            <td>{{ sibling.sibling_person.surname }}</td>
-                            <td>{{ sibling.sibling_person.years }}</td>
-                            <td>
-                            {% if sibling.sibling_person.sex_id == 'SFEM' %}
-                                Sister
-                            {% else %}
-                                Brother
-                            {% endif %}
-                            </td>
-                            <td>{{ sibling.sibling_person.des_phone_number }}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                    </table>
-                    </div>
-                    <!-- begin col-2 -->
-                    <div class="col-md-3">
-                        <p><strong>HouseHold Details</strong></p>
-                        <hr>
-                        <p>Caretaker : {{ creg.caretaker.full_name }}</p>
-                        <p>ID : {{ hhold.house_hold.id }}</p>
-                        <p>HH Identifier : {{ hhold.house_hold.head_identifier}}</p>
-                        <p></p>
-                        <a href="#">
-                        <button type="button" class="btn btn-primary" value="submit"> <i class="fa fa-file-text-o"></i> Assessment</button></a>
-                        <a href="{% url 'hh_manage' hhid=hhold.house_hold.id %}">
-                        <button type="button" class="btn btn-primary"> <i class="fa fa-users"></i> Manage </button>
-                        </a>
-                        <p></p>
-                    </div>
-                    <!-- end col-2 -->
-                    </div>
-                </fieldset>
-
-                <fieldset>
+                 <fieldset>
                 <legend class="pull-left width-full">Health and Education details</legend>
                 <!-- begin row -->
                  <div class="row">
@@ -222,9 +146,96 @@
                     </table>
                 </div>
                 </fieldset>
+
+                <fieldset>
+                <legend class="pull-left width-full">Parents / Caregiver details</legend>
+                <!-- begin row -->
+                 <div class="row">
+                    <div class="col-md-12">
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID Number</th>
+                            <th>First Name</th>
+                            <th>Surname</th>
+                            <th>Age</th>
+                            <th>Relation</th>
+                            <th>Telephone</th>
+                            <th>Alive</th>
+                            <th>HIV Status</th>
+                            <th>HH Head</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for guardian in guardians %}
+                        {% with y=guardian.guardian_person.id|stringformat:"s" %}
+                        <tr>
+                            <td><input type="hidden" name="hh_member" value="{{ guardian.guardian_person.id }}">
+                            {{ y|add:"_INTL"|gen_value:extids }}
+                            </td>
+                            <td>{{ guardian.guardian_person.first_name }}</td>
+                            <td>{{ guardian.guardian_person.surname }}</td>
+                            <td>{{ guardian.guardian_person.years }}</td>
+                            <td>{{ guardian.relationship|gen_value:vals }}</td>
+                            <td>{{ guardian.guardian_person.des_phone_number }}</td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                            {% if guardian.guardian_person.id == hhold.house_hold.head_person_id %}
+                            Yes {% else %} No {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                    {% if siblings %}
+                    <legend class="pull-left width-full">Siblings details</legend>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>First Name</th>
+                                <th>Surname</th>
+                                <th>Age</th>
+                                <th>Relation</th>
+                                <th>Alive</th>
+                                <th>HIV Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                       {% for sibling in siblings %}
+                        <tr>
+                            <td>{{ sibling.sibling_person.id }}</td>
+                            <td>{{ sibling.sibling_person.first_name }}</td>
+                            <td>{{ sibling.sibling_person.surname }}</td>
+                            <td>{{ sibling.sibling_person.years }}</td>
+                            <td>
+                            {% if sibling.sibling_person.sex_id == 'SFEM' %}
+                                Sister
+                            {% else %}
+                                Brother
+                            {% endif %}
+                            </td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                    {% endif %}
+                    </div>
+                    <!-- end col-2 -->
+                    </div>
+                </fieldset>
+
+               
                 <div class="row" id="form_actions">
-                    <label class="control-label col-md-4 col-sm-4"></label>
-                    <div class="col-md-6 col-sm-6">
+                    <center>
                         <button onclick="goBack()" type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-arrow-left"></i> &nbsp;<b>Back to search</b>&nbsp; </button>
 
                         <a href="{% url 'ovc_edit' id=creg.person_id %}"><button type="button" class="btn btn-primary"> <i class="fa fa-child"></i> Edit OVC</button></a>
@@ -233,7 +244,13 @@
                         <button type="button" class="btn btn-primary" value="submit"> <i class="fa fa-file-text"></i> CSI Assessment</button>
                         </a>
 
-                    </div>
+                        <a href="#">
+                        <button type="button" class="btn btn-primary" value="submit"> <i class="fa fa-file-text-o"></i> HH Assessment</button></a>
+                        <a href="{% url 'hh_manage' hhid=hhold.house_hold.id %}">
+                        <button type="button" class="btn btn-primary"> <i class="fa fa-users"></i> Manage HH </button>
+                        </a>
+                    <p></p>
+                    </center>
                 </div>
             <!-- end panel body -->
         </div>

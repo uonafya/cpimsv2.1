@@ -6,6 +6,7 @@
 
 {% block style_code %}
 <link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/bootstrap-wizard/css/bwizard.min.css' %}" rel="stylesheet" />
 {% endblock %}
 
 {% block primary %}
@@ -40,6 +41,30 @@
             <div class="panel-body">
                 <form action="." method="post" name="ovcreg_form" id="ovcreg_form" data-parsley-validate="true">
                 {% csrf_token %}
+
+                <div id="wizard">
+                <ol>
+                  <li>
+                      OVC Details
+                      <small>Biodata.</small>
+                  </li>
+                  <li>
+                      Health and Education
+                      <small>Health and education information.</small>
+                  </li>
+                  <li>
+                      Parents / Caregiver
+                      <small>Parents and Caregiver details.</small>
+                  </li>
+                  <li>
+                     Siblings
+                      <small>Siblings details.</small>
+                  </li>        
+                </ol>
+                <!-- begin wizard step-1 -->
+    <div class="primary">
+        <fieldset>
+            <legend class="pull-left width-full">Child details</legend>
                 <table width="100%" class="table table-profile">
                     <tbody>
                         <tr>
@@ -63,7 +88,6 @@
                         </tr>
                     </tbody>
                 </table>
-                <fieldset>
                 <!-- begin row -->
                  <div class="row">
                     <!-- begin col-2 -->
@@ -115,90 +139,10 @@
                     </div>
                     <!-- end col-2 -->
                     </div>
-                </fieldset>
-
-                <fieldset>
-                <legend class="pull-left width-full">Parents / Caregiver details</legend>
-                <!-- begin row -->
-                 <div class="row">
-                    <div class="col-md-9">
-                    <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID Number</th>
-                            <th>First Name</th>
-                            <th>Surname</th>
-                            <th>Age</th>
-                            <th>Relation</th>
-                            <th>Telephone</th>
-                            <th>Alive</th>
-                            <th>HIV Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for guardian in guardians %}
-                        {% with y=guardian.guardian_person.id|stringformat:"s" %}
-                        <tr>
-                            <td><input type="hidden" name="hh_member" value="{{ guardian.guardian_person.id }}">
-                            {% with x=y|add:"_INTL"|gen_value:extids %}
-                            {{ x }}
-                            <input type="hidden" name="cg_{{ guardian.guardian_person.id }}" value="{{ x }}">
-                            </td>
-                            <td>{{ guardian.guardian_person.first_name }}</td>
-                            <td>{{ guardian.guardian_person.surname }}</td>
-                            <td>{{ guardian.guardian_person.years }}</td>
-                            <td>{{ guardian.relationship|gen_value:vals }}
-                            <input type="hidden" name="hhr_{{ guardian.guardian_person.id }}" value="{{ guardian.relationship }}">
-                            </td>
-                            <td>{{ guardian.guardian_person.des_phone_number }}</td>
-                            <td></td>
-                            <td></td>
-                            {% endwith %}
-                        </tr>
-                        {% endwith %}
-                    {% endfor %}
-                    {% for sibling in siblings %}
-                        <tr>
-                            <td>N/A<input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
-                            <td>{{ sibling.sibling_person.first_name }}</td>
-                            <td>{{ sibling.sibling_person.surname }}</td>
-                            <td>{{ sibling.sibling_person.years }}</td>
-                            <td>
-                            {% if sibling.sibling_person.sex_id == 'SFEM' %}
-                                Sister
-                            {% else %}
-                                Brother
-                            {% endif %}
-                            <input type="hidden" name="hhr_{{ sibling.sibling_person.id }}" value="TBVC">
-                            </td>
-                            <td>{{ sibling.sibling_person.des_phone_number }}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                    </table>
-                    </div>
-                    <!-- begin col-2 -->
-                    <div class="col-md-3">
-                    <div class="form-group">
-                        <label>Primary Caretaker</label>
-                        <select class="form-control" name="caretaker" id="caretaker"  data-parsley-required="true" >
-                            <option value="">Please Select Caretaker</option>
-                            {% for guardian in guardians %}
-                               <option value="{{ guardian.guardian_person.id}}">{{ guardian.relationship|gen_value:vals }}</option>
-                            {% endfor %}
-                        </select>
-                      </div>
-                      <p>ID : {{ hhold.house_hold_id }}</p>
-                      <input type="hidden" name="hh_id" value="{{ hhold.house_hold_id }}">
-                      <p>HH Identifier : {{ hhold.house_hold.head_identifier}}</p>
-                    </div>
-                    <!-- end col-2 -->
-                    </div>
-                </fieldset>
-
-                <fieldset>
+            </fieldset>
+        </div>
+        <div class="primary1">
+            <fieldset>
                 <legend class="pull-left width-full">Health and Education details</legend>
                 <!-- begin row -->
                  <div class="row">
@@ -303,6 +247,114 @@
                     <!-- end col-2 -->
                 </div>
                 </fieldset>
+            </div>
+        <div class="primary2">
+                <fieldset>
+                <legend class="pull-left width-full">Parents / Caregiver details</legend>
+                <!-- begin row -->
+                 <div class="row">
+                    <div class="col-md-9">
+                    <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID Number</th>
+                            <th>First Name</th>
+                            <th>Surname</th>
+                            <th>Age</th>
+                            <th>Relation</th>
+                            <th>Telephone</th>
+                            <th>Alive</th>
+                            <th>HIV Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for guardian in guardians %}
+                        {% with y=guardian.guardian_person.id|stringformat:"s" %}
+                        <tr>
+                            <td><input type="hidden" name="hh_member" value="{{ guardian.guardian_person.id }}">
+                            {% with x=y|add:"_INTL"|gen_value:extids %}
+                            {{ x }}
+                            <input type="hidden" name="cg_{{ guardian.guardian_person.id }}" value="{{ x }}">
+                            </td>
+                            <td>{{ guardian.guardian_person.first_name }}</td>
+                            <td>{{ guardian.guardian_person.surname }}</td>
+                            <td>{{ guardian.guardian_person.years }}</td>
+                            <td>{{ guardian.relationship|gen_value:vals }}
+                            <input type="hidden" name="hhr_{{ guardian.guardian_person.id }}" value="{{ guardian.relationship }}">
+                            </td>
+                            <td>{{ guardian.guardian_person.des_phone_number }}</td>
+                            <td></td>
+                            <td></td>
+                            {% endwith %}
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    </div>
+                    <!-- begin col-2 -->
+                    <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Primary Caretaker</label>
+                        <select class="form-control" name="caretaker" id="caretaker"  data-parsley-required="true" >
+                            <option value="">Please Select Caretaker</option>
+                            {% for guardian in guardians %}
+                               <option value="{{ guardian.guardian_person.id}}">{{ guardian.relationship|gen_value:vals }}</option>
+                            {% endfor %}
+                        </select>
+                      </div>
+                      <input type="hidden" name="hh_id" value="{{ hhold.house_hold_id }}">
+                      <p>HH Identifier : {{ hhold.house_hold.head_identifier}}</p>
+                    </div>
+                    <!-- end col-2 -->
+                </div>
+             </fieldset>
+            </div>
+        <div class="primary3">
+                <fieldset>
+                <legend class="pull-left width-full">Parents / Caregiver details</legend>
+                <!-- begin row -->
+                <div class="row">
+                    <div class="col-md-12">
+                    {% if siblings %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>First Name</th>
+                                <th>Surname</th>
+                                <th>Age</th>
+                                <th>Relation</th>
+                                <th>Alive</th>
+                                <th>HIV Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                       {% for sibling in siblings %}
+                        <tr>
+                            <td><input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
+                            <td>{{ sibling.sibling_person.first_name }}</td>
+                            <td>{{ sibling.sibling_person.surname }}</td>
+                            <td>{{ sibling.sibling_person.years }}</td>
+                            <td>
+                            {% if sibling.sibling_person.sex_id == 'SFEM' %}
+                                Sister
+                            {% else %}
+                                Brother
+                            {% endif %}
+                            </td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                    </div>
+                </div>
+                </fieldset>
+            </div>
+            </div>
+                
                 <div class="row" id="form_actions">
                 <div class="form-group">
                     <label class="control-label col-md-4 col-sm-4"></label>
@@ -325,7 +377,37 @@
 {% endblock %}
 
 {% block lazy_javascript_code %}
+<script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
 <script>
+    $("#wizard").bwizard({ validating: function (e, ui) {
+        $("#form_actions").hide();
+         if (ui.index == 0) {
+            // step-1 validation
+            $("#form_actions").hide();
+            if (false === $('form[name="ovcreg_form"]').parsley().validate('primary')) {
+                return false;
+            }
+        } else if ((ui.index == 1) && (ui.nextIndex > ui.index)){
+            // step-2 validation
+            $("#form_actions").hide();
+              if (false === $('form[name="ovcreg_form"]').parsley().validate('primary1')) {
+                return false;
+            }
+        } else if ((ui.index == 2) && (ui.nextIndex > ui.index)) {
+            // step-3 validation
+            $("#form_actions").hide();
+            if (false === $('form[name="ovcreg_form"]').parsley().validate('primary2')) {
+                return false;
+            }
+        } else if ((ui.index == 3) && (ui.nextIndex >= ui.index)) {
+            // step-4 validation
+            $("#form_actions").show();
+            if (false === $('form[name="ovcreg_form"]').parsley().validate('primary3')) {
+                  return false;
+            }
+        }
+
+    }});
     $('#reg_date, #link_date').datepicker({
         dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
         endDate: '+0d', enddate: '+0d', autoclose: true
