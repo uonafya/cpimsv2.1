@@ -37,7 +37,7 @@
                     <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
                     <a href="#" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
                 </div>                      
-                <h4 class="panel-title">Create Person &nbsp<i class="fa fa-male"></i> <span id="person_name"></span></h4>
+                <h4 class="panel-title">Create Person &nbsp;<i class="fa fa-male"></i> <span id="person_name"></span></h4>
                 </div>
 
                     <div class="panel-body">
@@ -167,15 +167,16 @@
                                             <small>Child's caregiver(s) / sibling(s) details.</small>
                                         </li>
                                         <li>
-                                            
-                                            {% if request.session.reg_ovc or request.user.is_superuser %}
+                                            <span  id="cbo_chv_div">
                                                CBO and CHV
                                                <small>CBO and CHV attached to person.</small>
-                                            {% else %}
+                                            </span>
+
+                                            <span  id="cbo_chv_ndiv">
                                                Organisation Unit
                                                <small>Units attached to person.</small>
-                                            {% endif %}
-                                            
+                                            </span>
+                                             
                                         </li>
                                     </ol>
                                     <!-- begin wizard step-1 -->
@@ -422,19 +423,19 @@
                                     <!-- begin wizard step-5 -->
                                     <div class="wizard-step-5">
                                         <fieldset>
-                                            <legend class="pull-left width-full">Organisation Units details<small><span id="add_org_info"></span></small></legend>
+                                            <legend class="pull-left width-full" id="ou_ovc">Organisation Units details<small><span id="add_org_info"></span></small></legend>
                                             <!-- begin row -->
                                             <div class="row"  id="cbo_chv_add">
                                                 <span class="form-group"></span>
                                                 <div id="cbo_id_div" class="form-group">
-                                                    <label class="control-label col-md-4 col-sm-4" for="org_unit_id">CBO <span class="asteriskField">*</span> :</label>
+                                                    <label class="control-label col-md-4 col-sm-4" for="cbo_unit_id">CBO <span class="asteriskField">*</span> :</label>
                                                     <div class="col-md-6 col-sm-6">
                                                         {{ form.cbo_unit_id  }}
                                                     </div>
                                                 </div>
 
                                                 <div id="chv_id_div" class="form-group">
-                                                    <label class="control-label col-md-4 col-sm-4" for="org_unit_id">CHV <span class="asteriskField">*</span> :</label>
+                                                    <label class="control-label col-md-4 col-sm-4" for="chv_unit_id">CHV <span class="asteriskField">*</span> :</label>
                                                     <div class="col-md-6 col-sm-6">
                                                         {{ form.chv_unit_id  }}
                                                     </div>
@@ -1414,6 +1415,7 @@ function attach_sibling(status_id, sibArray){
 
 function handle_persons(person_type, person_text){
     var person_type = (typeof person_type === 'undefined') ? 'default' : person_type;
+    handle_ovc(person_type);
     //Child
     if (person_type == 'TBVC')
     {
@@ -1457,7 +1459,6 @@ function handle_default(){
 
     $('#staff_id_div').hide();
     $('#staff_id').attr('data-parsley-required', 'false');
-    $("#cbo_chv_add").hide();
 
     $('#birth_reg_id_div').hide();
     $('#given_name_div').hide();
@@ -1516,7 +1517,6 @@ function handle_child(){
 
     $('#staff_id_div').hide();
     $('#staff_id').attr('data-parsley-required', 'false');
-    $("#cbo_chv_add").show();
 
     $('#birth_reg_id_div').show();
     $('#given_name_div').show();
@@ -1560,7 +1560,7 @@ function handle_child(){
     $('#audit_workforce_id').attr('data-parsley-required', 'true');
     $('#audit_date').attr('data-parsley-required', 'true');
     $('#parent_org_add').hide();
-    $('#add_org_info').html(' - Not required');
+    
     $('#org_unit_id').attr('data-parsley-required', 'false');
 
     $('#tribe_id_div').show();
@@ -1592,8 +1592,6 @@ function handle_caregiver(person_text){
 
     $('#staff_id_div').hide();
     $('#staff_id').attr('data-parsley-required', 'false');
-
-    $("#cbo_chv_add").hide();
 
     $('#birth_reg_id_div').hide();
     $('#given_name_div').hide();
@@ -1653,8 +1651,6 @@ function handle_volunteer(person_text){
     $('#staff_id_div').show();
     $('#staff_id').attr('data-parsley-required', 'false');
 
-    $("#cbo_chv_add").hide();
-
     $('#birth_reg_id_div').hide();
     $('#given_name_div').hide(); 
     $('#birth_reg_id').attr('data-parsley-required', 'false');
@@ -1711,8 +1707,6 @@ function handle_government(person_text){
 
     $('#staff_id_div').show();
     $('#staff_id').attr('data-parsley-required', 'true');
-
-    $("#cbo_chv_add").hide();
 
     $('#birth_reg_id_div').hide();
     $('#given_name_div').hide();
@@ -1771,7 +1765,6 @@ function handle_ngo_private(person_text){
 
     $('#staff_id_div').show();
     $('#staff_id').attr('data-parsley-required', 'false');
-    $("#cbo_chv_add").hide();
 
     $('#birth_reg_id_div').hide(); 
     $('#given_name_div').hide();
@@ -1832,11 +1825,35 @@ function handle_ovc(person_type){
     
     if (person_type == 'TBVC')
     {
-        $("#cbo_chv_add").show();
-        $('#add_org_info').html('');
+        {% if request.session.reg_ovc %}
+            $("#cbo_chv_add").show();
+            $('#add_org_info').html('');
+            $('#cbo_unit_id').attr('data-parsley-required', 'true');
+            $('#chv_unit_id').attr('data-parsley-required', 'true');
+            $("#cbo_chv_add").show();
+            $("#cbo_chv_div").show();
+            $("#cbo_chv_ndiv").hide();
+            $('#ou_ovc').html('CBO / CHV details');
+        {% else %}
+            $("#cbo_chv_add").hide();
+            $('#add_org_info').html(' - Not required');
+            $('#cbo_unit_id').attr('data-parsley-required', 'false');
+            $('#chv_unit_id').attr('data-parsley-required', 'false');
+            $("#cbo_chv_add").hide();
+            $("#cbo_chv_ndiv").show();
+            $("#cbo_chv_div").hide();
+            $('#ou_ovc').html('Organizational unit details');
+        {% endif %}
+            
     }else{
         $("#cbo_chv_add").hide();
-        $('#add_org_info').html(' - Not required');  
+        $('#add_org_info').html(' - Not required');
+        $('#cbo_unit_id').attr('data-parsley-required', 'false');
+        $('#chv_unit_id').attr('data-parsley-required', 'false');
+        $("#cbo_chv_add").hide();
+        $("#cbo_chv_ndiv").show();
+        $("#cbo_chv_div").hide();
+        $('#ou_ovc').html('Organizational unit details');
     }
 
 }
