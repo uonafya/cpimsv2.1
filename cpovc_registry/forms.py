@@ -9,7 +9,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout
 from .functions import (
     get_org_units, get_all_geo_list, get_geo_list, get_specific_orgs,
-    get_user_geos)
+    get_user_geos, get_chvs)
 from cpovc_main.functions import get_list, get_org_units_list
 from .models import RegPerson
 
@@ -99,6 +99,7 @@ class RegistrationForm(forms.Form):
         self.user = user
         super(RegistrationForm, self).__init__(*args, **kwargs)
         org_units_list = get_specific_orgs(self.user.reg_person_id)
+        chv_list = get_chvs(self.user.reg_person_id)
         if user.is_superuser:
             org_units_list = get_org_units_list('Please select Unit')
         org_unit_id = forms.ChoiceField(
@@ -114,7 +115,7 @@ class RegistrationForm(forms.Form):
                 attrs={'class': 'form-control',
                        'id': 'cbo_unit_id'}))
         chv_unit_id = forms.ChoiceField(
-            choices=(),
+            choices=chv_list,
             initial='',
             widget=forms.Select(
                 attrs={'class': 'form-control',
