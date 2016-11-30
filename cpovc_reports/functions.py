@@ -1511,12 +1511,13 @@ def get_population_data(params):
             # This is a hack since Danet put this field as char and not int
             org_list = [str(o_list) for o_list in orgs_list]
         # Filter by date only first
-        print 0
+        print 'ORGS', org_list
         start_date = params['start_date']
         end_date = params['end_date']
         ip_queryset = OVCPlacement.objects.filter(
             residential_institution_name__in=org_list,
             is_void=False, admission_date__range=(start_date, end_date))
+        place_ids = []
         for cl in ip_queryset:
             item = {}
             item['cat'] = cl.admission_type
@@ -1525,11 +1526,13 @@ def get_population_data(params):
             # For generating summaries
             item['kid'] = cl.person.id
             item['cid'] = cl.placement_id
+            place_ids.append(cl.placement_id)
             data.append(item)
         # Last period population data
         print 1
         dis_lists = OVCDischargeFollowUp.objects.filter(
-            is_void=False, date_of_discharge__lt=start_date)
+            is_void=False, date_of_discharge__lt=start_date,
+            placement_id_id__in=place_ids)
         dis_list = dis_lists.values_list('placement_id_id', flat=True)
         old_queryset = OVCPlacement.objects.filter(
             residential_institution_name__in=org_list,
@@ -1547,7 +1550,8 @@ def get_population_data(params):
         # All discharges
         print 2
         dis_queryset = OVCDischargeFollowUp.objects.filter(
-            is_void=False, date_of_discharge__range=(start_date, end_date))
+            is_void=False, date_of_discharge__range=(start_date, end_date),
+            placement_id_id__in=place_ids)
         dis_data = []
         for dl in dis_queryset:
             ditem = {}
@@ -1561,7 +1565,8 @@ def get_population_data(params):
         print 3
         death_qs = OVCAdverseEventsFollowUp.objects.filter(
             is_void=False, adverse_condition_description='AEDE',
-            adverse_event_date__range=(start_date, end_date))
+            adverse_event_date__range=(start_date, end_date),
+            placement_id_id__in=place_ids)
         death_data = []
         for ds in death_qs:
             eitem = {}
