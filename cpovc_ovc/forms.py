@@ -57,6 +57,10 @@ class OVCRegistrationForm(forms.Form):
         attrs={'class': 'form-control',
                'id': 'bcert_no'}))
 
+    ncpwd_no = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'id': 'ncpwd_no'}))
+
     disb = forms.CharField(
         widget=forms.CheckboxInput(
             attrs={'class': 'form-control',

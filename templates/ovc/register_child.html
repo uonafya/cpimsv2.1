@@ -126,7 +126,7 @@
                     <div class="col-md-2">
                     <div class="form-group">
                         <label>NCPWD No.</label>
-                        <input type="text" name="ncpwd_no" id="ncpwd_no" class="form-control">
+                        {{ form.ncpwd_no }}
                       </div>
                     </div>
                     <!-- end col-2 -->
@@ -283,7 +283,13 @@
                             <input type="hidden" name="hhr_{{ guardian.guardian_person.id }}" value="{{ guardian.relationship }}">
                             </td>
                             <td>{{ guardian.guardian_person.des_phone_number }}</td>
-                            <td></td>
+                            <td>
+                            {% if guardian.guardian_person.date_of_death %}
+                                No
+                            {% else %}
+                                Yes
+                            {% endif %}  
+                            </td>
                             <td></td>
                             {% endwith %}
                         </tr>
@@ -310,7 +316,7 @@
             </div>
         <div class="primary3">
                 <fieldset>
-                <legend class="pull-left width-full">Parents / Caregiver details</legend>
+                <legend class="pull-left width-full">Siblings details</legend>
                 <!-- begin row -->
                 <div class="row">
                     <div class="col-md-12">
@@ -330,7 +336,7 @@
                         <tbody>
                        {% for sibling in siblings %}
                         <tr>
-                            <td><input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
+                            <td>{{ sibling.sibling_person.id }}<input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
                             <td>{{ sibling.sibling_person.first_name }}</td>
                             <td>{{ sibling.sibling_person.surname }}</td>
                             <td>{{ sibling.sibling_person.years }}</td>
@@ -341,11 +347,21 @@
                                 Brother
                             {% endif %}
                             </td>
-                            <td></td>
+                            <td>
+                            {% if sibling.sibling_person.date_of_death %}
+                                No
+                            {% else %}
+                                Yes
+                            {% endif %}  
+                            </td>
+                            <td>2</td>
+                            }
                         </tr>
                         {% endfor %}
                         </tbody>
                     </table>
+                    {% else %}
+                        <p>No siblings</p>
                     {% endif %}
                     </div>
                 </div>

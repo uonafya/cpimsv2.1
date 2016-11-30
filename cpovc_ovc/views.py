@@ -91,6 +91,7 @@ def ovc_edit(request, id):
         if request.method == 'POST':
             form = OVCRegistrationForm(data=request.POST)
             ovc_registration(request, ovc_id, 1)
+            # Save external ids from here
         child = RegPerson.objects.get(is_void=False, id=ovc_id)
         creg = OVCRegistration.objects.get(is_void=False, person_id=ovc_id)
         bcert = 'on' if creg.has_bcert else ''
@@ -125,10 +126,12 @@ def ovc_edit(request, id):
             art_status = health.art_status
             facility = health.facility_id
         bcert_no = params['ISOV'] if 'ISOV' in params else ''
+        ncpwd_no = params['IPWD'] if 'IPWD' in params else ''
         if reg_date:
             date_reg = reg_date.strftime('%d-%b-%Y')
         all_values = {'reg_date': date_reg, 'cbo_uid': creg.org_unique_id,
-                      'has_bcert': bcert, 'disb': disb, 'bcert_no': bcert_no,
+                      'has_bcert': bcert, 'disb': disb,
+                      'bcert_no': bcert_no, 'ncpwd_no': ncpwd_no,
                       'immunization': creg.immunization_status,
                       'school_level': creg.school_level, 'facility': facility,
                       'hiv_status': creg.hiv_status, 'link_date': date_linked,

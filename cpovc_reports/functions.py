@@ -27,11 +27,12 @@ from cpovc_ovc.models import OVCAggregate
 from .config import reports
 from cpovc_registry.models import (
     RegOrgUnitGeography, RegPerson, RegOrgUnit, RegPersonsSiblings,
-    RegPersonsGeo, RegPersonsGuardians, RegPersonsExternalIds)
+    RegPersonsGeo, RegPersonsGuardians, RegPersonsExternalIds,
+    RegPersonsOrgUnits)
 
 from cpovc_forms.models import (
     OVCCaseCategory, OVCCaseGeo, OVCCaseEventServices,
-    OVCAdverseEventsFollowUp, OVCPlacement, OVCAdverseEventsOtherFollowUp,
+    OVCPlacement, OVCAdverseEventsOtherFollowUp,
     OVCDischargeFollowUp, OVCCaseRecord, OVCAdverseEventsFollowUp)
 
 from django.conf import settings
@@ -95,7 +96,8 @@ def get_report_body(params, report='DSCE'):
             field_values = repo_val.strip()
             field_vals = field_values.split(':', 1)
             field_txt = None if len(field_vals) < 2 else field_vals[1]
-            if '<' in field_vals[0] and '>' in field_vals[0] and 'br/' not in field_vals[0]:
+            chf = field_vals[0]
+            if '<' in chf and '>' in chf and 'br/' not in chf:
                 cnt += 1
                 fields[field_vals[0].replace('>', '_%s>' % cnt)] = field_txt
             else:
@@ -367,7 +369,8 @@ def simple_document(params, document_name='CPIMS', report_name='letter'):
         story = []
         normal_style = get_style("Normal")
         center_style = get_style("Centered")
-        heading = 'Ministry of East African Community (EAC), Labour and Social Protection'
+        heading = ('Ministry of East African Community (EAC), Labour and '
+                   'Social Protection')
         sub_heading = 'DEPARTMENT OF CHILDREN SERVICES'
         ptext = '<font size=14><b>%s</b></font>' % heading.upper()
         story.append(Paragraph(ptext, center_style))
@@ -1025,6 +1028,8 @@ def get_raw_data(params, data_type=1):
     td_zeros = '<td>0</td>' * 12
     tblanks = ['M', 'F'] * 6
     blanks = ['0'] * 13
+    csvh = ['0 - 5 yrs', '', '6 - 10 yrs', '', '11 - 15 yrs', '',
+            '16 - 17 yrs', '', '18+ yrs', '', 'Sub-Total', '', '']
     try:
         report_type = int(params['report_id'])
         if report_type == 6:
@@ -1068,6 +1073,7 @@ def get_raw_data(params, data_type=1):
             hel_title = ['', 'List of Diseases'] + tblanks + ['Total']
             if rdata:
                 raw_data.append(hel_head)
+                raw_data.append(['', ''] + csvh)
                 raw_data.append(hel_title)
             cnt = 1
             other_items = {1: 'NCOD'}
@@ -1149,6 +1155,7 @@ def get_raw_data(params, data_type=1):
             knb_title = ['', 'Case Category', ''] + tblanks + ['Total']
             if data:
                 raw_data.append(knb_head)
+                raw_data.append(['', '', ''] + csvh)
                 raw_data.append(knb_title)
             dt = '<table class="table table-bordered"><thead>'
             dt += '<tr><th colspan="16">%s</th></tr>' % (rtitle.upper())
@@ -1257,6 +1264,7 @@ def get_raw_data(params, data_type=1):
             all_rvars = merge_two_dicts(all_rvar, depdatas)
             if pdata:
                 raw_data.append(pop_head)
+                raw_data.append(['', ''] + csvh)
                 raw_data.append(pop_title)
             si_total = 0
             # All totals
@@ -1420,10 +1428,11 @@ def get_raw_values(params, data_type=1):
             dt += '<tr><th></th><th width="40%">Names</th><th>Sex</th>'
             dt += '<th>Age (years)</th><th>Admission date</th>'
             dt += '<th>Status</th></tr></thead>'
+            tts = ['#', 'Names', 'Sex', 'Age', 'Admission Date', 'Status']
             if inst_regs:
-                data.append([org_unit_name, '', '', '', ''])
-                data.append(['Date from %s' % (dates), '', '', '', ''])
-                data.append(['#', 'Names', 'Sex', 'Age', 'Adm Date', 'Status'])
+                data.append(['', org_unit_name, '', '', ''])
+                data.append(['', 'Date from %s' % (dates), '', '', ''])
+                data.append(tts)
             for inst_pop in inst_regs:
                 cnt += 1
                 dt += '<tr>'
@@ -1877,6 +1886,61 @@ def org_unit_tree(org_unit_id):
         print "Error getting units tree - %s" % (str(e))
     else:
         return list(set(ou_ids))
+
+
+def get_performance(request):
+    """Method to get performance."""
+    try:
+        pds, ads = [], []
+        punits, acases, cases = {}, {}, {}
+        persons = RegPerson.objects.filter(is_void=False).values(
+            'created_by__reg_person__first_name', 'created_by__reg_person_id',
+            'created_by__reg_person__surname', 'created_by_id').annotate(
+                person_count=Count('created_by_id')).order_by('-person_count')
+        for pers in persons:
+            pds.append(pers['created_by__reg_person_id'])
+            ads.append(pers['created_by_id'])
+        org_units = RegPersonsOrgUnits.objects.filter(
+            is_void=False, person_id__in=pds)
+        for unit in org_units:
+            punits[unit.person_id] = unit.org_unit.org_unit_name
+        # Get cases
+        pcases = OVCCaseRecord.objects.filter(is_void=False).values(
+            'created_by').annotate(
+                case_count=Count('created_by')).order_by('-case_count')
+        for case in pcases:
+            acases[case['created_by']] = case['case_count']
+        for pd in ads:
+            if pd in acases:
+                cases[pd] = acases[pd]
+            else:
+                cases[pd] = 0
+
+    except Exception, e:
+        print 'error with dashboard - %s' % (str(e))
+    else:
+        return persons, punits, cases
+
+
+def get_performance_detail(request, user_id=0):
+    """Method to get performance."""
+    try:
+        persons = RegPerson.objects.filter(
+            is_void=False, created_by_id=user_id).values(
+            'created_at', 'created_by_id').annotate(
+                person_count=Count('created_at')).order_by('created_at')
+
+        cases = OVCCaseRecord.objects.filter(
+            is_void=False, created_by=user_id).extra(
+            select={'day': 'date( timestamp_created )'}).values(
+            'day').annotate(case_count=Count('timestamp_created'))
+
+        print cases
+
+    except Exception, e:
+        print 'error with dashboard - %s' % (str(e))
+    else:
+        return persons, cases
 
 
 if __name__ == '__main__':

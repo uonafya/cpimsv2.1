@@ -20,7 +20,7 @@ from .functions import (
     get_case_details, case_load_header, get_data_element,
     simple_document, draw_page, get_geo_locations, get_data, get_period,
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
-    get_case_data, org_unit_tree)
+    get_case_data, org_unit_tree, get_performance, get_performance_detail)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -800,6 +800,55 @@ def manage_reports(request):
                       {'data': data, 'vals': vals, 'fusage': fusage})
     except Exception, e:
         raise e
+
+
+@login_required
+def manage_dashboard(request):
+    """Method to manage user dashboard."""
+    try:
+        data = []
+        dts, cts = {}, {}
+        dates = []
+        if request.method == 'POST':
+            user_id = request.POST.get('user_id')
+            print user_id
+            children, cases = get_performance_detail(request, user_id)
+            for case in cases:
+                day = case['day']
+                dates.append(day)
+                dts[str(day)] = case['case_count']
+            cnt = 0
+            for val in children:
+                date = val['created_at']
+                kids = val['person_count']
+                cts[str(date)] = kids
+                dates.append(date)
+
+            all_dates = list(set(dates))
+            bds = sorted(all_dates)
+            for bdt in bds:
+                cnt += 1
+                case = dts[str(bdt)] if str(bdt) in dts else 0
+                kid = cts[str(bdt)] if str(bdt) in cts else 0
+                dt = {'id': cnt, 'date': bdt.strftime('%d-%b-%Y'),
+                      'cases': case, 'children': kid}
+                data.append(dt)
+            sdate = bds[0].strftime('%d-%b-%Y')
+            edate = bds[len(bds) - 1].strftime('%d-%b-%Y')
+            dates = '%s to %s' % (str(sdate), str(edate))
+            print 'DATES', dates
+
+            results = {'status': 0, 'message': 'Good', 'data': data,
+                       'dates': dates}
+            return JsonResponse(results, safe=False)
+        persons, units, cases = get_performance(request)
+        return render(request, 'reports/reports_dashboard.html',
+                      {'persons': persons, 'units': units,
+                       'cases': cases})
+    except Exception, e:
+        raise e
+    else:
+        pass
 
 
 def clean_reports(report_id):

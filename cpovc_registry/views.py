@@ -39,6 +39,7 @@ from django.views.decorators.cache import cache_control
 
 from cpovc_main.country import COUNTRIES
 from cpovc_ovc.models import OVCRegistration
+from cpovc_ovc.functions import get_ovcdetails
 
 
 now = timezone.now()
@@ -519,8 +520,8 @@ def new_person(request):
             # Save child as OVC
             if designation == 'COVC':
                 reg_date = '1900-01-01'
-                cbo_id = 1
-                chv_id = 3
+                cbo_id = request.POST.get('cbo_unit_id')
+                chv_id = request.POST.get('chv_unit_id')
                 has_bcert = True if birth_reg_id else False
                 ovc = OVCRegistration(
                     person_id=reg_person_pk, registration_date=reg_date,
@@ -872,6 +873,7 @@ def edit_person(request, id):
     today = datetime.now()
     todate = today.strftime('%d-%b-%Y')
     try:
+        ovc = get_ovcdetails(id)
         if request.method == 'POST':
             form = RegistrationForm(request.user, data=request.POST)
             designation = request.POST.get('cadre_type')
@@ -935,6 +937,13 @@ def edit_person(request, id):
                                             'surname', 'sex_id', 'email',
                                             'des_phone_number', 'designation',
                                             'date_of_birth'])
+                # Update OVC data
+                if ovc:
+                    cbo_id = request.POST.get('cbo_unit_id')
+                    chv_id = request.POST.get('chv_unit_id')
+                    ovc.child_cbo_id = cbo_id
+                    ovc.child_chv_id = chv_id
+                    ovc.save(update_fields=['child_cbo_id', 'child_chv_id'])
                 # Update Persons Geography
                 person_geos_all = RegPersonsGeo.objects.filter(
                     person_id=eperson_id, is_void=False,
@@ -1196,6 +1205,9 @@ def edit_person(request, id):
                 'orgs_selected': person_org_names,
                 'child_services': child_service,
                 'working_in_region': work_region}
+            if ovc:
+                initial_vals['cbo_unit_id'] = ovc.child_cbo_id
+                initial_vals['chv_unit_id'] = ovc.child_chv_id
 
             all_values = merge_two_dicts(initial_vals, identifiers)
 

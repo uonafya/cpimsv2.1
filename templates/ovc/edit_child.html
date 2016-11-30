@@ -126,7 +126,7 @@
                     <div class="col-md-2">
                     <div class="form-group">
                         <label>NCPWD No.</label>
-                        <input type="text" name="ncpwd_no" id="ncpwd_no" class="form-control">
+                        {{ form.ncpwd_no }}
                       </div>
                     </div>
                     <!-- end col-2 -->
@@ -209,7 +209,7 @@
                     </div>
                     <!-- end col-2 -->
                     <!-- begin col-2 -->
-                    <div class="col-md-2" id="school_class_div">
+                    <div class="col-md-3" id="school_class_div">
                     <div class="form-group">
                         <label>Class</label>
                         <select class="form-control" name="school_class" id="school_class" >
@@ -221,7 +221,7 @@
                     </div>
                     <!-- end col-2 -->  
                     <!-- begin col-2 -->
-                    <div class="col-md-3" id="school_name_div">
+                    <div class="col-md-4" id="school_name_div">
                     <div class="form-group">
                         <label>School Name</label>
                         <select class="form-control" name="school_name" id="school_name" >
@@ -283,7 +283,13 @@
                             <input type="hidden" name="hhr_{{ guardian.guardian_person.id }}" value="{{ guardian.relationship }}">
                             </td>
                             <td>{{ guardian.guardian_person.des_phone_number }}</td>
-                            <td></td>
+                            <td>
+                            {% if guardian.guardian_person.date_of_death %}
+                                No
+                            {% else %}
+                                Yes
+                            {% endif %}  
+                            </td>
                             <td></td>
                             {% endwith %}
                         </tr>
@@ -312,7 +318,7 @@
             </div>
         <div class="primary3">
                 <fieldset>
-                <legend class="pull-left width-full">Parents / Caregiver details</legend>
+                <legend class="pull-left width-full">Siblings details</legend>
                 <!-- begin row -->
                 <div class="row">
                     <div class="col-md-12">
@@ -332,7 +338,7 @@
                         <tbody>
                        {% for sibling in siblings %}
                         <tr>
-                            <td><input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
+                            <td>{{ sibling.sibling_person.id }}<input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
                             <td>{{ sibling.sibling_person.first_name }}</td>
                             <td>{{ sibling.sibling_person.surname }}</td>
                             <td>{{ sibling.sibling_person.years }}</td>
@@ -343,11 +349,20 @@
                                 Brother
                             {% endif %}
                             </td>
+                            <td>
+                            {% if sibling.sibling_person.date_of_death %}
+                                No
+                            {% else %}
+                                Yes
+                            {% endif %}  
+                            </td>
                             <td></td>
                         </tr>
                         {% endfor %}
                         </tbody>
                     </table>
+                    {% else %}
+                        <p>No siblings</p>
                     {% endif %}
                     </div>
                 </div>
@@ -380,22 +395,22 @@
 <script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
 <script>
     $("#wizard").bwizard({ validating: function (e, ui) {
-        $("#form_actions").hide();
+        
          if (ui.index == 0) {
             // step-1 validation
-            $("#form_actions").hide();
+            
             if (false === $('form[name="ovcreg_form"]').parsley().validate('primary')) {
                 return false;
             }
         } else if ((ui.index == 1) && (ui.nextIndex > ui.index)){
             // step-2 validation
-            $("#form_actions").hide();
+            
               if (false === $('form[name="ovcreg_form"]').parsley().validate('primary1')) {
                 return false;
             }
         } else if ((ui.index == 2) && (ui.nextIndex > ui.index)) {
             // step-3 validation
-            $("#form_actions").hide();
+            
             if (false === $('form[name="ovcreg_form"]').parsley().validate('primary2')) {
                 return false;
             }

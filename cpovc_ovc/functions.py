@@ -5,7 +5,18 @@ from django.shortcuts import get_object_or_404
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth)
 from cpovc_main.functions import convert_date
-from cpovc_registry.functions import extract_post_params
+from cpovc_registry.functions import extract_post_params, save_person_extids
+
+
+def get_ovcdetails(ovc_id):
+    """Method to get child chv details."""
+    try:
+        ovc_detail = get_object_or_404(OVCRegistration, person_id=ovc_id)
+    except Exception, e:
+        print 'error getting ovc details - %s' % (str(e))
+        return {}
+    else:
+        return ovc_detail
 
 
 def ovc_registration(request, ovc_id, edit=0):
@@ -18,8 +29,15 @@ def ovc_registration(request, ovc_id, edit=0):
         has_bcert = True if bcert else False
         is_disabled = True if disabled else False
 
-        # bcert_no = request.POST.get('bcert_no')
-        # ncpwd_no = request.POST.get('ncpwd_no')
+        bcert_no = request.POST.get('bcert_no')
+        ncpwd_no = request.POST.get('ncpwd_no')
+        ext_ids = {}
+        if bcert_no:
+            ext_ids['ISOV'] = bcert_no
+        if ncpwd_no:
+            ext_ids['IPWD'] = ncpwd_no
+        if ext_ids:
+            save_person_extids(ext_ids, ovc_id)
 
         print request.POST
 

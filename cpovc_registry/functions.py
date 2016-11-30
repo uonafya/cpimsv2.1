@@ -83,6 +83,31 @@ def dashboard():
         return dash
 
 
+def get_chvs(person_id):
+    """Method to get CHV."""
+    try:
+        cbo_detail = {'': "Select CHV"}
+        # Get my organisation unit / CBO
+        org_units = RegPersonsOrgUnits.objects.filter(
+            is_void=False, person_id=person_id).values_list(
+            'org_unit_id', flat=True)
+        # Get all chvs attached to this org unit / CBO
+        person_ids = RegPersonsOrgUnits.objects.filter(
+            is_void=False, org_unit_id__in=org_units).values_list(
+            'person_id', flat=True)
+        # Filter by types
+        persons = RegPersonsTypes.objects.filter(
+            is_void=False, person_type_id='TWVL', person_id__in=person_ids)
+        for person in persons:
+            cbo_detail[person.person_id] = person.person.full_name
+        chvs = cbo_detail.items()
+    except Exception, e:
+        print "error getting CHV - %s" % (str(e))
+        return ()
+    else:
+        return chvs
+
+
 def get_temp(request):
     """Method to get last temp data only less than 15 minutes old."""
     try:
