@@ -615,7 +615,11 @@ def get_period(report_type='M', month='', year='', period='F'):
         end_date = '%s-%s-%s' % (end_day, month, year)
         end_date_obj = datetime.strptime(end_date, '%d-%m-%Y')
         # print (end_date_obj - timedelta(days=days))
-        start_date_obj = (end_date_obj - timedelta(days=days)).replace(day=1)
+        if days == 30:
+            start_date_obj = end_date_obj.replace(day=1)
+        else:
+            sdate = (end_date_obj - timedelta(days=days))
+            start_date_obj = sdate.replace(day=1)
         params = {}
         params['end_date'] = end_date_obj
         params['start_date'] = start_date_obj
@@ -646,6 +650,7 @@ def get_period(report_type='M', month='', year='', period='F'):
         params['years'] = year_name
         params['sheet'] = sheet_name
         params['label'] = report_label
+        print params
         return params
     except Exception, e:
         raise e
