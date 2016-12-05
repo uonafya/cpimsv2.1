@@ -128,6 +128,12 @@ urlpatterns = patterns(
         name='manage_schools'),
     url(r'^manage_countries/$', 'manage_countries',
         name='manage_countries'),
+    url(r'^manage_casehistory/$', 'manage_casehistory',
+        name='manage_casehistory'),
+    url(r'^manage_service_category/$', 'manage_service_category',
+        name='manage_service_category'),
+    url(r'^manage_form_type/$', 'manage_form_type',
+        name='manage_form_type'),
     # ---------------------------------------------------------------
     url(r'^userorgunits_lookup/$', 'userorgunits_lookup',
         name='userorgunits_lookup'),
@@ -172,6 +178,17 @@ urlpatterns = patterns(
         'manage_bursary', name='manage_bursary'),
     
     # OVC Care
-    url(r'^ovc_registry/$',
-        'ovc_registry', name='ovc_registry'),
+    url(r'^csi/$',
+        'csi', name='csi'),
+    url(r'^new_csi/(?P<id>\d+)/$',
+        'new_csi', name='new_csi'),
+    url(r'^edit_csi/(?P<id>\w+)/$',
+        'edit_csi', name='edit_csi'),
+    url(r'^view_csi/(?P<id>\w+)/$',
+        'view_csi', name='view_csi'),
+    
+    url(r'^new_form1a/$',
+        'new_form1a', name='new_form1a'),
+    url(r'^new_hhva/$',
+        'new_hhva', name='new_hhva'),
 )

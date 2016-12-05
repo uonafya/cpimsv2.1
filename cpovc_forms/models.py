@@ -680,3 +680,65 @@ class OVCFamilyCare(models.Model):
 
     class Meta:
         db_table = 'ovc_family_care'
+
+
+## ---------------------------- OVC Models --------------------------------------#
+class OVCCareEvents(models.Model):
+    event = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    event_type_id = models.CharField(max_length=4)
+    event_counter = models.IntegerField(default=0)
+    event_score = models.IntegerField(null=True, default=0)
+    date_of_event = models.DateField(default=timezone.now)       
+    created_by = models.IntegerField(null=True, default=404)
+    timestamp_created = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+    sync_id = models.UUIDField(default=uuid.uuid1, editable=False)
+    # app_user = models.ForeignKey(AppUser, default=1)
+    person = models.ForeignKey(RegPerson)
+
+    class Meta:
+        db_table = 'ovc_care_events'
+
+class OVCCarePriority(models.Model):
+    """ This table will hold OVC Priority Data """
+
+    priority_id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    domain = models.CharField(max_length=4)   
+    service = models.CharField(max_length=4)
+    event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
+    service_grouping_id = models.UUIDField(default=uuid.uuid1, editable=False)
+    is_void = models.BooleanField(default=False)
+    sync_id = models.UUIDField(default=uuid.uuid1, editable=False)
+
+    class Meta:
+        db_table = 'ovc_care_priority'
+
+class OVCCareServices(models.Model):
+    """ This table will hold Services Data """
+
+    service_id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    service_provided = models.CharField(max_length=250)
+    service_provider = models.CharField(max_length=250, null=True)
+    place_of_service = models.CharField(max_length=250, null=True)
+    date_of_encounter_event = models.DateField(default=timezone.now)
+    event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
+    service_grouping_id = models.UUIDField(default=uuid.uuid1, editable=False)
+    is_void = models.BooleanField(default=False)
+    sync_id = models.UUIDField(default=uuid.uuid1, editable=False)
+
+    class Meta:
+        db_table = 'ovc_care_services'
+
+class OVCCareEAV(models.Model):
+    """ This table will hold HHVA data and Domain Evaluation data """
+
+    eav_id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    entity = models.CharField(max_length=4)
+    attribute = models.CharField(max_length=4)
+    value = models.CharField(max_length=4)
+    event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
+    is_void = models.BooleanField(default=False)
+    sync_id = models.UUIDField(default=uuid.uuid1, editable=False)
+
+    class Meta:
+        db_table = 'ovc_care_eav'

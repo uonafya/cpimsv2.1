@@ -697,31 +697,29 @@ function RemoveRow(index, row_id)
 {
 	$("#" + row_id).remove();
 
-	/**
-	var data = new Array();
-    var csrftoken = $.cookie('csrftoken');	    
-    var index = index
-    var values = {  
-                    'csrfmiddlewaretoken': csrftoken,
-                    'index': index
-                 };
-    
-    $.ajax({
-        url: '{% url 'manage_casecategory002' %}',
-        dataType: 'text',
-        method: 'POST',
-        contentType: 'application/x-www-form-urlencoded',
-        data: values,
-        success: function(result)
-        {
-    	   $("#" + row_id).remove();    
-        },
-        error: function(xhr, status, error)
-        {
-            alert(error);
+	var CaseManagementData = new Array();
+	$('#casecategory_manager_table tr').each(function(row, tr)
+    {
+    	var case_category = $(tr).find('input[id="hcase_categorys"]').val();
+    	var case_subcategory = $(tr).find('input[id="hcase_subcategorys"]').val();
+		var date_of_event =  $(tr).find('td:eq(3)').text();
+		var place_of_event = $(tr).find('input[id="hplace_of_event"]').val();
+		var case_nature = $(tr).find('input[id="hcase_nature"]').val();
+		CaseManagementData[row] = {
+            "case_category" : case_category,
+            "case_subcategory" : case_subcategory,
+            "date_of_event" : date_of_event,
+            "place_of_event" : place_of_event,
+            "case_nature" : case_nature
         }
-    });	
-    **/	 
+    });
+    CaseManagementData.shift(); //remove first row(headers stuff)
+    CaseManagementData.shift(); //remove second row(controls stuff)
+    CaseManagementData.shift(); //remove empty row
+    CaseManagementData = JSON.stringify(CaseManagementData); 
+
+    // Set case_category_list
+    $('#case_category_list').val(CaseManagementData); 
 }
 
 function AddRow(operation)
@@ -2094,6 +2092,8 @@ $("#date_case_opened").change(function(event)
     var new_date_case_opened = date_case_opened.getDate() + '/' 
     							+ (date_case_opened.getMonth() + 1) + '/' 
     							+ date_case_opened.getFullYear(); 
+
+    console.log(date_case_opened);
 
     // Reconfigure date_of_event
     $('#date_of_event').val('');

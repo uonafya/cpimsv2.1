@@ -8,6 +8,11 @@
 
 {% block style_code %}
 <link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
+<style type="text/css">
+.fontcss {
+  color: #0057e7;
+}
+</style>
 {% endblock %}
 
 {% block javascript_code%}
@@ -31,6 +36,33 @@
     </div>
    {% endfor %}
 {% endif %}
+
+<!-- begin caserecord-details-dialog -->
+<div class="modal fade" id="caserecord-details-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
+                <div id="closure-warning-dialog-header">
+                    <p>Case History &nbsp;&nbsp;<i class="fa fa-info-circle"></i> </p>      
+                </div>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div id="div_casehistory" class="alert alert-white m-b-0">
+                    <h6>
+                        <p class="fontcss"></p>
+                    </h6>                    
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end caserecord-details-dialog -->
 
 <div class="row">
     <div class="row">
@@ -89,10 +121,16 @@
                         <td>{{ result.sex_id|gen_value:vals }}</td>
                         <td>No OrgUnit Info</td>
                         <td>{{ result.ovc_persongeos }}</td>
-                        <td><h6>{{ result.case_count }}</h6></td>
+                        <td>
+                            <h6>
+                            <button class="btn  btn-sm btn-link m-r-5" onClick="open_form(2, {{result.id}})" >
+                                <b>{{ result.case_count }}</b>                         
+                            </button>
+                            </h6>
+                        </td>
                      
                         <td>                                  
-                            <button class="btn  btn-sm btn-primary m-r-5" onClick="open_form({{result.id}})" >
+                            <button class="btn  btn-sm btn-primary m-r-5" onClick="open_form(1, {{result.id}})" >
                                 <b>New Case Record Sheet</b>&nbsp;&nbsp;<i class="fa fa-file"></i>                          
                             </button>
                         </td>
@@ -118,9 +156,67 @@ function register_new()
 {
     return window.location.href='{% url 'new_person' %}'; 
 }
-function open_form(id)
+function open_form(x, id)
 {
-    return window.location.href='{% url 'new_case_record_sheet' id=0 %}'.replace("0", id);       
+    if(x==1)
+    {
+        // redirect to new_case_record_sheet 
+        return window.location.href='{% url 'new_case_record_sheet' id=0 %}'.replace("0", id);
+    }
+    if(x==2)
+    {
+
+        var data = new Array();
+        var csrftoken = $.cookie('csrftoken');
+        var person_id = id;
+        var values = { 
+                        'person_id' : person_id,
+                        'csrfmiddlewaretoken': csrftoken
+                     };
+        $.ajax({            
+                    url: '{% url 'manage_casehistory' %}',
+                    dataType: 'json',
+                    method: 'POST',
+                    contentType: 'application/x-www-form-urlencoded',
+                    data: values,
+                    success: function(result)
+                    {
+                        var msg = ''
+                        
+                        $.each(result, function(i, val) {
+                            var case_serial = val.case_serial;
+                            var report_orgunit = val.report_orgunit;
+                            var orgunit_contacts = val.orgunit_contacts;
+                            var msg_contacts = ''
+
+                            // open case details dialog
+                            $('#caserecord-details-dialog').modal('show');
+
+                            if(case_serial)
+                            {
+                                // get orgunit_contacts
+                                $.each(orgunit_contacts, function(i, orgunit_contact)
+                                { 
+                                    msg_contacts = msg_contacts + '<b><span>' + orgunit_contact.contact_detail_type_id+ ' : </span></b>' + orgunit_contact.contact_detail + '<br>'
+                                });
+
+                                msg = msg + '<b>' + '<span class="badge badge-default">' + (i+1) + '</span><br><br><span>Serial Number : </b>' + case_serial + '<br><b>OrgUnit Reported : </b>' + report_orgunit + '</span><br>' + msg_contacts + '<br><br>'
+
+                            }
+                            else
+                            { 
+                                msg = 'No previous case(s).'
+                            }
+                            
+                        });
+                        $('#div_casehistory p').html(msg)                      
+                    },
+                    error: function(xhr, status, error)
+                    {
+                        alert(error);
+                    }
+                });               
+    }           
 }
 </script>
 <script>

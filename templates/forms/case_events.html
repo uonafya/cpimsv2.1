@@ -16,13 +16,18 @@
 .dialog_paragraph {
   color: #f00;
 }
+
 .table_data {
   display: none;
 }
+
 .container {
     width: 100%;
     overflow-x: auto;
-    /*white-space: nowrap;*/
+}
+
+.td_style {
+  color: #0057e7;
 }
 </style>
 {% endblock %}
@@ -49,6 +54,31 @@
     </ul>
 </div>
 {% endif %}
+
+
+<!-- #closure-warning-dialog -->
+<div class="modal fade" id="closure-warning-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
+                <div id="closure-warning-dialog-header">
+                    <p>Warning</p>      
+                </div>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger m-b-0">
+                    <h4><i class="fa fa-info-circle"></i> <small><span id="span_closure_alert"></span></small></h4>                    
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- #end-closure-warning-dialog -->
 
 
 <div id="ce_msgs" class="alert alert-success fade in" style="display:none;">
@@ -556,6 +586,8 @@
                                 -->
                                 {{ form.case_event_id_summon }}
 
+                                {{ form.reported_date }}
+
                                 <div class="form-group">
                                     <h6><label class="control-label col-md-4 col-sm-4">Summon Count: </label></h6>
                                     <div class="col-md-6 col-sm-6">
@@ -831,7 +863,7 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr id="id_inputElements">
-                                                        <td width="5%">#</td>
+                                                        <td width="5%"></td>
                                                         <td width="30%">
                                                         {{ form.case_closure_case }}
                                                         <div id="case_closure_case_errormsg" style="display:none;">
@@ -997,6 +1029,14 @@ function ResetEventsDialog(event_type)
     if(event_type == 'Closure')
     {
         // Reset All Controls/Table
+        $("#div_intervention").css({ 'display': "none" });
+        $("#case_closure_case").multiselect("clearSelection");
+        $("#case_closure_case").multiselect("refresh");
+        $("#intervention").multiselect("clearSelection");
+        $("#intervention").multiselect("refresh");
+        $('#intervention_list').val(''); 
+        $('#interventions_manager_table').find("tr:gt(2)").remove();
+
         $('#case_outcome').val('');
         $("#case_outcome").trigger("change");
         $("#transfered_to").multiselect("clearSelection");
@@ -1041,8 +1081,13 @@ function fnOpenDialog(dialog_type)
         }
         else
         {
+            /*
             $('#error_msgs').css({'display': 'block'});
             $('#error_msgs p').html('This case has been closed or transferred.');
+            */
+
+            $('#closure-warning-dialog').modal('show');
+            $('#span_closure_alert').html("This case has been closed or transferred.")
         }
     }
     if(dialog_type == 'CaseStatus')
@@ -1504,6 +1549,13 @@ function AddRow(x)
                                         var cell4 = row.insertCell(4);
                                         var cell5 = row.insertCell(5);
 
+                                        cell0.className = 'td_style';
+                                        cell1.className = 'td_style';
+                                        cell2.className = 'td_style';
+                                        cell3.className = 'td_style';
+                                        cell4.className = 'td_style';
+                                        cell5.className = 'td_style';
+
                                         // Add some text to the new cells:
                                         var index = rows_length - 1;
                                         cell0.innerHTML =  "<h6>" + (index) + "</h6>" + "<div id='span_referral_grouping_id' style='display:none'><span>" + referral_grouping_id + "</span></div>";
@@ -1626,6 +1678,13 @@ function AddRow(x)
                         var cell4 = row.insertCell(4);
                         var cell5 = row.insertCell(5);
 
+                        cell0.className = 'td_style';
+                        cell1.className = 'td_style';
+                        cell2.className = 'td_style';
+                        cell3.className = 'td_style';
+                        cell4.className = 'td_style';
+                        cell5.className = 'td_style';
+
                         // Add some text to the new cells:
                         var hservice_provided = "<input id='hservice_provided' type='hidden' value='"+service_provided+"'>"
                         var hservice_provider = "<input id='hservice_provider' type='hidden' value='"+service_provider+"'>"
@@ -1652,8 +1711,6 @@ function AddRow(x)
                         $('#place_of_service').val('');
                         $( "#sel_service_provided").html('');
                         $('#service_provided_list').val(''); 
-
-
 
                         $('#services_manager_table tr').each(function(row, tr)
                         {                            
@@ -1732,6 +1789,11 @@ function AddRow(x)
                 var cell2 = row.insertCell(2);
                 var cell3 = row.insertCell(3);
 
+                cell0.className = 'td_style';
+                cell1.className = 'td_style';
+                cell2.className = 'td_style';
+                cell3.className = 'td_style';
+
                 // Add some text to the new cells:
                 var hcase_category = "<input id='hcase_category' type='hidden' value='"+case_category+"'>"
                 var hintervention = "<input id='hintervention' type='hidden' value='"+intervention+"'>"
@@ -1739,21 +1801,23 @@ function AddRow(x)
 
                 cell0.innerHTML = '<h6>#</h6>';        
                 cell1.innerHTML = '<h6>' + displayVals3("case_closure_case") + hcase_category + '</h6>';
-                cell2.innerHTML = '<h6>' + displayVals3("intervention") + hintervention + '</h6>';
+                cell2.innerHTML = '<h6>' + displayVals3("intervention") + hintervention + hintervention_status + '</h6>';
                 cell3.innerHTML  = '<h6>' + "<a id=" + btnRemoveIntvId + " class='btn btn-sm btn-link m-r-5 href='#'>Remove</a>" + '</h6>';
 
                 // AddClick Event To Remove Button
                 $("#" + btnRemoveIntvId + "").click(function(e)
                 {
-                    RemoveRow(1, '', row_id);
+                    RemoveRow(3, '', row_id);
                 });
 
                 // Reset Input Elements/Error Divs
+                // $("#div_intervention").css({ 'display': "none" });
                 $("#case_closure_case").multiselect("clearSelection");
                 $("#case_closure_case").multiselect("refresh");
                 $("#intervention").multiselect("clearSelection");
                 $("#intervention").multiselect("refresh");
                 $('#intervention_list').val(''); 
+                //$('#interventions_manager_table').find("tr:gt(2)").remove();
 
                 $('#interventions_manager_table tr').each(function(row, tr)
                 {                            
@@ -1852,6 +1916,7 @@ function RemoveRow(index, uuid, tr_id)
         // Delete Table Row
         $("#" + tr_id).remove();
 
+        var EncountersData = new Array();
         $('#services_manager_table tr').each(function(row, tr)
         {                            
             var service_provided = $(tr).find('input[id="hservice_provided"]').val();
@@ -1919,6 +1984,33 @@ function RemoveRow(index, uuid, tr_id)
 
                     });  
         } 
+    }
+    if(index == 3)
+    {
+        // Delete Table Row
+        $("#" + tr_id).remove();
+
+        var InterventionsData = new Array();
+        $('#interventions_manager_table tr').each(function(row, tr)
+        {                            
+            var case_category = $(tr).find('input[id="hcase_category"]').val();
+            var intervention = $(tr).find('input[id="hintervention"]').val();
+            var intervention_status = $(tr).find('input[id="hintervention_status"]').val();
+
+            InterventionsData[row]= {
+                "case_category" : case_category,
+                "intervention" : intervention,
+                "intervention_status" : intervention_status
+                }                                
+            
+        });
+        
+        InterventionsData.shift(); //remove first row(headers stuff)
+        InterventionsData.shift(); //remove second row(controls stuff)
+        InterventionsData = JSON.stringify(InterventionsData); 
+
+        // Set intervention_list
+        $('#intervention_list').val(InterventionsData);
     }
 }
 function edit_view_delete_CaseEvent(event_type, event_id, action)
@@ -2360,6 +2452,7 @@ function fnSaveClosure()
                     success: function(result)
                     {
                         $.each(result, function(i, val) {
+                            /*
                             var closure_status = val.closure_status;
                             var case_status = val.case_status;
 
@@ -2367,6 +2460,9 @@ function fnSaveClosure()
                             {
                                 crudMsg = 'Case Already Closed!';
                             }
+                            **/
+
+                            crudMsg = val.closure_msg;
                         });
 
                         $("#ce_msgs").css({ 'display': "block" }); 
@@ -2378,6 +2474,15 @@ function fnSaveClosure()
                         $('#transfered_to').multiselect('refresh');
                         $('#case_closure_notes').val(''); 
                         $('#date_of_case_closure').val(''); 
+
+                        // hide/reset OtherOutcome
+                        $("#div_intervention").css({ 'display': "none" });
+                        $("#case_closure_case").multiselect("clearSelection");
+                        $("#case_closure_case").multiselect("refresh");
+                        $("#intervention").multiselect("clearSelection");
+                        $("#intervention").multiselect("refresh");
+                        $('#intervention_list').val(''); 
+                        $('#interventions_manager_table').find("tr:gt(2)").remove();
 
                         //close residential-placement-dialog
                         $('#close-case-dialog').modal('hide');
@@ -2428,11 +2533,50 @@ function fnViewClosure(case_event_id)
             $('#close-case-dialog').modal('show');
             $("#btn_save_closure").text('Update');
 
-            $.each(result, function(i, val) {
+            // clear rows
+            $('#interventions_manager_table').find("tr:gt(1)").remove();
+
+            $.each(result, function(i, val) 
+            {
                 var closure_outcome = val.closure_outcome;
                 var transfer_to = val.transfer_to;
                 var case_closure_notes = val.case_closure_notes;
                 var date_of_event = val.date_of_event;
+                var case_event_id = val.case_event_id;
+                var resultsets = val.resultsets;
+
+                $.each(resultsets, function(i, resultset)
+                {
+                    svc_results = resultset.jsonSvcsData;
+                    case_category = resultset.case_category; 
+                    case_category_id = resultset.case_category_id;                    
+                    
+                    $.each(svc_results, function(i, svc_result)
+                    {
+                        // Interventions json data
+                        var rowIndex = i;
+                        var pk = svc_result.pk;
+                        var intervention = svc_result.service_provided;
+                        var intervention_id = svc_result.service_provided_id;
+                        var btnRemove = 'btnRemove' + i;
+                        var id_inputElements = 'id_inputElements' + i;
+
+                        // Add some text to the new cells:
+                        var hcase_category = "<input id='hcase_category' type='hidden' value='"+case_category_id+"'>";
+                        var hintervention = "<input id='hintervention' type='hidden' value='"+intervention_id+"'>";
+                        var hintervention_status= "<input id='hintervention_status' type='hidden' value='exist'>";
+
+                        var table_row = '<tr id=' + id_inputElements + '><td><h6>#</h6></td>' + 
+                        '<td><h6>' + case_category + '</h6>' + hcase_category + '</td>' + 
+                        '<td><h6>' + intervention + '</h6>' + hintervention + hintervention_status + '</td>' + 
+                        '<td><button id=' + btnRemove + ' type="button" class="btn btn-sm btn-link m-r-5"' +
+                        ' onClick="fnDeleteEncounter(\''+ case_event_id +'\',\''+ pk +'\',\''+ id_inputElements +'\')">Remove </b></button></td></tr>';
+
+                        // Append each result to  row
+                        $('#interventions_manager_table > tbody:last-child').append(table_row);
+                    });
+                });
+                
 
                 $('#case_outcome').val(closure_outcome);
                 $("#case_outcome").trigger("change");
@@ -2453,19 +2597,24 @@ function fnViewClosure(case_event_id)
 function fnUpdateClosure()
 {
     var crudMsg = 'Case Closure Updated Successfully.';
-    var csrftoken = $.cookie('csrftoken');    
+    var csrftoken = $.cookie('csrftoken');
+    var case_id = $('#case_id').val();
+    // var case_status = $('#case_status').val();
     var case_outcome = $('#case_outcome').val(); 
     var transfered_to = $('#transfered_to').val(); 
+    var intervention_list = $('#intervention_list').val(); 
     var case_closure_notes = $('#case_closure_notes').val(); 
     var date_of_case_closure = $('#date_of_case_closure').val();
-    var case_id = $('#case_id').val();
     var case_event_id = $('#case_event_id_closure').val();
     var values = {  
                     'csrfmiddlewaretoken': csrftoken,
                     'case_id':case_id,
                     'case_event_id': case_event_id
                  };
-    
+    var interventions = $('#interventions_manager_table tr').length;
+
+    // alert('interventions length - ' + interventions)
+
     if(case_outcome)
     {
         values['case_outcome'] = case_outcome;
@@ -2478,6 +2627,21 @@ function fnUpdateClosure()
             else
             {
                 $("#closure_msgs3").css({ 'display': "block" });
+                $("#closure_msgs").css({ 'display': "block" });
+                $('#closure_msgs p').html('Please fill the missing values');
+                return false;
+            }
+        }
+
+        if(case_outcome == 'COOT')
+        {
+            if((intervention_list) || (interventions >=3))
+            {
+                values['intervention_list'] = intervention_list.toString();
+            }
+            else
+            {
+                $("#closure_msgs6").css({ 'display': "block" });
                 $("#closure_msgs").css({ 'display': "block" });
                 $('#closure_msgs p').html('Please fill the missing values');
                 return false;
@@ -2500,11 +2664,14 @@ function fnUpdateClosure()
 
         $.ajax({
                     url: '{% url 'edit_closure' %}',
-                    dataType: 'text',
+                    dataType: 'json',
                     method: 'POST',
                     data: values,
                     success: function(result)
                     {
+                        $.each(result, function(i, val) {
+                            crudMsg = val.closure_msg;
+                        });
 
                         $("#ce_msgs").css({ 'display': "block" }); 
                         $('#ce_msgs p').html(crudMsg); 
@@ -2515,6 +2682,15 @@ function fnUpdateClosure()
                         $('#transfered_to').multiselect('refresh');
                         $('#case_closure_notes').val(''); 
                         $('#date_of_case_closure').val(''); 
+
+                        // hide/reset OtherOutcome
+                        $("#div_intervention").css({ 'display': "none" });
+                        $("#case_closure_case").multiselect("clearSelection");
+                        $("#case_closure_case").multiselect("refresh");
+                        $("#intervention").multiselect("clearSelection");
+                        $("#intervention").multiselect("refresh");
+                        $('#intervention_list').val(''); 
+                        $('#interventions_manager_table').find("tr:gt(2)").remove();
 
                         //close residential-placement-dialog
                         $('#close-case-dialog').modal('hide');
@@ -2540,7 +2716,7 @@ function fnUpdateClosure()
         $("#closure_msgs").css({ 'display': "block" });
         $('#closure_msgs p').html('Please fill the missing values');
         return false;
-    }
+    }   
 }
 
 function fnDeleteClosure(case_event_id)
@@ -3363,7 +3539,7 @@ function fnUpdateEncounter(){
     //validation
     if(case_category_id)
     {
-        if((service_provided_list) || (services ==3))
+        if((service_provided_list) || (services >=3))
         {
             values['case_category_id'] = case_category_id;
             values['service_provided_list'] = service_provided_list;
@@ -3959,16 +4135,22 @@ $("#honoured").change(function(event)
             $('#div_summon_date').css({'display': 'none'});
             $('#summon_date').val('');
         }
-        else{
-            $('#div_summon_date').css({'display': 'block'});            
-        }
+        else
+        {
+            $('#div_summon_date').css({'display': 'block'}); 
 
-        // Reconfigure date_of_summon
-        $('#summon_date').datepicker('remove');
-        $('#summon_date').datepicker({ 
-            startDate: '+1d',
-            format: 'dd-M-yyyy'
-        });
+            // reconfigure date_of_next_summon
+            var reported_date = $('#reported_date').datepicker('getDate');
+            var new_date_case_opened = reported_date.getDate() + '/' 
+                                        + (reported_date.getMonth() + 1) + '/' 
+                                        + reported_date.getFullYear(); 
+            $('#summon_date').datepicker('remove');
+            $('#summon_date').datepicker({ 
+                startDate: new_date_case_opened,
+                // endDate: new_date_case_opened,
+                format: 'dd-M-yyyy'
+            });          
+        }
     }
     else
     {
@@ -4361,6 +4543,7 @@ $("#case_status").change(function(event)
 $("#case_outcome").change(function(event) 
 { 
     var case_outcome = $('#case_outcome').val();
+    console.log('case_outcome: ' + case_outcome)
     if(case_outcome =='COTR')
     {
         $("#div_transfered_to").css({ 'display': "block" });
