@@ -5,7 +5,6 @@ var handleBootstrapWizardsValidation = function() {
     $("#mysubmit3").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit10").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit-csi").removeClass( "btn-primary" ).attr("disabled", "disabled");
-
     $("#wizard").bwizard({ validating: function (e, ui) {
         $(".alert").hide();
          if (ui.index == 0) {
@@ -50,7 +49,8 @@ var handleBootstrapWizardsValidation = function() {
                     return false;
                 }
             } else if (ui.index == 1) {
-                // step-2 validation                
+                // step-2 validation
+                
                 $("#mysubmit2").addClass( "btn-primary" ).removeAttr("disabled");
                   if (false === $('form[name="form-wizard2"]').parsley().validate('group1')) {
                     return false;
@@ -226,7 +226,7 @@ var handleBootstrapWizardsValidation = function() {
                 }
             }else if (ui.index == 4) {
                 // step-5 validation     
-                if (false === $('form[name="form-wizard"]').parsley().validate('group4')) {
+                  if (false === $('form[name="form-wizard"]').parsley().validate('group4')) {
                     return false;
                 }
             } 
