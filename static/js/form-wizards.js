@@ -4,6 +4,8 @@ var handleBootstrapWizardsValidation = function() {
     $("#mysubmit").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit3").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit10").removeClass( "btn-primary" ).attr("disabled", "disabled");
+    $("#mysubmit-csi").removeClass( "btn-primary" ).attr("disabled", "disabled");
+
     $("#wizard").bwizard({ validating: function (e, ui) {
         $(".alert").hide();
          if (ui.index == 0) {
@@ -48,8 +50,7 @@ var handleBootstrapWizardsValidation = function() {
                     return false;
                 }
             } else if (ui.index == 1) {
-                // step-2 validation
-                
+                // step-2 validation                
                 $("#mysubmit2").addClass( "btn-primary" ).removeAttr("disabled");
                   if (false === $('form[name="form-wizard2"]').parsley().validate('group1')) {
                     return false;
@@ -225,10 +226,39 @@ var handleBootstrapWizardsValidation = function() {
                 }
             }else if (ui.index == 4) {
                 // step-5 validation     
-                  if (false === $('form[name="form-wizard"]').parsley().validate('group4')) {
+                if (false === $('form[name="form-wizard"]').parsley().validate('group4')) {
                     return false;
                 }
             } 
+        } 
+    });
+
+    $("#wizard-csi").bwizard({ validating: function (e, ui) { 
+            if (ui.index == 0) {
+                // step-1 validation
+                if (false === $('form[name="form-wizard-csi"]').parsley().validate('group0')) {
+                    $(".alert").show();
+                    $('.invalid-form-message').html(error_msg + ' CSI domain evaluation details.');
+                    return false;
+                }
+                $(".alert").hide();
+            } else if (ui.index == 1) {
+                // step-2 validation
+                $("#mysubmit-csi").addClass( "btn-primary" ).removeAttr("disabled"); 
+                var rows = $('#priority_manager_table tr').length;
+                if (rows == 2)
+                {
+                    $(".alert").show();
+                    $('.invalid-form-message').html(error_msg + ' CSI priority details.Add one or more CSI priorities.');
+                    return false;
+                } 
+                $(".alert").hide();
+            }else if (ui.index == 2) {
+                // step-3 validation
+                if (false === $('form[name="form-wizard-csi"]').parsley().validate('group2')) {
+                    return false;
+                }
+            }
         } 
     });
 };
