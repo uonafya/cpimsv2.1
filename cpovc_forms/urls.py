@@ -186,9 +186,25 @@ urlpatterns = patterns(
         'edit_csi', name='edit_csi'),
     url(r'^view_csi/(?P<id>\w+)/$',
         'view_csi', name='view_csi'),
+    url(r'^delete_csi/(?P<id>\w+)/$',
+        'delete_csi', name='delete_csi'),
     
-    url(r'^new_form1a/$',
+    url(r'^new_form1a/(?P<id>\d+)/$',
         'new_form1a', name='new_form1a'),
-    url(r'^new_hhva/$',
+    url(r'^edit_form1a/(?P<id>\w+)/$',
+        'edit_form1a', name='edit_form1a'),
+    url(r'^view_form1a/(?P<id>\w+)/$',
+        'view_form1a', name='view_form1a'),
+    url(r'^delete_form1a/(?P<id>\w+)/$',
+        'delete_form1a', name='delete_form1a'),
+
+    url(r'^new_hhva/(?P<id>\d+)/$',
         'new_hhva', name='new_hhva'),
+    url(r'^edit_hhva/(?P<id>\w+)/$',
+        'edit_hhva', name='edit_hhva'),
+    url(r'^view_hhva/(?P<id>\w+)/$',
+        'view_hhva', name='view_hhva'),
+    url(r'^delete_hhva/(?P<id>\w+)/$',
+        'delete_hhva', name='delete_hhva'),
+
 )

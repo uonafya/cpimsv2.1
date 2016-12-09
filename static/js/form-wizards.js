@@ -5,6 +5,8 @@ var handleBootstrapWizardsValidation = function() {
     $("#mysubmit3").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit10").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit-csi").removeClass( "btn-primary" ).attr("disabled", "disabled");
+    $("#mysubmit-f1a").removeClass( "btn-primary" ).attr("disabled", "disabled");
+    
     $("#wizard").bwizard({ validating: function (e, ui) {
         $(".alert").hide();
          if (ui.index == 0) {
@@ -260,6 +262,57 @@ var handleBootstrapWizardsValidation = function() {
                 }
             }
         } 
+    });
+
+    $("#wizard-f1a").bwizard({ validating: function (e, ui) { 
+            if (ui.index == 0) {
+                // step-1 validation
+                var rows = $('#assessment_manager_table tr').length;
+                if (rows == 2)
+                {
+                    $(".alert").show();
+                    $('.invalid-form-message').html(error_msg + ' assessment details.Add one or more assessment response(s).');
+                    return false;
+                } 
+                $(".alert").hide();
+            } 
+            else if (ui.index == 1) {
+                // step-2 validation
+                var rows = $('#services_manager_table tr').length;
+                if (rows == 2)
+                {
+                    $(".alert").show();
+                    $('.invalid-form-message').html(error_msg + ' services details.Add one or more service response(s).');
+                    return false;
+                } 
+                $(".alert").hide();
+            }
+            else if (ui.index == 2) {
+                // step-3 validation
+                var rows = $('#priority_manager_table tr').length;
+                if (rows == 2)
+                {
+                    $(".alert").show();
+                    $('.invalid-form-message').html(error_msg + ' priority details.Add one or more priority needs response(s).');
+                    return false;
+                } 
+                $("#mysubmit-f1a").addClass( "btn-primary" ).removeAttr("disabled");
+                $(".alert").hide();
+            } 
+            else if (ui.index == 3) {
+                // step-4 validation
+                $(".alert").show();
+                $('.invalid-form-message').html(error_msg + ' critical event details and date.');
+                if (false === $('form[name="form-wizard-csi"]').parsley().validate('group3')) {
+                    return false;
+                }
+            }
+        }
+    });
+
+    $("#wizard-hhva").bwizard({ validating: function (e, ui) { 
+            
+        }
     });
 };
 

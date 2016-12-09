@@ -43,7 +43,13 @@
 <!-- end breadcrumb -->
 
 <!-- begin page-header -->
-<h1 class="page-header">Forms <small>New CSI  <b>Joe Doe | UNDER 1 YEAR YRS </b></small></h1>
+{% for data in init_data %}
+    <h1 class="page-header">Forms <small>View Child Status Index(CSI)  <b>{{ data.first_name }} {{ data.surname }} | {{ data.sex_id|gen_value:vals }} | {% if data.date_of_birth|gen_age == 0 %}
+                            UNDER 1 YEAR
+                        {% else %}
+                            {{ data.date_of_birth|gen_age }} YRS 
+                        {% endif %}</b></small></h1>
+{% endfor %}
 <!-- end page-header -->
 
 <div id="messages" class="alert alert-danger fade in" style="display: none;" tabindex="1">
@@ -94,31 +100,33 @@
             	<form class="form-horizontal form-bordered" action="." method="POST" data-parsley-validate="true"
                 name="form-wizard-csi" id="new_csi">
                 	{% csrf_token %}
-					<div id="wizard-csi">
+					<div id="wizard-view-csi">
+						<!--
 						<ol>
 							<li>
-							    Domain Evaluation 
-							    <small>Evaluation outcome details.</small>
+							    Domain Evaluation 							    
 							</li>
 							
 							<li>
-							    CSI Priorities 
-							    <small>Priority details.</small>
+							    CSI Priorities 							    
 							</li>
 
 							<li>
-							    Support/Services 
-							    <small>Support/services provided details.</small>
+							    Support/Services
 							</li>							
 						</ol>
+						-->
 
 						<!-- begin wizard step-1 -->
 						<div class="wizard-step-1">
                             <fieldset> 
+                            	<br>
+                            	<legend class="pull-left width-full">Domain Evaluation</legend>
+                            	<br>
                                 <!-- begin col-6 -->
 							    <div class="col-md-12">
 							        <div class="panel-group" id="accordion">
-										<div class="panel panel-info overflow-hidden">
+										<div class="panel panel-default overflow-hidden">
 											<div class="panel-heading">
 												<h3 class="panel-title">
 													<a class="accordion-toggle accordion-toggle-styled" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
@@ -141,29 +149,29 @@
 					                                        <tr id="id_inputElements0">
 					                                            <td width="20%"><h6>HEALTH AND NUTRITION</h6></td>
 					                                          	<td width="20%">Food Security</td>
-					                                          	<td width="15%">{{ form.food_security }}</td>
+					                                          	<td width="15%">{{ food_security|gen_value:vals }}</td>
 					                                        </tr>
 					                                        <tr id="id_inputElements1">
 					                                            <td width="20%"></td>
 					                                          	<td width="20%">Nutrition and Growth</td>
-					                                          	<td width="15%">{{ form.nutrition_growth }}</td>
+					                                          	<td width="15%">{{ nutrition_growth|gen_value:vals }}</td>
 					                                        </tr>
 					                                        <tr id="id_inputElements2">
 					                                            <td width="20%"></td>
 					                                          	<td width="20%">Wellness</td>
-					                                          	<td width="15%">{{ form.wellness }}</td>
+					                                          	<td width="15%">{{ wellness|gen_value:vals }}</td>
 					                                        </tr>
 					                                        <tr id="id_inputElements3">
 					                                            <td width="20%"></td>
 					                                          	<td width="20%">Health Care Services</td>
-					                                          	<td width="15%">{{ form.healthcare_services }}</td>
+					                                          	<td width="15%">{{ healthcare_services|gen_value:vals }}</td>
 					                                        </tr>			                                        
 					                                    </tbody>
 					                                </table>
 												</div>
 											</div>
 										</div>
-										<div class="panel panel-info overflow-hidden">
+										<div class="panel panel-default overflow-hidden">
 											<div class="panel-heading">
 												<h3 class="panel-title">
 													<a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
@@ -186,19 +194,19 @@
 					                                        <tr id="id_inputElements4">
 					                                            <td width="20%"><h6>SHELTER AND CARE</h6></td>
 					                                          	<td width="20%">Shelter</td>
-					                                          	<td width="15%">{{ form.shelter }}</td>
+					                                          	<td width="15%">{{ shelter|gen_value:vals }}</td>
 					                                        </tr>
 					                                        <tr id="id_inputElements5">
 					                                            <td width="20%"></td>
 					                                          	<td width="20%">Care</td>
-					                                          	<td width="15%">{{ form.care }}</td>
+					                                          	<td width="15%">{{ care|gen_value:vals }}</td>
 					                                        </tr>		                                        
 					                                    </tbody>
 					                                </table>
 												</div>
 											</div>
 										</div>
-										<div class="panel panel-info overflow-hidden">
+										<div class="panel panel-default overflow-hidden">
 											<div class="panel-heading">
 												<h3 class="panel-title">
 													<a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
@@ -221,19 +229,19 @@
 					                                        <tr id="id_inputElements6">
 					                                            <td width="20%"><h6>PROTECTION</h6></td>
 					                                          	<td width="20%">Abuse and Exploitation</td>
-					                                          	<td width="15%">{{ form.abuse_exploitation }}</td>
+					                                          	<td width="15%">{{ abuse_exploitation|gen_value:vals }}</td>
 					                                        </tr>
 					                                        <tr id="id_inputElements7">
 					                                            <td width="20%"></td>
 					                                          	<td width="20%">Legal Protection</td>
-					                                          	<td width="15%">{{ form.legal_protection }}</td>
+					                                          	<td width="15%">{{ legal_protection|gen_value:vals }}</td>
 					                                        </tr>		                                        
 					                                    </tbody>
 					                                </table>
 												</div>
 											</div>
 										</div>
-										<div class="panel panel-info overflow-hidden">
+										<div class="panel panel-default overflow-hidden">
 											<div class="panel-heading">
 												<h3 class="panel-title">
 													<a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseFour">
@@ -256,19 +264,19 @@
 					                                        <tr id="id_inputElements8">
 					                                            <td width="20%"><h6>PSYCHOSOCIAL SUPPORT</h6></td>
 					                                          	<td width="20%">Emotional Health</td>
-					                                          	<td width="15%">{{ form.emotional_health }}</td>
+					                                          	<td width="15%">{{ emotional_health|gen_value:vals }}</td>
 					                                        </tr>
 					                                        <tr id="id_inputElements9">
 					                                            <td width="20%"></td>
 					                                          	<td width="20%">Social Behaviour</td>
-					                                          	<td width="15%">{{ form.social_behaviour }}</td>
+					                                          	<td width="15%">{{ social_behaviour|gen_value:vals }}</td>
 					                                        </tr>		                                        
 					                                    </tbody>
 					                                </table>
 												</div>
 											</div>
 										</div>
-										<div class="panel panel-info overflow-hidden">
+										<div class="panel panel-default overflow-hidden">
 											<div class="panel-heading">
 												<h3 class="panel-title">
 													<a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseFive">
@@ -291,19 +299,19 @@
 					                                        <tr id="id_inputElements10">
 					                                            <td width="20%"><h6>EDUCATION</h6></td>
 					                                          	<td width="20%">Perfomance</td>
-					                                          	<td width="15%">{{ form.perfomance }}</td>
+					                                          	<td width="15%">{{ perfomance|gen_value:vals }}</td>
 					                                        </tr>
 					                                        <tr id="id_inputElements11">
 					                                            <td width="20%"></td>
 					                                          	<td width="20%">Education and Work</td>
-					                                          	<td width="15%">{{ form.education_work }}</td>
+					                                          	<td width="15%">{{ education_work|gen_value:vals }}</td>
 					                                        </tr>		                                        
 					                                    </tbody>
 					                                </table>
 												</div>
 											</div>
 										</div>
-										<div class="panel panel-info overflow-hidden">
+										<div class="panel panel-default overflow-hidden">
 											<div class="panel-heading">
 												<h3 class="panel-title">
 													<a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseSix">
@@ -326,7 +334,7 @@
 					                                        <tr id="id_inputElements12">
 					                                            <td width="20%"><h6>HOUSEHOLD ECONOMIC STRENGTHENING</h6></td>
 					                                          	<td width="20%">Household Economic Strengthening</td>
-					                                          	<td width="15%">{{ form.household_strengthening }}</td>
+					                                          	<td width="15%">{{ household_strengthening|gen_value:vals }}</td>
 					                                        </tr>		                                        
 					                                    </tbody>
 					                                </table>
@@ -343,47 +351,60 @@
 
 						<!-- begin wizard step-2 -->
 						<div class="wizard-step-2">
+							<br>
+							<legend class="pull-left width-full">CSI Priorities</legend>
+							<br>
 							<div class="panel-body">  
 								<table id="priority_manager_table" class="table">
                                     <thead>
                                         <tr id="id_inputHeaders">
-                                        	<td width="2%"></td>
+                                        	<td width="2%" style="display: none"></td>
+                                        	<td width="2%"></td>                                        	
                                         	<td width="10%"><h6><b>Domain</b></h6></td>
                                             <td width="15%"><h6><b>Priority Need(s)</b></h6></td>
-                                            <th width="5%"><h6><b>Actions</b></h6></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr id="id_inputElements14">
-                                        	<td width="2%">#</td>
-                                            <td width="10%">
-                                            	{{ form.olmis_priority_domain }}
-                                            	<div id="olmis_priority_domain_errormsg" style="display:none;">
-                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-                                                </div>
-                                            </td>
-                                            <td width="15%">
-	                                            {{ form.olmis_priority_service }}
-	                                            <h6><span id="sel_olmis_priority_service"></span></h6>
-	                                        	<div id="olmis_priority_service_errormsg" style="display:none;">
-	                                                <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-	                                            </div>                                            	
-                                            </td>
-                                            <td width="5%">
-                                            <h6><b>
-	                                            <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(2)">
-	                                                <i class="fa fa-plus"></i>  Add
-	                                            </button>
-                                            	</b></h6>
-                                            </td>
-                                            
-                                        </tr>                               
+                                    	{% for resultset in resultsetspr %}
+		                                	{% regroup resultset by service_grouping_id as service_grouping_id_list %}
+			                                	{% for service_grouping_id in service_grouping_id_list %}
+
+					                                <tr id="id_inputElements{{ forloop.counter }}">
+					                                	<td style="display: none">
+					                                	#
+					                                	{% for item in service_grouping_id.list %}
+					                                		{{ item.service_grouping_id }}
+					                                		<input id='holmis_service_grouping_id' type='hidden' value='{{ item.service_grouping_id }}'>
+					                                		<br>
+						                            	{% endfor %}
+					                                	</td>
+					                                	<td></td>
+					                                	<td>
+					                                	{% for item in service_grouping_id.list %}
+					                                		{{ item.domain|gen_value2 }}
+					                                		<input id='holmis_priority_domain' type='hidden' value='{{ item.domain }}'>
+					                                		<br>
+						                            	{% endfor %}
+						                            	</td>
+
+						                            	<td>
+						                            	{% for item in service_grouping_id.list %}
+						                            		{% for svc in item.service %}
+					                                			{{ svc|gen_value2 }}<br>	
+					                                		{% endfor %}
+					                                		<input id='holmis_priority_service'  type='hidden' value='{{ item.service|join:", " }}'>
+						                            	{% endfor %}
+						                            	</td>
+						                            <tr>
+						                            <br>
+					                            {% endfor %}
+				                        {% endfor %}                
                                     </tbody>                                            
                                 </table>
-                                {{ form.olmis_priority_service_provided_list }}
+                                {{ olmis_priority_service_provided_list }}
 							</div>
 							<div align="right">
-								<button id="btnClearGrid" type="button" class="btn btn-sm btn-danger m-r-5" style="display:none;" onClick="RemoveRow(3)">
+								<button id="btnClearGrid" type="button" class="btn btn-sm btn-danger m-r-5" onClick="RemoveRow(3)">
 	                                <i class="fa fa-trash"></i>  Clear Grid
 	                            </button>								
 							</div>
@@ -392,6 +413,9 @@
 
 						<!-- begin wizard step-3 -->
 						<div class="wizard-step-3">
+							<br>
+							<legend>Support/Services</legend>
+							<br>
 							<div class="panel-body">
 								<table id="services_manager_table" class="table">
                                     <thead>
@@ -402,68 +426,77 @@
                                             <th width="15%"><h6><b>Date Of Service</b></h6></th>
                                             <th width="20%"><h6><b>Service(s) Provider</b></h6></th>
                                             <th width="20%"><h6><b>Place Of Service</b></h6></th>
-                                            <th width="5%"><h6><b>Actions</b></h6></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr id="id_inputElements13">
-                                        	<td width="2%"> <!-- <input id='holmis_priority_log' type='hidden' value=''> --></td>
-                                        	<td width="15%">
-                                        		{{ form.olmis_domain }}
-                                        		<div id="olmis_domain_errormsg" style="display:none;">
-                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-                                                </div>
-                                        	</td>
-                                            <td width="20%">
-                                            	{{ form.olmis_service }}
-                                            	<div id="olmis_service_errormsg" style="display:none;">
-                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-                                                </div>
-                                            </td>
-                                            <td width="15%">
-                                            	{{ form.olmis_service_date }}
-                                            	<div id="olmis_service_date_errormsg" style="display:none;">
-                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-                                                </div>
-                                            </td>
-                                            <td width="20%">
-                                            	{{ form.olmis_service_provider }}
-                                            	<div id="olmis_service_provider_errormsg" style="display:none;">
-                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-                                                </div>
-                                            </td>
-                                            <td width="20%">
-                                            	{{ form.olmis_place_of_service }}
-                                            	<div id="olmis_place_of_service_errormsg" style="display:none;">
-                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-                                                </div>
-                                            </td>
-                                            <td width="5%">
-                                            <h6><b>
-	                                            <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(1)">
-	                                                <i class="fa fa-plus"></i>  Add
-	                                            </button>
-                                            	</b></h6>
-                                            </td>
-                                        </tr>		                                        
+                                        {% for resultset in resultsetssvc %}
+		                                	{% regroup resultset by service_grouping_id as service_grouping_id_list %}
+		                                		
+			                                	{% for service_grouping_id in service_grouping_id_list %}	
+					                                <tr id="id_inputElements{{ forloop.counter }}">
+					                                	<td></td>
+
+					                                	<td>
+					                                	{% for item in service_grouping_id.list %}
+					                                		{{ item.domain|gen_value2 }}
+					                                		<input id='hservice_provided' type='hidden' value='{{ item.service_provided }}'>
+					                                		<br>
+						                            	{% endfor %}
+						                            	</td>
+
+					                                	<td>
+					                                	{% for item in service_grouping_id.list %}
+					                                		{{ item.service_provided|gen_value2 }}
+					                                		<input id='hservice_provided' type='hidden' value='{{ item.service_provided }}'>
+					                                		<br>
+						                            	{% endfor %}
+						                            	</td>
+
+						                            	<td>
+					                                	{% for item in service_grouping_id.list %}
+					                                		{{ item.date_of_encounter_event }}
+					                                		<input id='hdate_of_encounter_event' type='hidden' value='{{ item.date_of_encounter_event }}'>
+					                                		<br>
+						                            	{% endfor %}
+						                            	</td>
+
+						                            	<td>
+					                                	{% for item in service_grouping_id.list %}
+					                                		{{ item.service_provider|gen_value2 }}
+					                                		<input id='hservice_provider' type='hidden' value='{{ item.service_provider }}'>
+					                                		<br>
+						                            	{% endfor %}
+						                            	</td>
+
+						                            	<td>
+					                                	{% for item in service_grouping_id.list %}
+					                                		{{ item.place_of_service }}
+					                                		<input id='hplace_of_service' type='hidden' value='{{ item.place_of_service }}'>
+					                                		<br>
+						                            	{% endfor %}
+						                            	</td>
+						                            <tr>
+						                            <br>
+					                            {% endfor %}
+					                    {% endfor %}		                                        
                                     </tbody>
                                 </table>
-                                {{ form.olmis_service_provided_list }}
+                                {{ olmis_service_provided_list }}
 							</div>
 						</div> 
 						<!-- end wizard step-3 -->						    
 					</div>
 
-					<label class="control-label col-md-4 col-sm-4" for="csi_qs">Date of CSI : <span class="asteriskField">* </label>
+					<label class="control-label col-md-4 col-sm-4" for="csi_qs">Date of CSI : </label>
 					<div class="col-md-6 col-sm-6">
-						{{ form.date_of_csi }}
+						{{ date_of_csi }}
 					</div>                      
 
 					<div class="panel-body panel-form">
 						<div class="form-group">
 							<label class="control-label col-md-4 col-sm-4"></label>
 							<div class="col-md-6 col-sm-6">
-								<button id="mysubmit-csi" type="submit" class="btn btn-primary">Submit</button>
+								<button id="mysubmit-csi-update" type="submit" class="btn btn-primary">Update</button>
 								<a href="javascript:history.go(-1)" class="btn btn-white">Cancel</a>
 							</div>
 						</div>
@@ -719,7 +752,7 @@ function AddRow(x)
 	                        var holmis_service_provider = "<input id='holmis_service_provider' type='hidden' value='"+olmis_service_provider+"'>"
 	                        var holmis_service_status= "<input id='holmis_service_status' type='hidden' value='new'>"
 
-	                        cell0.innerHTML = '<h6 class="td_style">#</h6>';        
+	                        cell0.innerHTML = '<h6 class="td_style"></h6>';        
 	                        cell1.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_domain") + holmis_domain + '</h6>';
 	                        cell2.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_service") + holmis_service + '</h6>';
 	                        cell3.innerHTML = '<h6 class="td_style">' + $('#olmis_service_date').val() + '</h6>';
@@ -984,14 +1017,12 @@ function AddRow(x)
 	                var holmis_priority_domain= "<input id='holmis_priority_domain' type='hidden' value='"+olmis_priority_domain+"'>"
 	                var holmis_priority_service = "<input id='holmis_priority_service' type='hidden' value='"+olmis_priority_service+"'>"
 	                var holmis_priority_service_status= "<input id='holmis_priority_service_status' type='hidden' value='new'>"
+	                var holmis_service_grouping_id= "<input id='holmis_service_grouping_id' type='hidden' value=''>"
 
-	                cell0.innerHTML = '<h6 class="td_style"></h6>';        
+	                cell0.innerHTML = '<h6 class="td_style">' + holmis_service_grouping_id + '</h6>';        
 	                cell1.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_priority_domain") + holmis_priority_domain + '</h6>';
 	                cell2.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_priority_service") + holmis_priority_service + '</h6>';
-	                /*
-	                cell3.innerHTML  = '<h6 class="dialog_paragraph">' + "<a id=" + btnRemoveSvcId + " class='btn btn-sm btn-link m-r-5 href='#'>Remove</a>" + '</h6>';
-	                */
-	                cell3.innerHTML  = '';
+	                cell3.innerHTML  = holmis_priority_service_status;
 
 	                // AddClick Event To Remove Button
 	                $("#" + btnRemoveSvcId + "").click(function(e)
@@ -1014,19 +1045,25 @@ function AddRow(x)
 	                {                            
 	                    var olmis_priority_domain = $(tr).find('input[id="holmis_priority_domain"]').val();
 	                    var olmis_priority_service = $(tr).find('input[id="holmis_priority_service"]').val();
+	                    var olmis_service_grouping_id = $(tr).find('input[id="holmis_service_grouping_id"]').val();
+	                    var olmis_priority_service_status= $(tr).find('input[id="holmis_priority_service_status"]').val();
 
 	                    OlmisPriorityServiceData[row]= {
 	                        "olmis_priority_domain" : olmis_priority_domain,
-	                        "olmis_priority_service" : olmis_priority_service
+	                        "olmis_priority_service" : olmis_priority_service,
+	                        "olmis_service_grouping_id" : olmis_service_grouping_id,
+	                        "olmis_priority_service_status" : olmis_priority_service_status
 	                        } 
 	                });
 	                
 	                OlmisPriorityServiceData.shift(); //remove first row(headers stuff)
 	                OlmisPriorityServiceData.shift(); //remove second row(controls stuff)
-	                OlmisPriorityServiceData = JSON.stringify(OlmisPriorityServiceData); 
+	                OlmisPriorityServiceData = JSON.stringify(OlmisPriorityServiceData);
 
 	                // Set olmis_priority_service_provided_list
-	                $('#olmis_priority_service_provided_list').val(OlmisPriorityServiceData);	                
+	                $('#olmis_priority_service_provided_list').val(OlmisPriorityServiceData);	
+
+	                console.log(OlmisPriorityServiceData) ;               
 		        }                       
 			}
 			else
@@ -1080,6 +1117,8 @@ function RemoveRow(index, uuid, tr_id)
 	if(index == 1)
     {
         // Delete Table Row
+
+        console.log('Delete row id = ' + tr_id);
         $("#" + tr_id).remove();
 
         var OlmisServiceData = new Array();
@@ -1114,7 +1153,6 @@ function RemoveRow(index, uuid, tr_id)
     if(index == 2)
     {
         // Delete Table Row
-        console.log('Delete row id = ' + tr_id);
         $("#" + tr_id).remove();
 
         var OlmisPriorityServiceData = new Array();

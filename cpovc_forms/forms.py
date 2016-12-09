@@ -2318,7 +2318,7 @@ class OVCF1AForm(forms.Form):
     ## OLMIS PRIORITIES ##
     olmis_priority_domain = forms.ChoiceField(choices=olmis_domain_list,
                                               initial='0',
-                                              widget=forms.SelectMultiple(
+                                              widget=forms.Select(
                                                   attrs={'class': 'form-control',
                                                          'id': 'olmis_priority_domain'})
                                               )
@@ -2335,45 +2335,76 @@ class OVCF1AForm(forms.Form):
                                               initial='0',
                                               widget=forms.SelectMultiple(
         attrs={'class': 'form-control',
-               'id': 'olmis_priority_health'})
+               'id': 'olmis_priority_health',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group2'})
     )
     olmis_priority_shelter = forms.ChoiceField(choices=(),
                                                initial='0',
                                                widget=forms.SelectMultiple(
         attrs={'class': 'form-control',
-               'id': 'olmis_priority_shelter'})
+               'id': 'olmis_priority_shelter',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group2'})
     )
     olmis_priority_education = forms.ChoiceField(choices=(),
                                                  initial='0',
                                                  widget=forms.SelectMultiple(
         attrs={'class': 'form-control',
-               'id': 'olmis_priority_education'})
+               'id': 'olmis_priority_education',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group2'})
     )
     olmis_priority_protection = forms.ChoiceField(choices=(),
                                                   initial='0',
                                                   widget=forms.SelectMultiple(
         attrs={'class': 'form-control',
-               'id': 'olmis_priority_protection'})
+               'id': 'olmis_priority_protection',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group2'})
     )
     olmis_priority_pss = forms.ChoiceField(choices=(),
                                            initial='0',
                                            widget=forms.SelectMultiple(
         attrs={'class': 'form-control',
-               'id': 'olmis_priority_pss'})
+               'id': 'olmis_priority_pss',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group2'})
     )
     olmis_priority_hes = forms.ChoiceField(choices=(),
                                            initial='0',
                                            widget=forms.SelectMultiple(
-        attrs={'class': 'form-control',
-               'id': 'olmis_priority_hes'})
+        attrs={
+               #'class': 'form-control',
+               'id': 'olmis_priority_hes',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group2'})
     )
     ## OLMIS CRITICAL EVENTS ##
     olmis_critical_event = forms.ChoiceField(choices=olmis_critical_events_list,
                                              initial='0',
                                              widget=forms.SelectMultiple(
                                                  attrs={'class': 'form-control',
-                                                        'id': 'olmis_critical_event'})
+                                                        'id': 'olmis_critical_event',
+                                                         'data-parsley-required': "true",
+                                                         'data-parsley-group': 'group3'})
                                              )
+
+    date_of_form1a = forms.DateField(widget=forms.TextInput(
+        attrs={'placeholder': _('Date Of Service(s)/Monitoring'),
+               'class': 'form-control',
+               'name': 'date_of_form1a',
+               'id': 'date_of_form1a',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group3'
+               }))
+    person = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'id': 'person',
+               'type': 'hidden',
+               'data-parsley-required': "true",
+               'data-parsley-group': 'group3'
+               }))
 
 
 class OVCHHVAForm(forms.Form):
@@ -2444,7 +2475,7 @@ class OVCHHVAForm(forms.Form):
                                  )
     hhva_ha6 = forms.ChoiceField(choices=olmis_critical_events_list,
                                  initial='0',
-                                 widget=forms.Select(
+                                 widget=forms.SelectMultiple(
                                      attrs={'class': 'form-control',
                                             'id': 'hhva_ha6'})
                                  )
@@ -2487,6 +2518,9 @@ class OVCHHVAForm(forms.Form):
                                                 attrs={'class': 'form-control',
                                                        'id': 'hhva_ha10_condition'})
                                             )
+    hhva_wash_list = forms.CharField(widget=forms.TextInput(
+        attrs={'type': 'hidden',
+               'id': 'hhva_wash_list'}))
 
     # Food Security and Nutrition
     hhva_ha11 = forms.ChoiceField(choices=olmis_critical_events_list,
@@ -2535,6 +2569,9 @@ class OVCHHVAForm(forms.Form):
             'id': 'hhva_ha15_size',
             'data-parsley-type': "digits"})
     )
+    hhva_asset_list = forms.CharField(widget=forms.TextInput(
+        attrs={'type': 'hidden',
+               'id': 'hhva_asset_list'}))
     hhva_ha16 = forms.ChoiceField(choices=olmis_critical_events_list,
                                   initial='0',
                                   widget=forms.Select(
@@ -2567,7 +2604,7 @@ class OVCHHVAForm(forms.Form):
                                   )
     hhva_ha21 = forms.ChoiceField(choices=olmis_critical_events_list,
                                   initial='0',
-                                  widget=forms.Select(
+                                  widget=forms.SelectMultiple(
                                       attrs={'class': 'form-control',
                                              'id': 'hhva_ha21'})
                                   )
@@ -2575,7 +2612,7 @@ class OVCHHVAForm(forms.Form):
     # Health Services and Health Seeking Behaviours
     hhva_ha22 = forms.ChoiceField(choices=olmis_critical_events_list,
                                   initial='0',
-                                  widget=forms.Select(
+                                  widget=forms.SelectMultiple(
                                       attrs={'class': 'form-control',
                                              'id': 'hhva_ha22'})
                                   )
@@ -2629,7 +2666,7 @@ class OVCHHVAForm(forms.Form):
     # Protection
     hhva_ha28 = forms.ChoiceField(choices=olmis_critical_events_list,
                                   initial='0',
-                                  widget=forms.Select(
+                                  widget=forms.SelectMultiple(
                                       attrs={'class': 'form-control',
                                              'id': 'hhva_ha28'})
                                   )
@@ -2637,7 +2674,7 @@ class OVCHHVAForm(forms.Form):
     # Other Services
     hhva_ha29 = forms.ChoiceField(choices=olmis_critical_events_list,
                                   initial='0',
-                                  widget=forms.Select(
+                                  widget=forms.SelectMultiple(
                                       attrs={'class': 'form-control',
                                              'id': 'hhva_ha29'})
                                   )
@@ -2651,13 +2688,23 @@ class OVCHHVAForm(forms.Form):
     # Household Priorities
     hhva_ha31 = forms.ChoiceField(choices=olmis_critical_events_list,
                                   initial='0',
-                                  widget=forms.Select(
+                                  widget=forms.SelectMultiple(
                                       attrs={'class': 'form-control',
                                              'id': 'hhva_ha31'})
                                   )
     date_of_hhva = forms.DateField(widget=forms.TextInput(
-        attrs={'placeholder': _('Date Of Assessment'),
+        attrs={'placeholder': _('Date Of HHVA'),
                'class': 'form-control',
                'name': 'date_of_hhva',
                'id': 'date_of_hhva'
+               }))
+    person = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'id': 'person',
+               'type': 'hidden'
+               }))
+    household_id = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'id': 'household_id',
+               'type': 'hidden'
                }))

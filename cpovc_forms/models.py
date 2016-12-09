@@ -4,6 +4,7 @@ import datetime
 import uuid
 from cpovc_registry.models import (RegPerson, RegOrgUnit, AppUser)
 from cpovc_main.models import (SchoolList)
+from cpovc_ovc.models import (OVCHouseHold)
 
 # Create your models here.
 
@@ -694,10 +695,26 @@ class OVCCareEvents(models.Model):
     is_void = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid1, editable=False)
     # app_user = models.ForeignKey(AppUser, default=1)
-    person = models.ForeignKey(RegPerson)
+    person = models.ForeignKey(RegPerson, null=True)
+    house_hold = models.ForeignKey(OVCHouseHold, null=True)
 
     class Meta:
         db_table = 'ovc_care_events'
+
+class OVCCareAssessment(models.Model):
+    """ This table will hold OVC Assessment Data """
+
+    assessment_id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
+    domain = models.CharField(max_length=4)   
+    service = models.CharField(max_length=4)
+    service_status = models.CharField(max_length=4)
+    event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
+    service_grouping_id = models.UUIDField(default=uuid.uuid1, editable=False)
+    is_void = models.BooleanField(default=False)
+    sync_id = models.UUIDField(default=uuid.uuid1, editable=False)
+
+    class Meta:
+        db_table = 'ovc_care_assessment'
 
 class OVCCarePriority(models.Model):
     """ This table will hold OVC Priority Data """
@@ -720,7 +737,7 @@ class OVCCareServices(models.Model):
     service_provided = models.CharField(max_length=250)
     service_provider = models.CharField(max_length=250, null=True)
     place_of_service = models.CharField(max_length=250, null=True)
-    date_of_encounter_event = models.DateField(default=timezone.now)
+    date_of_encounter_event = models.DateField(default=timezone.now, null=True)
     event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
     service_grouping_id = models.UUIDField(default=uuid.uuid1, editable=False)
     is_void = models.BooleanField(default=False)
@@ -733,9 +750,10 @@ class OVCCareEAV(models.Model):
     """ This table will hold HHVA data and Domain Evaluation data """
 
     eav_id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
-    entity = models.CharField(max_length=4)
-    attribute = models.CharField(max_length=4)
+    entity = models.CharField(max_length=5)
+    attribute = models.CharField(max_length=5)
     value = models.CharField(max_length=4)
+    value_for = models.CharField(max_length=10, null=True)
     event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
     is_void = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid1, editable=False)

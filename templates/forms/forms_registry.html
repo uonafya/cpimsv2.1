@@ -346,6 +346,86 @@
         {% else %}
             <div class="norecords" align="center"><b>No records found.</b></div>
         {% endif %}
+{% elif form.form_type.value == 'FSAM' %}
+    {% if resultsets|length %}
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table id="form-data-table" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>OVC ID</th>
+                        <th>Firstname</th>
+                        <th>Surname</th>
+                        <th>Sex</th>
+                        <th>Date of F1A</th>                                
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for results in resultsets %}
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.id }}</td>
+                        <td>{{ result.first_name }}</td>
+                        <td>{{ result.surname }}</td>
+                        <td>{{ result.sex_id|gen_value:vals }}</td>
+                        <td>{{ result.date_of_f1a }}</td>
+                        
+                        <td>
+                             <a href="{% url 'view_form1a' id=result.form_id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-binoculars"></i>&nbsp;View</button></a>
+
+                             <a href="{% url 'edit_form1a' id=result.form_id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-pencil"></i>&nbsp;Edit</button></a>
+                         </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+        {% else %}
+            <div class="norecords" align="center"><b>No records found.</b></div>
+        {% endif %}
+{% elif form.form_type.value == 'FHSA' %}
+    {% if resultsets|length %}
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table id="form-data-table" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>OVC ID</th>
+                        <th>Firstname</th>
+                        <th>Surname</th>
+                        <th>Sex</th>
+                        <th>Date of HHVA</th>                                
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for results in resultsets %}
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.id }}</td>
+                        <td>{{ result.first_name }}</td>
+                        <td>{{ result.surname }}</td>
+                        <td>{{ result.sex_id|gen_value:vals }}</td>
+                        <td>{{ result.date_of_hhva }}</td>
+                        
+                        <td>
+                             <a href="{% url 'view_hhva' id=result.form_id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-binoculars"></i>&nbsp;View</button></a>
+
+                             <a href="{% url 'edit_hhva' id=result.form_id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-pencil"></i>&nbsp;Edit</button></a>
+                         </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+        {% else %}
+            <div class="norecords" align="center"><b>No records found.</b></div>
+        {% endif %}
 {% else %}  
     <div class="norecords" align="center">No records found</div> 
 {% endif %}    
