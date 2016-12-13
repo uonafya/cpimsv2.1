@@ -12,7 +12,7 @@ person_type_list = get_list('person_type_id', 'Please Select Type')
 school_level_list = get_list('school_level_id', 'Please Select Level')
 hiv_status_list = get_list('hiv_status_id', 'Please Select Status')
 art_status_list = get_list('art_status_id', 'Please Select Status')
-ovc_form_type_list = get_list('ovc_form_type_id', 'Please Select')
+
 health_unit_list = get_org_units_list(
     default_txt='Select Unit', org_types=['HFGU'])
 
@@ -38,12 +38,6 @@ class OVCSearchForm(forms.Form):
         required=False,
         widget=forms.CheckboxInput(
             attrs={'id': 'person_deceased'}))
-    form_type = forms.ChoiceField(
-        choices=ovc_form_type_list,
-        initial='0',
-        widget=forms.Select(
-            attrs={'class': 'form-control',
-                   'id': 'form_type'}))
 
 
 class OVCRegistrationForm(forms.Form):
@@ -74,7 +68,9 @@ class OVCRegistrationForm(forms.Form):
 
     cbo_uid = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control',
-               'id': 'cbo_uid', 'data-parsley-required': "true"}))
+               'initial': '00001',
+               'id': 'cbo_uid',
+               'data-parsley-required': "true"}))
 
     immunization = forms.ChoiceField(
         choices=immunization_list,

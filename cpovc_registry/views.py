@@ -1402,6 +1402,7 @@ def person_actions(request):
                 org_unit.save(update_fields=["date_delinked", "is_void"])
             elif edit_type == 3 or edit_type == 6:
                 # This is for adding caregiver
+                extids = {}
                 message = 'Caregiver added successfully'
                 attached_cg = extract_post_params(request, naming='cc_')
                 # This will be a single record - Re-used method
@@ -1415,6 +1416,7 @@ def person_actions(request):
                         first_name = attached_cg[ncg]['fname']
                         other_names = attached_cg[ncg]['oname']
                         surname = attached_cg[ncg]['sname']
+                        idno = attached_cg[ncg]['idno']
                         if caregiver_id == 0:
                             if date_of_birth:
                                 dob = convert_date(date_of_birth)
@@ -1435,6 +1437,10 @@ def person_actions(request):
                             save_person_type(person_types, cpims_id)
                             # Copy paste locations from child
                             copy_locations(person_id, cpims_id, request)
+                            # Save National ID
+                            if idno:
+                                extids['INTL'] = idno
+                                save_person_extids(extids, cpims_id)
                         # Now save this record to Guardians
                         is_adult = attached_cg[ncg]['adult']
                         relationship = attached_cg[ncg]['ctype']
@@ -1457,8 +1463,8 @@ def person_actions(request):
                                 # Create beneficiary id
                                 pp_id = int(cpims_id)
                                 ben_id = beneficiary_id_generator(pp_id)
-                                identifier_types = {'ISCG': ben_id}
-                                save_person_extids(identifier_types, pp_id)
+                                extids['ISCG'] = ben_id
+                                save_person_extids(extids, pp_id)
             elif edit_type == 4:
                 # This is for adding siblings
                 message = 'Sibling added successfully'

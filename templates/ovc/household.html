@@ -42,7 +42,7 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>ID Number</th>
+                                <th>#</th>
                                 <th>First Name</th>
                                 <th>Surname</th>
                                 <th>Age</th>
@@ -50,14 +50,14 @@
                                 <th>Telephone</th>
                                 <th>Alive</th>
                                 <th>HIV Status</th>
+                                <th>Head</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for hhmember in hhmembers %}
-                            {% with y=hhmember.person_id|stringformat:"s" %}
                             <tr>
-                                <td>{{ y }}</td>
+                                <td>{{ forloop.counter }}</td>
                                 <td>{{ hhmember.person.first_name }}</td>
                                 <td>{{ hhmember.person.surname }}</td>
                                 <td>{{ hhmember.person.years }}</td>
@@ -69,17 +69,25 @@
                                 {% endif %}
                                 </td>
                                 <td>{{ hhmember.person.des_phone_number }}</td>
-                                <td></td>
+                                <td>
+                                    {% if hhmember.person.date_of_death %}
+                                No
+                            {% else %}
+                                Yes
+                            {% endif %}
+                                </td>
                                 <td></td>
                                 <td>
                                 {% if not hhmember.hh_head %}
-                                    <a href="#"><button type="button" class="btn btn-danger"> <i class="fa fa-trash"></i> Remove</button></a>
+                                    No
                                 {% else %}
-                                     <strong>Primary Caretaker</strong>
+                                    Yes
                                 {% endif %}
                                 </td>
+                                <td>
+                                <a href="#"><button type="button" class="btn btn-primary"> <i class="fa fa-file"></i> Details</button></a>
+                                </td>
                             </tr>
-                            {% endwith %}
                             {% endfor %}
                         </tbody>
                     </table>

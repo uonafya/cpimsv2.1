@@ -1,12 +1,16 @@
 """OVC Care views."""
 from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
+from django.contrib import messages
 from .forms import OVCSearchForm, OVCRegistrationForm
 from django.db.models import Q
 from cpovc_registry.models import (
     RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds)
 from cpovc_main.functions import get_dict
 from .models import OVCRegistration, OVCHHMembers, OVCHealth
-from .functions import ovc_registration
+from .functions import (
+    ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id)
 
 
 def ovc_home(request):
@@ -44,12 +48,26 @@ def ovc_register(request, id):
     """Some default page for Server Errors."""
     try:
         ovc_id = int(id)
+        ovc = get_ovcdetails(ovc_id)
         if request.method == 'POST':
             form = OVCRegistrationForm(data=request.POST)
             print request.POST
             ovc_registration(request, ovc_id)
+            msg = "OVC Registration completed successfully"
+            messages.info(request, msg)
+            url = reverse('ovc_view', kwargs={'id': ovc_id})
+            return HttpResponseRedirect(url)
         else:
-            form = OVCRegistrationForm()
+            cbo_id = ovc.child_cbo_id
+            cbo_uid = gen_cbo_id(cbo_id, ovc_id)
+            form = OVCRegistrationForm(initial={'cbo_uid': cbo_uid})
+        # Check users changing ids in urls
+        ovc_detail = get_hh_members(ovc_id)
+        if ovc_detail:
+            msg = "OVC already registered. Visit edit page."
+            messages.error(request, msg)
+            url = reverse('ovc_view', kwargs={'id': ovc_id})
+            return HttpResponseRedirect(url)
         child = RegPerson.objects.get(is_void=False, id=id)
         params = {}
         gparams = {}
@@ -77,7 +95,7 @@ def ovc_register(request, id):
         return render(request, 'ovc/register_child.html',
                       {'form': form, 'status': 200, 'child': child,
                        'guardians': guardians, 'siblings': siblings,
-                       'vals': vals, 'extids': gparams})
+                       'vals': vals, 'extids': gparams, 'ovc': ovc})
     except Exception, e:
         print "error with OVC registration - %s" % (str(e))
         raise e
@@ -92,6 +110,10 @@ def ovc_edit(request, id):
             form = OVCRegistrationForm(data=request.POST)
             ovc_registration(request, ovc_id, 1)
             # Save external ids from here
+            msg = "OVC Registration details edited successfully"
+            messages.info(request, msg)
+            url = reverse('ovc_view', kwargs={'id': ovc_id})
+            return HttpResponseRedirect(url)
         child = RegPerson.objects.get(is_void=False, id=ovc_id)
         creg = OVCRegistration.objects.get(is_void=False, person_id=ovc_id)
         bcert = 'on' if creg.has_bcert else ''

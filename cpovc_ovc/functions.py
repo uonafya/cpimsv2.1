@@ -8,10 +8,23 @@ from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
 
 
+def get_hh_members(ovc_id):
+    """Method to get child chv details."""
+    try:
+        ovc_detail = get_object_or_404(
+            OVCHHMembers, person_id=ovc_id, is_void=False)
+    except Exception, e:
+        print 'error getting ovc hh members - %s' % (str(e))
+        return {}
+    else:
+        return ovc_detail
+
+
 def get_ovcdetails(ovc_id):
     """Method to get child chv details."""
     try:
-        ovc_detail = get_object_or_404(OVCRegistration, person_id=ovc_id)
+        ovc_detail = get_object_or_404(
+            OVCRegistration, person_id=ovc_id, is_void=False)
     except Exception, e:
         print 'error getting ovc details - %s' % (str(e))
         return {}
@@ -111,6 +124,29 @@ def ovc_registration(request, ovc_id, edit=0):
                     defaults={'person_id': hh_member, 'hh_head': hh_head,
                               'member_type': member_type, 'is_void': False,
                               'date_linked': todate},)
+    except Exception, e:
+        raise e
+    else:
+        pass
+
+
+def gen_cbo_id(cbo_id, ovc_id):
+    """Invoice validations."""
+    try:
+        last_id = OVCRegistration.objects.filter(
+            child_cbo_id=cbo_id).exclude(org_unique_id__isnull=True).order_by(
+                'org_unique_id').last()
+        if not last_id:
+            return '00001'
+        lid = last_id.org_unique_id
+        if lid and lid.isnumeric():
+            new_id = str(int(lid) + 1).zfill(5)
+        else:
+            if lid:
+                new_id = '%sX' % (lid[:-1])
+            else:
+                '0000X'
+        return new_id
     except Exception, e:
         raise e
     else:

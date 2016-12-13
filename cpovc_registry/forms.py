@@ -324,6 +324,14 @@ class RegistrationForm(forms.Form):
         attrs={'placeholder': _('Caregiver National ID/Name/CPIMS ID'),
                'class': 'form-control',
                'id': 'caregiver_id'}))
+    caregiver_idno = forms.IntegerField(widget=forms.TextInput(
+        attrs={'placeholder': _('National ID'),
+               'class': 'form-control',
+               'id': 'caregiver_idno'}))
+    caregiver_tel = forms.IntegerField(widget=forms.TextInput(
+        attrs={'placeholder': _('Cellphone Number'),
+               'class': 'form-control',
+               'id': 'caregiver_tel'}))
     relationship_type_id = forms.ChoiceField(
         choices=relationship_type_list,
         initial='0',

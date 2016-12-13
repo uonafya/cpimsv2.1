@@ -711,6 +711,27 @@
                                     <!-- end col-4 -->
                                 </div>
                                 <div class="divider pull-left width-full"></div>
+                                {% if request.session.reg_ovc %}
+                                <div class="row">
+                                    <!-- end col-4 -->
+                                    <div class="col-md-4">
+                                        <div class="form-group block1">
+                                            <label>National ID No. <span class="asteriskField">*</span>:</label>
+                                            {{ form.caregiver_idno }}
+                                        </div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                    <!-- begin col-4 -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Mobile Number:</label>
+                                            {{ form.caregiver_tel }}
+                                        </div>
+                                    </div>
+                                    <!-- end col-4 -->
+                                </div>
+                                <div class="divider pull-left width-full"></div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -869,6 +890,7 @@ jQuery(document).ready(function() {
         }else{
             var is_adult = 'Yes';
         }
+        var c_idno;
         $('#log').empty();
         $("#log").addClass( "alert alert-danger fade in" );
         if ((c_fname == '') || (c_sname == '')){
@@ -891,8 +913,16 @@ jQuery(document).ready(function() {
            $('#log').html('Please select Relationship');
            return false;
         }
+        {% if request.session.reg_ovc %}
+        c_idno = $("#caregiver_idno").val();
+        if (caregiver_idno == ''){
+           $('#log').html('Please enter National ID for Caregiver.');
+           return false;
+        }
+        {% endif %}
+
         if (child_subcounty == ''){
-           $('#log').html('Please select living in sub county for the child first before attaching siblings.');
+           $('#log').html('Please select living in sub county for the child first before attaching caregiver.');
            return false;
         }
         if (typeof grid_cpims !== 'undefined'){
@@ -912,6 +942,7 @@ jQuery(document).ready(function() {
        chtml += '<input id="cc_'+ccpims+'_fname" name="cc_'+ccpims+'_fname" value="'+ c_fname +'" type="hidden">';
        chtml += '<input id="cc_'+ccpims+'_sname" name="cc_'+ccpims+'_sname" value="'+ c_sname +'" type="hidden">';
        chtml += '<input id="cc_'+ccpims+'_oname" name="cc_'+ccpims+'_oname" value="'+ c_oname +'" type="hidden">';
+       chtml += '<input id="cc_'+ccpims+'_idno" name="cc_'+ccpims+'_idno" value="'+ c_idno +'" type="hidden">';
        $('#caregiver_new').html(chtml);
        
        $.ajax({
