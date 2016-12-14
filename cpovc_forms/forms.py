@@ -2385,25 +2385,50 @@ class OVCF1AForm(forms.Form):
                                              initial='0',
                                              widget=forms.SelectMultiple(
                                                  attrs={'class': 'form-control',
-                                                        'id': 'olmis_critical_event',
-                                                         'data-parsley-required': "true",
-                                                         'data-parsley-group': 'group3'})
+                                                        'id': 'olmis_critical_event'
+                                                         #'data-parsley-required': "true",
+                                                         #'data-parsley-group': 'group3'
+                                                         })
                                              )
 
-    date_of_form1a = forms.DateField(widget=forms.TextInput(
-        attrs={'placeholder': _('Date Of Service(s)/Monitoring'),
+    date_of_assessment = forms.DateField(widget=forms.TextInput(
+        attrs={'placeholder': _('Date of Event'),
                'class': 'form-control',
-               'name': 'date_of_form1a',
-               'id': 'date_of_form1a',
-               'data-parsley-required': "true",
-               'data-parsley-group': 'group3'
+               'name': 'date_of_assessment',
+               'id': 'date_of_assessment'
+               #'data-parsley-required': "true",
+               #'data-parsley-group': 'group3'
+               }))
+    date_of_service = forms.DateField(widget=forms.TextInput(
+        attrs={'placeholder': _('Date of Event'),
+               'class': 'form-control',
+               'name': 'date_of_service',
+               'id': 'date_of_service'
+               #'data-parsley-required': "true",
+               #'data-parsley-group': 'group3'
+               }))
+    date_of_cevent = forms.DateField(widget=forms.TextInput(
+        attrs={'placeholder': _('Date of Event'),
+               'class': 'form-control',
+               'name': 'date_of_cevent',
+               'id': 'date_of_cevent'
+               #'data-parsley-required': "true",
+               #'data-parsley-group': 'group3'
+               }))
+    date_of_priority = forms.DateField(widget=forms.TextInput(
+        attrs={'placeholder': _('Date of Event'),
+               'class': 'form-control',
+               'name': 'date_of_priority',
+               'id': 'date_of_priority'
+               #'data-parsley-required': "true",
+               #'data-parsley-group': 'group3'
                }))
     person = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control',
                'id': 'person',
-               'type': 'hidden',
-               'data-parsley-required': "true",
-               'data-parsley-group': 'group3'
+               'type': 'hidden'
+               #'data-parsley-required': "true",
+               #'data-parsley-group': 'group3'
                }))
 
 

@@ -5,7 +5,7 @@
 {% load crispy_forms_tags %}
 
 {% block style_code %}
-
+<link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block primary %}
@@ -23,6 +23,35 @@
     <i class="fa fa-check fa-2x pull-left"></i>
     <span class="invalid-form-message" id="invalid-form-message"></span>
 </div>
+
+<!-- #form-chooser-dialog -->
+<div class="modal fade" id="form-chooser-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
+                <div id="form-chooser-dialog-header">
+                    <p><i class="fa fa-info-circle"></i>&nbsp;Choose Form</p>      
+                </div>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-default m-b-0">
+                    <h4> 
+                    <small>
+                     {{ form.form_type }}
+                    </small>
+                    </h4>                    
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- #end-form-chooser-dialog -->
+
 <!-- begin row -->
 <div class="row">
 <div class="row">
@@ -87,7 +116,7 @@
 
                              <a href="{% url 'ovc_edit' id=ovc.person.id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-pencil"></i>&nbsp;Edit OVC</button></a>
 
-                             <button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-check-square-o"></i>&nbsp;Fill Forms</button>
+                             <button type="button" class="btn btn-sm btn-primary m-r-5" onClick="OpenForm({{ ovc.person.id }})"><i class="fa fa-check-square-o"></i>&nbsp;Fill Forms</button>
                              {% endif %}
 
                              </td>
@@ -110,5 +139,46 @@
 {% endblock %}
 
 {% block lazy_javascript_code %}
+<script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
+<script>
+$(document).ready(function() 
+{
+    //multi selects
+    $('#form_type').multiselect({
+        selectAllValue: 'multiselect-all',
+        includeSelectAllOption: true,
+        enableCaseInsensitiveFiltering: true,
+        numberDisplayed: 1,
+        maxHeight: 300,
+        buttonWidth: '100%',
+        buttonClass: 'btn btn-white'
+    });
+});
+</script>
+<script type="text/javascript">
+function OpenForm(id)
+{
+    $('#form-chooser-dialog').modal('show');
 
+    $("#form_type").change(function(e) 
+    {
+        var form_type = $("#form_type").val();
+        if(form_type == 'FCSI') 
+        { 
+            return window.location.href='{% url 'new_csi' id=0 %}'.replace("0", id);
+        } 
+        if(form_type == 'FHSA') 
+        { 
+            return window.location.href='{% url 'new_hhva' id=0 %}'.replace("0", id); 
+        } 
+        if(form_type == 'FSAM') 
+        { 
+            return window.location.href='{% url 'form1a_events' id=0 %}'.replace("0", id); 
+        }    
+    });
+        
+    $("#form_type").multiselect("clearSelection");
+    $("#form_type").multiselect("refresh");
+}
+</script>
 {% endblock %}

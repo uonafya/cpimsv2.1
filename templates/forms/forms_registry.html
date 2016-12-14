@@ -372,9 +372,7 @@
                         <td>{{ result.date_of_f1a }}</td>
                         
                         <td>
-                             <a href="{% url 'view_form1a' id=result.form_id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-binoculars"></i>&nbsp;View</button></a>
-
-                             <a href="{% url 'edit_form1a' id=result.form_id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-pencil"></i>&nbsp;Edit</button></a>
+                             <a href="{% url 'form1a_events' id=result.id %}"><button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-paw"></i>&nbsp;Follow-up</button></a>
                          </td>
                     </tr>
                     {% endfor %}
