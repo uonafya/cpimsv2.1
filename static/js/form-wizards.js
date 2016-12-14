@@ -6,6 +6,7 @@ var handleBootstrapWizardsValidation = function() {
     $("#mysubmit10").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit-csi").removeClass( "btn-primary" ).attr("disabled", "disabled");
     $("#mysubmit-f1a").removeClass( "btn-primary" ).attr("disabled", "disabled");
+    $("#mysubmit-hhva").removeClass( "btn-primary" ).attr("disabled", "disabled");
     
     $("#wizard").bwizard({ validating: function (e, ui) {
         $(".alert").hide();
@@ -284,7 +285,76 @@ var handleBootstrapWizardsValidation = function() {
     });
 
     $("#wizard-hhva").bwizard({ validating: function (e, ui) { 
-            
+            $(".alert").hide();
+            if (ui.index == 0) {
+                // step-1 validation
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group0')) {
+                    return false;
+                }
+            } 
+            else if (ui.index == 1) {
+                // step-2 validation
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group1')) {
+                    return false;
+                }
+            }
+            else if (ui.index == 2) {
+                // step-3 validation
+                var rows = $('#ha10_manager_table tr').length;                 
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group2')) {
+                    return false;
+                }
+                else if (rows == 2)
+                {
+                    $(".alert").show();
+                    $('.invalid-form-message').html(error_msg + ' bedding details.Add one or more bedding.');
+                    return false;
+                }
+            } 
+            else if (ui.index == 3) {
+                // step-4 validation
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group3')) {
+                    return false;
+                }
+            }
+            else if (ui.index == 4) {
+                // step-4 validation
+                var rows = $('#ha15_manager_table tr').length;                 
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group4')) {
+                    return false;
+                }
+                else if (rows == 2)
+                {
+                    $(".alert").show();
+                    $('.invalid-form-message').html(error_msg + ' household asset details.Add one or more asset.');
+                    return false;
+                }
+            }
+            else if (ui.index == 5) {
+                // step-4 validation
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group5')) {
+                    return false;
+                }
+            }
+            else if (ui.index == 6) {
+                // step-4 validation
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group6')) {
+                    return false;
+                }
+            }
+            else if (ui.index == 7) {
+                // step-4 validation
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group7')) {
+                    return false;
+                }
+                $("#mysubmit-hhva").addClass( "btn-primary" ).removeAttr("disabled"); 
+            }
+            else if (ui.index == 8) {
+                // step-4 validation
+                if (false === $('form[name="form-wizard-hhva"]').parsley().validate('group8')) {
+                    return false;
+                }
+            }            
         }
     });
 };
