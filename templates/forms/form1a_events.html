@@ -177,7 +177,7 @@
                                     <label class="control-label col-md-4 col-sm-4"></label>
                                     <div class="col-md-6 col-sm-6">
                                         <button id="mysubmit-f1a-0" class="btn btn-primary" type="button" onClick="saveForm1A(1)">Submit Assessment</button>
-                                        <a href="javascript:history.go(-1)" class="btn btn-white">Cancel</a>
+                                        <a href="#" onClick="resetForm1A(1)" class="btn btn-white">Cancel</a>
                                     </div>
                                 </div>
                             </div>
@@ -218,7 +218,7 @@
                                     <label class="control-label col-md-4 col-sm-4"></label>
                                     <div class="col-md-6 col-sm-6">
                                         <button id="mysubmit-f1a-1" class="btn btn-primary" type="button" onClick="saveForm1A(2)">Submit Critical Event(s)</button>
-                                        <a href="javascript:history.go(-1)" class="btn btn-white">Cancel</a>
+                                        <a href="#" onClick="resetForm1A(2)" class="btn btn-white">Cancel</a>
                                     </div>
                                 </div>
                             </div>
@@ -293,7 +293,7 @@
                                     <label class="control-label col-md-4 col-sm-4"></label>
                                     <div class="col-md-6 col-sm-6">
                                         <button id="mysubmit-f1a-2" class="btn btn-primary" type="button" onClick="saveForm1A(3)">Submit Priority(s)</button>
-                                        <a href="javascript:history.go(-1)" class="btn btn-white">Cancel</a>
+                                        <a href="#" onClick="resetForm1A(3)" class="btn btn-white">Cancel</a>
                                     </div>
                                 </div>
                             </div>
@@ -382,7 +382,7 @@
                                     <label class="control-label col-md-4 col-sm-4"></label>
                                     <div class="col-md-6 col-sm-6">
                                         <button id="mysubmit-f1a-3" class="btn btn-primary" type="button" onClick="saveForm1A(4)">Submit Service(s)</button>
-                                        <a href="javascript:history.go(-1)" class="btn btn-white">Cancel</a>
+                                        <a href="#" onClick="resetForm1A(4)" class="btn btn-white">Cancel</a>
                                     </div>
                                 </div>
                             </div>
@@ -390,22 +390,7 @@
                         <!-- end wizard step-4 -->
 
 						                         
-					</div>                    
-
-                    <!-- 
-
-					<div class="panel-body panel-form">
-						<div class="form-group">
-							<label class="control-label col-md-4 col-sm-4"></label>
-							<div class="col-md-6 col-sm-6">
-								<button id="mysubmit-f1a" type="submit" class="btn btn-primary">Submit</button>
-								<a href="javascript:history.go(-1)" class="btn btn-white">Cancel</a>
-							</div>
-						</div>
-                    </div>
-
-                    -->
-
+					</div>
 				</form>
             </div>
         </div>
@@ -585,6 +570,7 @@ function resetForm1A(x)
         $("#olmis_assessment_coreservice_status").multiselect("clearSelection");
         $("#olmis_assessment_coreservice_status").multiselect("refresh");
         $('#sel_olmis_assessment_coreservice_status').html('');
+        $('#olmis_assessment_provided_list').val('')
     }
     if(x==2)
     {
@@ -602,6 +588,7 @@ function resetForm1A(x)
         $("#olmis_priority_service").multiselect("clearSelection");
         $("#olmis_priority_service").multiselect("refresh");
         $("#sel_olmis_priority_service").html('');
+        $('#olmis_priority_service_provided_list').val('');
     }
     if(x==4)
     {
@@ -611,7 +598,8 @@ function resetForm1A(x)
         $("#olmis_domain").multiselect("refresh");
         $("#olmis_service").multiselect("clearSelection");
         $("#olmis_service").multiselect("refresh");
-        $('#olmis_service_date').val('');        
+        $('#olmis_service_date').val('');
+        $('#olmis_service_provided_list').val('');        
     }
 }
 
@@ -661,6 +649,7 @@ function saveForm1A(x)
                         resetForm1A(1);
                     },
                     error: function(xhr, status, error){
+                        $(".alert-danger").hide();
                         $("" + error_div + "").addClass( "alert alert-danger fade in" );
                         $("" + error_div + "").html(msg + error)
                     }
@@ -668,6 +657,7 @@ function saveForm1A(x)
             }
             else
             {
+                $('#success_message').css({'display': 'none'});
                 $(".alert-danger").show();
                 $('.invalid-form-message').html('Please provide required date of event.');
                 $('#date_errormsg0').css({'display': 'block'});
@@ -676,6 +666,7 @@ function saveForm1A(x)
         }
         else
         {
+            $('#success_message').css({'display': 'none'});
             $(".alert-danger").show();
             $('.invalid-form-message').html('Please provide required assessment response(s).');
             return false;            
@@ -714,6 +705,7 @@ function saveForm1A(x)
                         resetForm1A(2);
                     },
                     error: function(xhr, status, error){
+                        $(".alert-danger").hide();
                         $("" + error_div + "").addClass( "alert alert-danger fade in" );
                         $("" + error_div + "").html(msg + error)
                     }
@@ -721,6 +713,7 @@ function saveForm1A(x)
             }
             else
             {
+                $('#success_message').css({'display': 'none'});
                 $(".alert-danger").show();
                 $('.invalid-form-message').html('Please provide required date of event.');
                 $('#date_errormsg1').css({'display': 'block'});
@@ -729,6 +722,7 @@ function saveForm1A(x)
         }
         else
         {
+            $('#success_message').css({'display': 'none'});
             $(".alert-danger").show();
             $('.invalid-form-message').html('Please provide required critical event(s).');
             $('#olmis_critical_event_errormsg').css({'display': 'block'});
@@ -768,6 +762,7 @@ function saveForm1A(x)
                         resetForm1A(3);
                     },
                     error: function(xhr, status, error){
+                        $(".alert-danger").hide();
                         $("" + error_div + "").addClass( "alert alert-danger fade in" );
                         $("" + error_div + "").html(msg + error)
                     }
@@ -775,6 +770,7 @@ function saveForm1A(x)
             }
             else
             {
+                $('#success_message').css({'display': 'none'});
                 $(".alert-danger").show();
                 $('.invalid-form-message').html('Please provide required date of event.');
                 $('#date_errormsg2').css({'display': 'block'});
@@ -783,6 +779,7 @@ function saveForm1A(x)
         }
         else
         {
+            $('#success_message').css({'display': 'none'});
             $(".alert-danger").show();
             $('.invalid-form-message').html('Please provide required priority response(s).');
             return false;            
@@ -822,6 +819,7 @@ function saveForm1A(x)
                         resetForm1A(4);
                     },
                     error: function(xhr, status, error){
+                        $(".alert-danger").hide();
                         $("" + error_div + "").addClass( "alert alert-danger fade in" );
                         $("" + error_div + "").html(msg + error)
                     }
@@ -829,6 +827,7 @@ function saveForm1A(x)
             }
             else
             {
+                $('#success_message').css({'display': 'none'});
                 $(".alert-danger").show();
                 $('.invalid-form-message').html('Please provide required date of event.');
                 $('#date_errormsg3').css({'display': 'block'});
@@ -837,6 +836,7 @@ function saveForm1A(x)
         }
         else
         {
+            $('#success_message').css({'display': 'none'});
             $(".alert-danger").show();
             $('.invalid-form-message').html('Please provide required service(s) response(s).');
             return false;            
