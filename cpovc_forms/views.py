@@ -690,10 +690,20 @@ def forms_registry(request):
             # HHVA
             elif form_type == 'FHSA':
                 for person in personsets:
-                    hhva_data = OVCCareEvents.objects.filter(person=int(person.id), event_type_id='FHSA', is_void=False)
+                    household_id = None
+                    try:        
+                        ovcreg = get_object_or_404(OVCRegistration, person=int(person.id), is_void=False)
+                        if ovcreg:
+                            caretaker_id = ovcreg.caretaker_id if ovcreg else None
+                            ovchh = get_object_or_404(OVCHouseHold, head_person=caretaker_id, is_void=False)
+                            household_id = ovchh.id if ovchh else None
+                    except Exception, e:
+                        print str(e)
+                    
+                    hhva_data = OVCCareEvents.objects.filter(house_hold=household_id, event_type_id='FHSA', is_void=False)
                     if hhva_data:
                         for hhva in hhva_data:
-                            regperson = RegPerson.objects.get(pk=hhva.person_id)
+                            regperson = RegPerson.objects.get(pk=person.id)
                             ### Add Person Attributes ###
                             setattr(hhva, 'id', str(regperson.id))
                             setattr(hhva, 'first_name', str(regperson.first_name))
@@ -702,6 +712,7 @@ def forms_registry(request):
                             setattr(hhva, 'form_id', str(hhva.event).replace('-', ''))
                             setattr(hhva, 'date_of_hhva', hhva.date_of_event)
                     resultsets.append(hhva_data)
+                print 'resultsets : %s' %resultsets
 
             else:
                 msg = 'No ' + \

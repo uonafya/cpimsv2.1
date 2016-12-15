@@ -11,7 +11,7 @@
             "item_id": "FCSI", 
             "item_description_short": "CSI Form", 
             "sms_keyword": "False", 
-            "item_description": "CSI Priority Needs", 
+            "item_description": "Child Status Index(CSI)", 
             "the_order": 1
         }
     }, 
@@ -43,7 +43,7 @@
             "item_id": "FSAM", 
             "item_description_short": "Services and Monitoring", 
             "sms_keyword": "False", 
-            "item_description": "Services and Monitoring", 
+            "item_description": "Services and Monitoring(Form 1A)", 
             "the_order": 3
         }
     }
