@@ -121,6 +121,8 @@ class OVCHHMembers(models.Model):
     person = models.ForeignKey(RegPerson)
     hh_head = models.BooleanField(default=False)
     member_type = models.CharField(max_length=4)
+    death_cause = models.CharField(max_length=4, null=True)
+    hiv_status = models.CharField(max_length=4, null=True)
     date_linked = models.DateField(default=timezone.now)
     date_delinked = models.DateField(null=True)
     is_void = models.BooleanField(default=False)

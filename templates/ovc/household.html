@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% block page_title %} OVC Care HouseHold Management {% endblock %}
 
-{% load crispy_forms_tags %}
+{% load app_filters %}
 
 {% block style_code %}
 
@@ -63,7 +63,9 @@
                                 <td>{{ hhmember.person.years }}</td>
                                 <td>
                                 {% if hhmember.member_type == 'TBVC' %}
-                                   Child
+                                   Sibling
+                                {% elif hhmember.member_type == 'TOVC' %}
+                                   Enrolled OVC
                                 {% else %}
                                    Parent/Guardian
                                 {% endif %}
@@ -76,7 +78,13 @@
                                 Yes
                             {% endif %}
                                 </td>
-                                <td></td>
+                                <td>
+                                {% if hhmember.hiv_status %}
+                                    {{ hhmember.hiv_status|gen_value:vals }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                                </td>
                                 <td>
                                 {% if not hhmember.hh_head %}
                                     No
@@ -85,38 +93,23 @@
                                 {% endif %}
                                 </td>
                                 <td>
-                                <a href="#"><button type="button" class="btn btn-primary"> <i class="fa fa-file"></i> Details</button></a>
+                                {% if hhmember.member_type == 'TBVC' %}
+                                <a href="#"><button type="button" class="btn btn-danger m-r-5"> <i class="fa fa-pencil"></i> Enroll</button></a>
+                                {% elif hhmember.member_type == 'TOVC' %}
+                                <a href="{% url 'ovc_view' id=hhmember.person_id %}"><button type="button" class="btn btn-primary"> <i class="fa fa-file"></i> View</button></a>
+                                {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                <!-- begin row -->
-                 <div class="row">
-                    <div class="col-md-6">
-                    <h2 class="panel-title"><strong>HouseHold Assessments</strong></h4>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>01-Jan-2016</td>
-                                <td>
-                                   <a href="#"><button type="button" class="btn btn-primary"> <i class="fa fa-file-text-o"></i> View</button></a> 
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    </div>
-                    <div class="col-md-6">
-                    </div>
+
+                <div class="row" id="form_actions">
+                    <center>
+                        <button onclick="goBack()" type="button" class="btn btn-sm btn-primary"><i class="fa fa-arrow-left"></i> &nbsp;<b>Back</b>&nbsp; </button>
+                    <p></p>
+                    </center>
                 </div>
             </div>
             <!-- end panel body -->

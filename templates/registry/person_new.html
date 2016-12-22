@@ -915,7 +915,7 @@ jQuery(document).ready(function() {
         }
         {% if request.session.reg_ovc %}
         c_idno = $("#caregiver_idno").val();
-        if (caregiver_idno == ''){
+        if (c_idno == ''){
            $('#log').html('Please enter National ID for Caregiver.');
            return false;
         }
@@ -1402,7 +1402,9 @@ function clear_guardian(){
    $("#caregiver_dob").val('');
    $('#caregiver_search_div').hide();
    $('#id_is_cpims_caregiver').attr('checked', false);
-   $('#caregiver_search_div').hide(); 
+   $('#caregiver_search_div').hide();
+   $('#caregiver_idno').val('');
+   $('#caregiver_tel').val('');
 }
 
 function attach_sibling(status_id, sibArray){

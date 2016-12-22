@@ -3,6 +3,7 @@
 {% block page_title %} OVC Care Edit Registration {% endblock %}
 
 {% load app_filters %}
+{% load app_forms %}
 
 {% block style_code %}
 <link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
@@ -135,6 +136,7 @@
                     <div class="form-group">
                         <label>CBO Child ID</label>
                         {{ form.cbo_uid }}
+                        {{ form.cbo_uid_check }}
                       </div>
                     </div>
                     <!-- end col-2 -->
@@ -290,7 +292,11 @@
                                 Yes
                             {% endif %}  
                             </td>
-                            <td></td>
+                            <td>
+                            {% with n="gstatus_"|add:y %}
+                            {{ form|get_form:n }}
+                            {% endwith %}
+                            </td>                            
                             {% endwith %}
                         </tr>
                         {% endwith %}
@@ -356,7 +362,7 @@
                                 Yes
                             {% endif %}  
                             </td>
-                            <td></td>
+                            <td>N/A</td>
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -428,14 +434,21 @@
         endDate: '+0d', enddate: '+0d', autoclose: true
     });
 
-    $('input[type=checkbox][id=bcert]').change(
-    function(){
-        if (this.checked) {
-            $('#bcert_no').attr("data-parsley-required", "true");
-        }else{
-            $('#bcert_no').attr("data-parsley-required", "false");
-        }
+    var ccond = $('#has_bcert').is(":checked");
+    disable_fields(ccond, 'bcert_no');
+
+    var dcond = $('#disb').is(":checked");
+    disable_fields(dcond, 'ncpwd_no');
+
+    $('#has_bcert').live('change', function() {
+        var cond = $('#has_bcert').is(":checked");
+        disable_fields(cond, 'bcert_no');
     });
+    $('#disb').live('change', function() {
+        var cond = $('#disb').is(":checked");
+        disable_fields(cond, 'ncpwd_no');
+    });
+
     $('#caretaker').val('{{ child.caretaker }}');
 
     var hstatus = $('#hiv_status').val();
@@ -492,6 +505,17 @@
             $('#admission_type').attr("data-parsley-required", "true");
         }
 
+    }
+
+    function disable_fields(cond, field_id){
+        if (cond){
+            $('#'+ field_id).prop('disabled', false);
+            $('#'+ field_id).attr("data-parsley-required", "true");   
+        }else{
+            $('#'+ field_id).prop('disabled', true);
+            $('#'+ field_id).attr("data-parsley-required", "false");
+        }
+        
     }
 
 </script>

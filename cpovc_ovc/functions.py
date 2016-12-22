@@ -2,10 +2,43 @@
 from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth)
+from cpovc_registry.models import RegPerson
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
+
+
+def search_ovc(name, criteria):
+    """Method to search OVC as per USG."""
+    try:
+        cid = int(criteria)
+        designs = ['COVC', 'CGOC']
+        queryset = RegPerson.objects.filter(
+            is_void=False, designation__in=designs)
+        field_names = ['surname', 'first_name', 'other_names']
+        q_filter = Q()
+        # 1: Names, 2: HH, 3: CHV, 4: CBO
+        if cid == 1:
+            for field in field_names:
+                q_filter |= Q(**{"%s__icontains" % field: name})
+            persons = queryset.filter(q_filter)
+        else:
+            for field in field_names:
+                q_filter |= Q(**{"%s__icontains" % field: name})
+            persons = queryset.filter(q_filter)
+        # Query ovc table
+        pids = []
+        for person in persons:
+            pids.append(person.id)
+        ovcs = OVCRegistration.objects.filter(
+            is_void=False, person_id__in=pids)
+    except Exception, e:
+        print 'Error searching for OVC - %s' % (str(e))
+        return {}
+    else:
+        return ovcs
 
 
 def get_hh_members(ovc_id):
@@ -39,6 +72,7 @@ def ovc_registration(request, ovc_id, edit=0):
         bcert = request.POST.get('has_bcert')
         disabled = request.POST.get('disb')
         hh_members = request.POST.getlist('hh_member')
+        cbo_id = request.POST.get('cbo_id')
         has_bcert = True if bcert else False
         is_disabled = True if disabled else False
 
@@ -52,21 +86,25 @@ def ovc_registration(request, ovc_id, edit=0):
         if ext_ids:
             save_person_extids(ext_ids, ovc_id)
 
-        print request.POST
-
         hiv_status = request.POST.get('hiv_status')
         immmune = request.POST.get('immunization')
         org_uid = request.POST.get('cbo_uid')
+        org_uid_check = request.POST.get('cbo_uid_check')
         caretaker = request.POST.get('caretaker')
         school_level = request.POST.get('school_level')
         reg_date = datetime.now().strftime("%Y-%m-%d")
+        if edit == 0:
+            cbo_uid = gen_cbo_id(cbo_id, ovc_id)
+            org_cid = cbo_uid if org_uid == org_uid_check else org_uid
+        else:
+            org_cid = org_uid
         ovc_detail = get_object_or_404(OVCRegistration, person_id=ovc_id)
         ovc_detail.registration_date = reg_date
         ovc_detail.has_bcert = has_bcert
         ovc_detail.is_disabled = is_disabled
         ovc_detail.hiv_status = str(hiv_status)
         ovc_detail.immunization_status = str(immmune)
-        ovc_detail.org_unique_id = org_uid
+        ovc_detail.org_unique_id = org_cid
         ovc_detail.caretaker_id = caretaker
         ovc_detail.school_level = school_level
         ovc_detail.save(
@@ -89,9 +127,10 @@ def ovc_registration(request, ovc_id, edit=0):
         cgs = extract_post_params(request, naming='cg_')
         hhrs = extract_post_params(request, naming='hhr_')
         todate = timezone.now()
+        hst = extract_post_params(request, 'gstatus_')
         if edit == 0:
             # Create House Hold and populate members
-            caretaker_id = cgs[caretaker][0]
+            caretaker_id = int(cgs[caretaker][0])
             new_hh = OVCHouseHold(
                 head_person_id=caretaker,
                 head_identifier=caretaker_id)
@@ -100,12 +139,15 @@ def ovc_registration(request, ovc_id, edit=0):
             # Add members to HH
             hh_members.append(ovc_id)
             for hh_member in hh_members:
-                hh_head = True if hh_member == caretaker_id else False
+                oid = int(ovc_id)
+                hh_head = True if int(hh_member) == caretaker_id else False
+                hh_hiv = hst[hh_member][0] if hh_member in hst else None
                 m_type = hhrs[hh_member][0] if hh_member in hhrs else 'TBVC'
+                member_type = 'TOVC' if oid == int(hh_member) else m_type
                 OVCHHMembers(
                     house_hold_id=hh_id, person_id=hh_member,
-                    hh_head=hh_head, member_type=m_type,
-                    date_linked=todate).save()
+                    hh_head=hh_head, member_type=member_type,
+                    hiv_status=hh_hiv, date_linked=todate).save()
         else:
             # Update HH details
             hhid = request.POST.get('hh_id')
@@ -116,14 +158,14 @@ def ovc_registration(request, ovc_id, edit=0):
             hh_detail.save(update_fields=["head_identifier", "head_person"])
             # Update HH Members
             for hh_member in hhrs:
-                print hh_member
+                hh_hiv = hst[hh_member][0] if hh_member in hst else None
                 hh_head = True if hh_member == caretaker else False
                 member_type = hhrs[hh_member][0]
                 hhm, created = OVCHHMembers.objects.update_or_create(
                     person_id=hh_member, house_hold_id=hhid,
                     defaults={'person_id': hh_member, 'hh_head': hh_head,
                               'member_type': member_type, 'is_void': False,
-                              'date_linked': todate},)
+                              'date_linked': todate, 'hiv_status': hh_hiv},)
     except Exception, e:
         raise e
     else:

@@ -3,54 +3,57 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .forms import OVCSearchForm, OVCRegistrationForm
-from django.db.models import Q
 from cpovc_registry.models import (
     RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds)
 from cpovc_main.functions import get_dict
 from .models import OVCRegistration, OVCHHMembers, OVCHealth
 from .functions import (
-    ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id)
+    ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc)
 
 
+@login_required(login_url='/')
 def ovc_home(request):
     """Some default page for Server Errors."""
     try:
         if request.method == 'POST':
             form = OVCSearchForm(data=request.POST)
             query = request.POST.get('search_name')
+            criteria = request.POST.get('search_criteria')
 
-            designs = ['COVC', 'CGOC']
+            ovcs = search_ovc(query, criteria)
 
-            queryset = RegPerson.objects.filter(
-                is_void=False, designation__in=designs)
-            field_names = ['surname', 'first_name', 'other_names']
-            q_filter = Q()
-            for field in field_names:
-                q_filter |= Q(**{"%s__icontains" % field: query})
-            persons = queryset.filter(q_filter)
-            # Query ovc table
-            pids = []
-            for person in persons:
-                pids.append(person.id)
-            ovcs = OVCRegistration.objects.filter(
-                is_void=False, person_id__in=pids)
+            check_fields = ['sex_id']
+            vals = get_dict(field_name=check_fields)
 
             return render(request, 'ovc/home.html',
-                          {'form': form, 'persons': persons, 'ovcs': ovcs})
+                          {'form': form, 'ovcs': ovcs,
+                           'vals': vals})
         form = OVCSearchForm()
         return render(request, 'ovc/home.html', {'form': form, 'status': 200})
     except Exception, e:
         raise e
 
 
+@login_required(login_url='/')
 def ovc_register(request, id):
     """Some default page for Server Errors."""
     try:
         ovc_id = int(id)
         ovc = get_ovcdetails(ovc_id)
+        params, gparams = {}, {}
+        # Details
+        child = RegPerson.objects.get(is_void=False, id=id)
+        # Get guardians
+        guardians = RegPersonsGuardians.objects.filter(
+            is_void=False, child_person_id=child.id)
+        guids = []
+        for guardian in guardians:
+            guids.append(guardian.guardian_person_id)
+        guids.append(child.id)
         if request.method == 'POST':
-            form = OVCRegistrationForm(data=request.POST)
+            form = OVCRegistrationForm(guids=guids, data=request.POST)
             print request.POST
             ovc_registration(request, ovc_id)
             msg = "OVC Registration completed successfully"
@@ -60,7 +63,9 @@ def ovc_register(request, id):
         else:
             cbo_id = ovc.child_cbo_id
             cbo_uid = gen_cbo_id(cbo_id, ovc_id)
-            form = OVCRegistrationForm(initial={'cbo_uid': cbo_uid})
+            form = OVCRegistrationForm(
+                guids=guids, initial={'cbo_uid': cbo_uid,
+                                      'cbo_uid_check': cbo_uid})
         # Check users changing ids in urls
         ovc_detail = get_hh_members(ovc_id)
         if ovc_detail:
@@ -68,16 +73,6 @@ def ovc_register(request, id):
             messages.error(request, msg)
             url = reverse('ovc_view', kwargs={'id': ovc_id})
             return HttpResponseRedirect(url)
-        child = RegPerson.objects.get(is_void=False, id=id)
-        params = {}
-        gparams = {}
-        # Get guardians
-        guardians = RegPersonsGuardians.objects.filter(
-            is_void=False, child_person_id=child.id)
-        guids = []
-        for guardian in guardians:
-            guids.append(guardian.guardian_person_id)
-        guids.append(child.id)
         extids = RegPersonsExternalIds.objects.filter(
             person_id__in=guids)
         for extid in extids:
@@ -101,13 +96,14 @@ def ovc_register(request, id):
         raise e
 
 
+@login_required(login_url='/')
 def ovc_edit(request, id):
     """Some default page for Server Errors."""
     try:
         ovc_id = int(id)
         date_reg = None
         if request.method == 'POST':
-            form = OVCRegistrationForm(data=request.POST)
+            form = OVCRegistrationForm(guids=[1], data=request.POST)
             ovc_registration(request, ovc_id, 1)
             # Save external ids from here
             msg = "OVC Registration details edited successfully"
@@ -152,13 +148,14 @@ def ovc_edit(request, id):
         if reg_date:
             date_reg = reg_date.strftime('%d-%b-%Y')
         all_values = {'reg_date': date_reg, 'cbo_uid': creg.org_unique_id,
+                      'cbo_uid_check': creg.org_unique_id,
                       'has_bcert': bcert, 'disb': disb,
                       'bcert_no': bcert_no, 'ncpwd_no': ncpwd_no,
                       'immunization': creg.immunization_status,
                       'school_level': creg.school_level, 'facility': facility,
                       'hiv_status': creg.hiv_status, 'link_date': date_linked,
                       'ccc_number': ccc_no, 'art_status': art_status}
-        form = OVCRegistrationForm(data=all_values)
+        form = OVCRegistrationForm(guids=guids, data=all_values)
 
         # Get siblings
         siblings = RegPersonsSiblings.objects.filter(
@@ -166,6 +163,13 @@ def ovc_edit(request, id):
         # Get house hold
         hhold = OVCHHMembers.objects.get(
             is_void=False, person_id=child.id)
+        hhid = hhold.house_hold_id
+        hhmembers = OVCHHMembers.objects.filter(
+            is_void=False, house_hold_id=hhid).order_by("-hh_head")
+        # add caregivers hiv status
+        for hhm in hhmembers:
+            status_id = 'gstatus_%s' % (hhm.person_id)
+            all_values[status_id] = hhm.hiv_status
         # Re-usable values
         check_fields = ['relationship_type_id']
         vals = get_dict(field_name=check_fields)
@@ -178,6 +182,7 @@ def ovc_edit(request, id):
         raise e
 
 
+@login_required(login_url='/')
 def ovc_view(request, id):
     """Some default page for Server Errors."""
     try:
@@ -211,6 +216,10 @@ def ovc_view(request, id):
         # Get house hold
         hhold = OVCHHMembers.objects.get(
             is_void=False, person_id=child.id)
+        # Get HH members
+        hhid = hhold.house_hold_id
+        hhmembers = OVCHHMembers.objects.filter(
+            is_void=False, house_hold_id=hhid).order_by("-hh_head")
         # Re-usable values
         check_fields = ['relationship_type_id', 'school_level_id',
                         'hiv_status_id', 'immunization_status_id',
@@ -220,19 +229,24 @@ def ovc_view(request, id):
                       {'status': 200, 'child': child, 'params': params,
                        'guardians': guardians, 'siblings': siblings,
                        'vals': vals, 'hhold': hhold, 'creg': creg,
-                       'extids': gparams, 'health': health})
+                       'extids': gparams, 'health': health,
+                       'hhmembers': hhmembers})
     except Exception, e:
         print "error with OVC viewing - %s" % (str(e))
         raise e
 
 
+@login_required(login_url='/')
 def hh_manage(request, hhid):
     """Some default page for Server Errors."""
     try:
+        check_fields = ['hiv_status_id', 'immunization_status_id']
+        vals = get_dict(field_name=check_fields)
         hhmembers = OVCHHMembers.objects.filter(
             is_void=False, house_hold_id=hhid).order_by("-hh_head")
         return render(request, 'ovc/household.html',
-                      {'status': 200, 'hhmembers': hhmembers})
+                      {'status': 200, 'hhmembers': hhmembers,
+                       'vals': vals})
     except Exception, e:
         print "error getting hh members - %s" % (str(e))
         raise e

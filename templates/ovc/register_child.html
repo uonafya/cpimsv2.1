@@ -3,6 +3,7 @@
 {% block page_title %} OVC Care New Registration {% endblock %}
 
 {% load app_filters %}
+{% load app_forms %}
 
 {% block style_code %}
 <link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
@@ -82,7 +83,10 @@
                             ({{ child.age }})
                             </td>
                             <td class="field">CBO</td>
-                            <td>{{ ovc.child_cbo.org_unit_name }}</td>
+                            <td>
+                            {{ form.cbo_id }}
+                            {{ ovc.child_cbo.org_unit_name }}
+                            </td>
                             <td class="field">CHV</td>
                             <td>{{ ovc.child_chv.full_name }}</td>
                         </tr>
@@ -133,8 +137,9 @@
                     <!-- begin col-2 -->
                     <div class="col-md-3">
                     <div class="form-group">
-                        <label>CBO Child ID</label>
+                        <label>CBO Child ID <small>Might change on save</small></label>
                         {{ form.cbo_uid }}
+                        {{ form.cbo_uid_check }}
                       </div>
                     </div>
                     <!-- end col-2 -->
@@ -290,7 +295,11 @@
                                 Yes
                             {% endif %}  
                             </td>
-                            <td></td>
+                            <td>
+                            {% with n="gstatus_"|add:y %}
+                            {{ form|get_form:n }}
+                            {% endwith %}
+                            </td>                            
                             {% endwith %}
                         </tr>
                         {% endwith %}
@@ -354,8 +363,7 @@
                                 Yes
                             {% endif %}  
                             </td>
-                            <td>2</td>
-                            }
+                            <td>N/A</td>
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -437,6 +445,7 @@
         }
     });
     $('#caretaker').val('{{ child.caretaker }}');
+    $('#cbo_id').val('{{ ovc.child_cbo_id }}');
 
     var hstatus = $('#hiv_status').val();
     var hlevel = $('#school_level').val();

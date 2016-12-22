@@ -158,95 +158,72 @@
                 </fieldset>
 
                 <fieldset>
-                <legend class="pull-left width-full">Parents / Caregiver details</legend>
+                <legend class="pull-left width-full">HouseHold Members details</legend>
                 <!-- begin row -->
                  <div class="row">
                     <div class="col-md-12">
-                    <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID Number</th>
-                            <th>First Name</th>
-                            <th>Surname</th>
-                            <th>Age</th>
-                            <th>Relation</th>
-                            <th>Telephone</th>
-                            <th>Alive</th>
-                            <th>HIV Status</th>
-                            <th>HH Head</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for guardian in guardians %}
-                        {% with y=guardian.guardian_person.id|stringformat:"s" %}
-                        <tr>
-                            <td><input type="hidden" name="hh_member" value="{{ guardian.guardian_person.id }}">
-                            {{ y|add:"_INTL"|gen_value:extids }}
-                            </td>
-                            <td>{{ guardian.guardian_person.first_name }}</td>
-                            <td>{{ guardian.guardian_person.surname }}</td>
-                            <td>{{ guardian.guardian_person.years }}</td>
-                            <td>{{ guardian.relationship|gen_value:vals }}</td>
-                            <td>{{ guardian.guardian_person.des_phone_number }}</td>
-                            <td>
-                            {% if guardian.guardian_person.date_of_death %}
-                                No
-                            {% else %}
-                                Yes
-                            {% endif %}
-                            </td>
-                            <td></td>
-                            <td>
-                            {% if guardian.guardian_person.id == hhold.house_hold.head_person_id %}
-                            Yes {% else %} No {% endif %}
-                            </td>
-                        </tr>
-                        {% endwith %}
-                    {% endfor %}
-                    </tbody>
-                    </table>
-                    
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>First Name</th>
+                                    <th>Surname</th>
+                                    <th>Age</th>
+                                    <th>Type</th>
+                                    <th>Telephone</th>
+                                    <th>Alive</th>
+                                    <th>HIV Status</th>
+                                    <th>Head</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hhmember in hhmembers %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ hhmember.person.first_name }}</td>
+                                    <td>{{ hhmember.person.surname }}</td>
+                                    <td>{{ hhmember.person.years }}</td>
+                                    <td>
+                                    {% if hhmember.member_type == 'TBVC' %}
+                                       Sibling
+                                    {% elif hhmember.member_type == 'TOVC' %}
+                                       Enrolled OVC
+                                    {% else %}
+                                       Parent/Guardian
+                                    {% endif %}
+                                    </td>
+                                    <td>{{ hhmember.person.des_phone_number }}</td>
+                                    <td>
+                                        {% if hhmember.person.date_of_death %}
+                                    No
+                                {% else %}
+                                    Yes
+                                {% endif %}
+                                    </td>
+                                    <td>
+                                    {% if hhmember.hiv_status %}
+                                        {{ hhmember.hiv_status|gen_value:vals }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                    </td>
+                                    <td>
+                                    {% if not hhmember.hh_head %}
+                                        {% if hhmember.member_type == 'TBVC' or hhmember.member_type == 'TOVC' %}
+                                       N/A
+                                    {% else %}
+                                       No
+                                    {% endif %}
+                                    {% else %}
+                                        Yes ({{ hhold.house_hold.head_identifier }})
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>                    
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-12">
-                    {% if siblings %}
-                    <legend class="pull-left width-full">Siblings details</legend>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>First Name</th>
-                                <th>Surname</th>
-                                <th>Age</th>
-                                <th>Relation</th>
-                                <th>Alive</th>
-                                <th>HIV Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                       {% for sibling in siblings %}
-                        <tr>
-                            <td>{{ sibling.sibling_person.id }}</td>
-                            <td>{{ sibling.sibling_person.first_name }}</td>
-                            <td>{{ sibling.sibling_person.surname }}</td>
-                            <td>{{ sibling.sibling_person.years }}</td>
-                            <td>
-                            {% if sibling.sibling_person.sex_id == 'SFEM' %}
-                                Sister
-                            {% else %}
-                                Brother
-                            {% endif %}
-                            </td>
-                            <td></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    </table>
-                    {% endif %}
-                    </div>
-                    <!-- end col-2 -->
-                    </div>
                 </fieldset>
 
                
