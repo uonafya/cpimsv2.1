@@ -1410,13 +1410,14 @@ def person_actions(request):
                 for ncg in attached_cg:
                     dob = None
                     if len(attached_cg[ncg]) > 2:
+                        cgobj = attached_cg[ncg]
                         caregiver_id = int(attached_cg[ncg]['cpid'])
                         sex_id = attached_cg[ncg]['gender']
                         date_of_birth = attached_cg[ncg]['dob']
                         first_name = attached_cg[ncg]['fname']
                         other_names = attached_cg[ncg]['oname']
                         surname = attached_cg[ncg]['sname']
-                        idno = attached_cg[ncg]['idno']
+                        idno = cgobj['idno'] if 'idno' in cgobj else None
                         if caregiver_id == 0:
                             if date_of_birth:
                                 dob = convert_date(date_of_birth)
