@@ -17,5 +17,13 @@ urlpatterns = patterns('cpovc_reports.views',
                        url(r'^download/(?P<file_name>[0-9A-Za-z_\.=\- ]+)$',
                            'reports_download', name='download_reports'),
                        url(r'^generate/$', 'reports_generate',
-                           name='generate_reports')
+                           name='generate_reports'),
+                       url(r'^pivot/$', 'reports_pivot',
+                           name='pivot_reports'),
+                       url(r'^data/$', 'reports_rawdata',
+                           name='pivot_rawdata'),
+                       url(r'^ovc/$', 'reports_ovc_pivot',
+                           name='pivot_ovc_reports'),
+                       url(r'^ovcdata/$', 'reports_ovc_rawdata',
+                           name='pivot_ovc_rawdata')
                        )

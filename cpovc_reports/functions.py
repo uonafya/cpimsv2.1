@@ -2,6 +2,7 @@
 import re
 import uuid
 import string
+import random
 from datetime import datetime, timedelta
 from calendar import monthrange, month_name
 from collections import OrderedDict
@@ -1932,25 +1933,157 @@ def get_performance(request):
         return persons, punits, cases
 
 
-def get_performance_detail(request, user_id=0):
+def get_performance_detail(request, user_id=0, params={}):
     """Method to get performance."""
     try:
+        start_date = params['start_date']
+        end_date = params['end_date']
         persons = RegPerson.objects.filter(
-            is_void=False, created_by_id=user_id).values(
+            is_void=False, created_by_id=user_id,
+            created_at__range=(start_date, end_date)).values(
             'created_at', 'created_by_id').annotate(
                 person_count=Count('created_at')).order_by('created_at')
 
         cases = OVCCaseRecord.objects.filter(
-            is_void=False, created_by=user_id).extra(
+            is_void=False, created_by=user_id,
+            timestamp_created__range=(start_date, end_date)).extra(
             select={'day': 'date( timestamp_created )'}).values(
             'day').annotate(case_count=Count('timestamp_created'))
 
         print cases
 
     except Exception, e:
-        print 'error with dashboard - %s' % (str(e))
+        print 'error with performance - %s' % (str(e))
     else:
         return persons, cases
+
+
+def get_pivot_data(request):
+    """Method to get pivot data."""
+    try:
+        field_names = ["case_category_id", "government_unit_type_id",
+                       "ngo_unit_type_id", "cci_unit_type_id",
+                       "si_unit_type_id", "committee_unit_type_id",
+                       "adoption_unit_type_id"]
+        categories = get_dict(field_name=field_names)
+        datas = OVCCaseCategory.objects.all()
+        gdatas = {}
+        cids, cdatas = [], {}
+        # Get the Geo details
+        geos = OVCCaseGeo.objects.all()
+        for geo in geos:
+            scname = geo.report_subcounty.area_name
+            cname = geo.report_subcounty.parent_area_id
+            otype = geo.report_orgunit.org_unit_type_id
+            oname = geo.report_orgunit.org_unit_name
+            cids.append(cname)
+            gdatas[geo.case_id_id] = {'sub_county': scname, 'county': cname,
+                                      'otype': otype, 'oname': oname}
+        # Get the County names
+        cids = list(set(cids))
+        print cids
+        counties = SetupGeography.objects.filter(area_id__in=cids)
+        for county in counties:
+            cdatas[county.area_id] = county.area_name
+        print cdatas
+        records = []
+        for data in datas:
+            case_id = data.case_id_id
+            sex_id = data.person.sex_id
+            age = data.person.years
+            cat_id = data.case_category
+            has_case = case_id in gdatas
+            tid = gdatas[case_id]['otype'] if has_case else 'UK'
+            county_id = gdatas[case_id]['county'] if has_case else 0
+            county = cdatas[county_id] if county_id in cdatas else 'UK'
+            scounty = gdatas[case_id]['sub_county'] if has_case else 'UK'
+            category = categories[cat_id] if cat_id in categories else cat_id
+            org_unit = gdatas[case_id]['oname'] if has_case else 'UK'
+            unit_type = categories[tid] if tid in categories else tid
+            # county = data.case_id.ovccasegeo.occurrency_county
+            sex = 'Female' if sex_id == 'SMAL' else 'Male'
+            record = {'Category': category, 'Age': age, 'Unit Type': unit_type,
+                      'Sex': sex, 'County': county, 'Sub County': scounty,
+                      'Organisation Unit': org_unit}
+            records.append(record)
+    except Exception, e:
+        print 'error getting pivot data - %s' % (str(e))
+        raise e
+    else:
+        return records
+
+
+def get_pivot_ovc(request):
+    """Method to get OVC Pivot Data."""
+    try:
+        datas = []
+        report_id = int(request.POST.get('report_ovc'))
+        genders = ["Male", "Female"]
+        domains = ["Wellness", "Social behaviour", "Shelter", "Performance",
+                   "Nutrition and growth", "Legal protection",
+                   "Health care services", "Food security",
+                   "Emotional health", "Education and work", "Care",
+                   "Abuse and exploitation"]
+
+        kpis = {}
+        kpis[1] = '1.a %s OVCs Ever Registered'
+        kpis[2] = '1.b %s New OVC Registrations within period'
+        kpis[3] = '1.c %s Active OVC within period'
+        kpis[4] = '2.a %s OVC Ever Exited from the program'
+        kpis[5] = '2.b %s OVC Exited from the program withn period'
+        kpis[6] = '2.c %s HouseHolds Exited from the program within period'
+        kpis[7] = '3.a %s OVC without Birth Certificate at enrolment'
+        kpis[8] = '3.b %s OVC served with Birth Certificate within period'
+        kpis[9] = '3.c %s OVCs with Birth Certificates to date'
+        kpis[10] = '3.d %s OVC served with Birth Certificate after enrolment'
+        kpis[11] = ('3.e %s OVC 5yrs and below served with Birth Certificate '
+                    'within period')
+        kpis[12] = '4.a %s OVC HIV Status not known at enrolment'
+        kpis[13] = '4.a.(i) %s OVC HIV+ at enrolment'
+        kpis[14] = '4.a.(ii) %s OVC HIV- at enrolment'
+        kpis[15] = '4.b %s OVC Tested within period'
+        kpis[16] = '4.c %s OVC Ever Tested for HIV'
+        kpis[17] = '4.d %s OVC HIV+'
+        kpis[18] = '4.e %s OVC HIV+ and NOT linked to Facilities'
+        kpis[19] = '4.f %s OVC HIV+ and LINKED to Facilities'
+        kpis[20] = '4.g %s ACTIVE OVC with known HIV status'
+        kpis[21] = '4.h %s ACTIVE OVC HIV+'
+        kpis[22] = '4.i %s ACTIVE OVC HIV+ and NOT linked to Facilities'
+        kpis[23] = '4.j %s ACTIVE OVC HIV+ and LINKED to Facilities'
+        kpis[24] = ('4.k %s ACTIVE OVC HIV+ and LINKED to Facilities '
+                    'within period')
+        kpis[25] = '4.l %s HIV+ve OVC Tested within period'
+        kpis[26] = '5.a %s ACTIVE HouseHolds/Caregivers within period'
+        kpis[27] = '5.a %s OVC served with 1 or 2 services'
+        kpis[28] = '5.b %s ACTIVE CHVs within period'
+        kpis[29] = '5.b %s OVC served with 3 or more services'
+        kpis[30] = '5.c %s OVC NOT served with any service'
+        for i in range(1, 9000):
+            gender = random.choice(genders)
+            domain = random.choice(domains)
+            kpi_id = random.randint(1, 30)
+            sch_level = random.randint(1, 8)
+            kpi = kpis[kpi_id]
+            count = random.randint(0, 100)
+            age = random.randint(0, 30)
+            cbo = 'Test CBO %s' % (random.randint(1, 5))
+            ward = 'Test Ward %s' % (random.randint(1, 10))
+            county = 'County %s' % (random.randint(1, 2))
+            data = {'OVC Count': count, 'Age': age,
+                    'Gender': gender, 'CBO': cbo,
+                    'County': county, 'Ward': ward}
+            if report_id == 3:
+                data['Performance Indicator'] = kpi
+            else:
+                data['Domain'] = domain
+                if report_id == 2:
+                    data['School Level'] = sch_level
+            datas.append(data)
+    except Exception, e:
+        print 'Error getting OVC pivot data - %s' % (str(e))
+        return []
+    else:
+        return datas
 
 
 if __name__ == '__main__':

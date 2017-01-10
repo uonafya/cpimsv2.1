@@ -20,7 +20,8 @@ from .functions import (
     get_case_details, case_load_header, get_data_element,
     simple_document, draw_page, get_geo_locations, get_data, get_period,
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
-    get_case_data, org_unit_tree, get_performance, get_performance_detail)
+    get_case_data, org_unit_tree, get_performance, get_performance_detail,
+    get_pivot_data, get_pivot_ovc)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -809,10 +810,27 @@ def manage_dashboard(request):
         data = []
         dts, cts = {}, {}
         dates = []
+        params = {}
         if request.method == 'POST':
+            print request.POST
             user_id = request.POST.get('user_id')
-            print user_id
-            children, cases = get_performance_detail(request, user_id)
+            daterange = request.POST.get('daterange')
+            if daterange:
+                start_date, end_date = daterange.split(' - ')
+                sdate_obj = datetime.strptime(start_date, '%B %d, %Y')
+                edate_obj = datetime.strptime(end_date, '%B %d, %Y')
+                params['start_date'] = sdate_obj
+                params['end_date'] = edate_obj
+                qdates = '%s to %s' % (start_date, end_date)
+            else:
+                end_date = datetime.now()
+                start_date = end_date.replace(day=1)
+                params['start_date'] = start_date
+                params['end_date'] = end_date
+                sdt = start_date.strftime('%B %d, %Y')
+                edt = end_date.strftime('%B %d, %Y')
+                qdates = '%s to %s (Current Month)' % (sdt, edt)
+            children, cases = get_performance_detail(request, user_id, params)
             for case in cases:
                 day = case['day']
                 dates.append(day)
@@ -830,22 +848,20 @@ def manage_dashboard(request):
                 cnt += 1
                 case = dts[str(bdt)] if str(bdt) in dts else 0
                 kid = cts[str(bdt)] if str(bdt) in cts else 0
-                dt = {'id': cnt, 'date': bdt.strftime('%d-%b-%Y'),
+                dt = {'id': cnt, 'date': bdt.strftime('%a, %d-%b-%Y'),
                       'cases': case, 'children': kid}
                 data.append(dt)
-            sdate = bds[0].strftime('%d-%b-%Y')
-            edate = bds[len(bds) - 1].strftime('%d-%b-%Y')
-            dates = '%s to %s' % (str(sdate), str(edate))
-            print 'DATES', dates
+            print qdates
 
             results = {'status': 0, 'message': 'Good', 'data': data,
-                       'dates': dates}
+                       'dates': qdates}
             return JsonResponse(results, safe=False)
         persons, units, cases = get_performance(request)
         return render(request, 'reports/reports_dashboard.html',
                       {'persons': persons, 'units': units,
                        'cases': cases})
     except Exception, e:
+        print 'error - %s' % (str(e))
         raise e
     else:
         pass
@@ -862,3 +878,51 @@ def clean_reports(report_id):
     except Exception, e:
         print "Delete error - %s" % (str(e))
         return 99, 'File removal error. Please contact Administrator.'
+
+
+@login_required
+def reports_pivot(request):
+    """Method to do pivot reports."""
+    try:
+        form = CaseLoad(request.user)
+        return render(request, 'reports/pivot.html', {'form': form})
+    except Exception, e:
+        raise e
+    else:
+        pass
+
+
+@login_required
+def reports_ovc_pivot(request):
+    """Method to do pivot reports."""
+    try:
+        form = CaseLoad(request.user)
+        return render(request, 'reports/pivot_ovc.html', {'form': form})
+    except Exception, e:
+        raise e
+    else:
+        pass
+
+
+def reports_rawdata(request):
+    """Method to do adhoc pivot reports."""
+    try:
+        results = get_pivot_data(request)
+        return JsonResponse(results, content_type='application/json',
+                            safe=False)
+    except Exception, e:
+        print 'error getting raw data - %s' % (str(e))
+        return JsonResponse([], content_type='application/json',
+                            safe=False)
+
+
+def reports_ovc_rawdata(request):
+    """Method to do adhoc pivot reports."""
+    try:
+        results = get_pivot_ovc(request)
+        return JsonResponse(results, content_type='application/json',
+                            safe=False)
+    except Exception, e:
+        print 'error getting raw data - %s' % (str(e))
+        return JsonResponse([], content_type='application/json',
+                            safe=False)
