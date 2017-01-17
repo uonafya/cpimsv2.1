@@ -2018,6 +2018,7 @@ def get_pivot_ovc(request):
     try:
         datas = []
         report_id = int(request.POST.get('report_ovc'))
+        print 'RPT', report_id
         genders = ["Male", "Female"]
         domains = ["Wellness", "Social behaviour", "Shelter", "Performance",
                    "Nutrition and growth", "Legal protection",
@@ -2079,6 +2080,7 @@ def get_pivot_ovc(request):
                 if report_id == 2:
                     data['School Level'] = sch_level
             datas.append(data)
+        print datas
     except Exception, e:
         print 'Error getting OVC pivot data - %s' % (str(e))
         return []

@@ -22,8 +22,12 @@ urlpatterns = patterns('cpovc_reports.views',
                            name='pivot_reports'),
                        url(r'^data/$', 'reports_rawdata',
                            name='pivot_rawdata'),
-                       url(r'^ovc/$', 'reports_ovc_pivot',
+                       url(r'^datim/$', 'reports_ovc_pivot',
                            name='pivot_ovc_reports'),
+                       url(r'^pepfar/$', 'reports_ovc_pepfar',
+                           name='pivot_ovc_pepfar'),
+                       url(r'^kpi/$', 'reports_ovc_kpi',
+                           name='pivot_ovc_kpi'),
                        url(r'^ovcdata/$', 'reports_ovc_rawdata',
                            name='pivot_ovc_rawdata')
                        )

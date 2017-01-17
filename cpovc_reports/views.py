@@ -897,7 +897,31 @@ def reports_ovc_pivot(request):
     """Method to do pivot reports."""
     try:
         form = CaseLoad(request.user)
-        return render(request, 'reports/pivot_ovc.html', {'form': form})
+        return render(request, 'reports/pivot_datim.html', {'form': form})
+    except Exception, e:
+        raise e
+    else:
+        pass
+
+
+@login_required
+def reports_ovc_pepfar(request):
+    """Method to do pivot reports."""
+    try:
+        form = CaseLoad(request.user)
+        return render(request, 'reports/pivot_pepfar.html', {'form': form})
+    except Exception, e:
+        raise e
+    else:
+        pass
+
+
+@login_required
+def reports_ovc_kpi(request):
+    """Method to do pivot reports."""
+    try:
+        form = CaseLoad(request.user)
+        return render(request, 'reports/pivot_kpi.html', {'form': form})
     except Exception, e:
         raise e
     else:
