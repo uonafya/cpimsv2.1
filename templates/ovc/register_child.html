@@ -150,6 +150,7 @@
             <fieldset>
                 <legend class="pull-left width-full">Health and Education details</legend>
                 <!-- begin row -->
+                {% if  not child.years > 5 %}
                  <div class="row">
                     <!-- begin col-2 -->
                     <div class="col-md-3">
@@ -160,6 +161,7 @@
                     </div>
                     <!-- end col-2 -->
                 </div>
+                {% endif %}
                 <!-- begin row -->
                  <div class="row">
                     <!-- begin col-2 -->

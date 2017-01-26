@@ -43,6 +43,7 @@ def ovc_register(request, id):
         ovc_id = int(id)
         ovc = get_ovcdetails(ovc_id)
         params, gparams = {}, {}
+        initial = {}
         # Details
         child = RegPerson.objects.get(is_void=False, id=id)
         # Get guardians
@@ -52,6 +53,15 @@ def ovc_register(request, id):
         for guardian in guardians:
             guids.append(guardian.guardian_person_id)
         guids.append(child.id)
+        # Existing
+        extids = RegPersonsExternalIds.objects.filter(
+            person_id__in=guids)
+        for extid in extids:
+            if extid.person_id == child.id:
+                params[extid.identifier_type_id] = extid.identifier
+            else:
+                gkey = '%s_%s' % (extid.person_id, extid.identifier_type_id)
+                gparams[gkey] = extid.identifier
         if request.method == 'POST':
             form = OVCRegistrationForm(guids=guids, data=request.POST)
             print request.POST
@@ -63,9 +73,13 @@ def ovc_register(request, id):
         else:
             cbo_id = ovc.child_cbo_id
             cbo_uid = gen_cbo_id(cbo_id, ovc_id)
+            initial['cbo_uid'] = cbo_uid
+            initial['cbo_uid_check'] = cbo_uid
+            if 'ISOV' in params:
+                initial['bcert_no'] = params['ISOV']
+                initial['has_bcert'] = 'on'
             form = OVCRegistrationForm(
-                guids=guids, initial={'cbo_uid': cbo_uid,
-                                      'cbo_uid_check': cbo_uid})
+                guids=guids, initial=initial)
         # Check users changing ids in urls
         ovc_detail = get_hh_members(ovc_id)
         if ovc_detail:
@@ -73,17 +87,10 @@ def ovc_register(request, id):
             messages.error(request, msg)
             url = reverse('ovc_view', kwargs={'id': ovc_id})
             return HttpResponseRedirect(url)
-        extids = RegPersonsExternalIds.objects.filter(
-            person_id__in=guids)
-        for extid in extids:
-            if extid.person_id == child.id:
-                params[extid.identifier_type_id] = extid.identifier
-            else:
-                gkey = '%s_%s' % (extid.person_id, extid.identifier_type_id)
-                gparams[gkey] = extid.identifier
         # Get siblings
         siblings = RegPersonsSiblings.objects.filter(
             is_void=False, child_person_id=child.id)
+        print 'p', params, 'gp', gparams
         # Re-usable values
         check_fields = ['relationship_type_id']
         vals = get_dict(field_name=check_fields)
