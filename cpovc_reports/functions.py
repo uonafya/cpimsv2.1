@@ -1950,15 +1950,20 @@ def get_performance_detail(request, user_id=0, params={}):
             select={'day': 'date( timestamp_created )'}).values(
             'day').annotate(case_count=Count('timestamp_created'))
 
+        reports = OVCCaseRecord.objects.filter(
+            is_void=False, created_by=user_id,
+            date_case_opened__range=(start_date, end_date)).values(
+            'date_case_opened').annotate(case_report=Count('date_case_opened'))
+
         print cases
 
     except Exception, e:
         print 'error with performance - %s' % (str(e))
     else:
-        return persons, cases
+        return persons, cases, reports
 
 
-def get_pivot_data(request):
+def get_pivot_data(request, params={}):
     """Method to get pivot data."""
     try:
         field_names = ["case_category_id", "government_unit_type_id",

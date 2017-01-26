@@ -808,7 +808,7 @@ def manage_dashboard(request):
     """Method to manage user dashboard."""
     try:
         data = []
-        dts, cts = {}, {}
+        dts, cts, rts = {}, {}, {}
         dates = []
         params = {}
         if request.method == 'POST':
@@ -830,11 +830,16 @@ def manage_dashboard(request):
                 sdt = start_date.strftime('%B %d, %Y')
                 edt = end_date.strftime('%B %d, %Y')
                 qdates = '%s to %s (Current Month)' % (sdt, edt)
-            children, cases = get_performance_detail(request, user_id, params)
+            children, cases, reports = get_performance_detail(
+                request, user_id, params)
             for case in cases:
                 day = case['day']
                 dates.append(day)
                 dts[str(day)] = case['case_count']
+            for rpt in reports:
+                day = rpt['date_case_opened']
+                dates.append(day)
+                rts[str(day)] = rpt['case_report']
             cnt = 0
             for val in children:
                 date = val['created_at']
@@ -848,8 +853,9 @@ def manage_dashboard(request):
                 cnt += 1
                 case = dts[str(bdt)] if str(bdt) in dts else 0
                 kid = cts[str(bdt)] if str(bdt) in cts else 0
+                rpt = rts[str(bdt)] if str(bdt) in rts else 0
                 dt = {'id': cnt, 'date': bdt.strftime('%a, %d-%b-%Y'),
-                      'cases': case, 'children': kid}
+                      'cases': case, 'children': kid, 'reports': rpt}
                 data.append(dt)
             print qdates
 
