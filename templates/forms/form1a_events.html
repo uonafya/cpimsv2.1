@@ -327,6 +327,7 @@
                                             </td>
                                             <td width="20%">
                                                 {{ form.olmis_service }}
+                                                <h6><span id="sel_olmis_service"></span></h6>
                                                 <div id="olmis_service_errormsg" style="display:none;">
                                                     <small><p class="dialog_paragraph">This value is required</p></span></small><span>
                                                 </div>
@@ -530,7 +531,7 @@ function loadForm1aEvents()
                             '<td width="25%"><h6>' + event_details + '</h6></td>' +  
                             '<td width="25%"><h6>' + event_date + '</h6></td>' +
                             '<td>' +
-                            '' + viewItem + '' + 
+                            /*' + viewItem + '' + **/
                             '' + editItem + '' +
                             '' + deleteItem + '' +
                             '</td></tr>');
@@ -598,6 +599,7 @@ function resetForm1A(x)
         $("#olmis_domain").multiselect("refresh");
         $("#olmis_service").multiselect("clearSelection");
         $("#olmis_service").multiselect("refresh");
+        $("#sel_olmis_service").html('');
         $('#olmis_service_date').val('');
         $('#olmis_service_provided_list').val('');        
     }
@@ -1111,6 +1113,7 @@ function AddRow(x)
                 $("#olmis_service").multiselect("clearSelection");
                 $("#olmis_service").multiselect("refresh");
                 $('#olmis_service_date').val('');
+                $("#sel_olmis_service").html('');
 
                 $('#services_manager_table tr').each(function(row, tr)
                 {                            
@@ -1379,11 +1382,6 @@ function displayVals(x, value)
 
 function tabManager()
 {
-    $('#div-priority-need0').css({'display': 'none'});
-    $('#div-priority-need1').css({'display': 'block'});
-    $('#div-priority-need1-date').css({'display': 'block'});
-    $('#div-priority-need1-controls').css({'display': 'block'});
-    /*
     var date = new Date();
     var month = date.getMonth() + 1;
     if(month==1 || month==5 || month==11)
@@ -1400,7 +1398,6 @@ function tabManager()
         $('#div-priority-need1-date').css({'display': 'none'});
         $('#div-priority-need1-controls').css({'display': 'none'});        
     }
-    **/
 }
 
 $("#olmis_assessment_domain").change(function(event) 
@@ -1452,7 +1449,8 @@ $('#date_of_cevent').datepicker().on('change.dp', function(e) {
 
 $("#olmis_domain").change(function(event) 
 { 
-	var olmis_domain = $("#olmis_domain").val();
+	var olmis_domain = $("#olmis_domain").val();    
+    $("#sel_olmis_service").html('');
 	getServices(3, olmis_domain);
 	$("#olmis_domain_errormsg").css({ 'display': "none" });
 });
@@ -1484,6 +1482,7 @@ $('#date_of_priority').datepicker().on('change.dp', function(e) {
 $("#olmis_service").change(function(event) 
 { 
 	$("#olmis_service_errormsg").css({ 'display': "none" });
+    displayVals(1, 'olmis_service');
 });
 
 $("#olmis_service_date").change(function(event) 

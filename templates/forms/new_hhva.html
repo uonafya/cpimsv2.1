@@ -24,8 +24,8 @@
 }
 
 .td_style {
-  color: #000000;
-  /*color: #0057e7;*/
+  /*color: #000000;*/
+  color: #0057e7;
 }
 </style>
 {% endblock %}
@@ -194,7 +194,7 @@
 							    </div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Number of individuals in the house below 18 years : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA1: </b>Number of individuals in the house below 18 years : <span class="asteriskField">* </label>
 									<div class="col-md-2 col-sm-2">
 										{{ form.hhva_ha1_male }}
 									</div>
@@ -205,7 +205,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Number of individuals in the house above 18 years : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA2: </b>Number of individuals in the house above 18 years : <span class="asteriskField">* </label>
 									<div class="col-md-2 col-sm-2">
 										{{ form.hhva_ha2_male }}
 									</div>
@@ -216,7 +216,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Number of disabled individuals in the house below 18 years : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA3: </b>Number of disabled individuals in the house below 18 years : <span class="asteriskField">* </label>
 									<div class="col-md-2 col-sm-2">
 										{{ form.hhva_ha3_male }}
 									</div>
@@ -227,7 +227,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Number of disabled individuals in the house above 18 years : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA4: </b>Number of disabled individuals in the house above 18 years : <span class="asteriskField">* </label>
 									<div class="col-md-2 col-sm-2">
 										{{ form.hhva_ha4_male }}
 									</div>
@@ -246,7 +246,7 @@
 							<div class="panel-body">
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Household main source of water : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA5: </b>Household main source of water : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha5 }}
 									</div>
@@ -254,16 +254,17 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">How do you make your drinking water safe? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA6: </b>How do you make your drinking water safe? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha6 }}
+										<br>
 										<h6><span id="sel_hhva_ha6"></span></h6>
 									</div>
 									<a href="#" data-toggle="tooltip" title="How you make your drinking water safe"><i class="fa fa-info-circle fa-sm"></i></a>
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">What is the main mode of human disposal? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA7: </b>What is the main mode of human disposal? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha7 }}
 									</div>
@@ -271,7 +272,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Household using utensil rack : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA8: </b>Household using utensil rack : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha8 }}
 									</div>
@@ -287,7 +288,7 @@
 							<div class="panel-body"> 
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Condition of house : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA9: </b>Condition of house : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha9 }}
 									</div>
@@ -295,7 +296,7 @@
 								</div>
 
 								<br>
-								<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Type and number of bedding used by household members : <span class="asteriskField">* </label>
+								<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA10: </b>Type and number of bedding used by household members : <span class="asteriskField">* </label>
 
 								<div class="form-group">
 									<table id="ha10_manager_table" class="table">
@@ -356,7 +357,7 @@
 							<div class="panel-body"> 
 
 								<div class="form-group">
-									<label class="control-label col-md-5 col-sm-5" for="hhva_qs">On average, how many meals do household members eat in a day? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-5 col-sm-5" for="hhva_qs"><b>HA11: </b>On average, how many meals do household members eat in a day? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha11 }}
 									</div>
@@ -364,7 +365,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-5 col-sm-5" for="hhva_qs">What is the main source of food for the household? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-5 col-sm-5" for="hhva_qs"><b>HA12: </b>What is the main source of food for the household? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha12 }}
 									</div>
@@ -378,134 +379,139 @@
 						<div class="wizard-step-5">
 							<div class="panel-body">
 								<div class="row">
+                                    <div class="col-md-5">
+                                        <div class="form-group block1">
+                                            <label for="hhva_ha13"><b>HA13: </b>What is the household main source of income? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha13 }}
+                                        </div>
+                                    </div>
 
-									<div class="col-md-4">
-	                                    <div class="form-group">
-	                                        <label for="surname">What asset does the household own? <span class="asteriskField">*</span></label>
-	                                    </div>
-	                                </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group block1">
+                                            <label for="hhva_ha14"><b>HA14: </b>Who owns the house where members stay? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha14 }}
+                                        </div>
+                                    </div>
+                                </div>
 
-									<table id="ha15_manager_table" class="table">
-	                                    <thead>
-	                                        <tr id="id_inputHeaders">
-	                                        	<td width="2%"></td>
-	                                        	<th width="4%"><h6><b>Asset</b></h6></th>
-	                                        	<th width="2%"><h6><b>Number</b></h6></th>
-	                                            <th width="2%"><h6><b>Size</b></h6></th>
-	                                            <th width="4%"><h6><b>Actions</b></h6></th>
-	                                        </tr>
-	                                    </thead>
-	                                    <tbody>
-	                                    	<tr id="id_inputElements14">
-	                                    		<td width="2%"></td>
-	                                            <td width="4%">
-	                                            	{{ form.hhva_ha15_asset }}
-	                                            	<div id="hhva_ha15_type_errormsg" style="display:none;">
-	                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-	                                                </div>
-	                                            </td>
+                                <div class="divider pull-left width-full"></div>
+                                <div class="divider pull-left width-full"></div>
 
-	                                            <td width="2%">
-	                                            	{{ form.hhva_ha15_number }}
-	                                            	<div id="hhva_ha15_number_errormsg_" style="display:none;">
-	                                                    <small><p class="dialog_paragraph">This value is must be digits</p></span></small><span>
-	                                                </div>
+                                <div class="row">
+                                	<div class="col-md-8">
+                                        <div class="form-group">
+                                            <label for="surname"><b>HA15: </b>What asset does the household own? <span class="asteriskField">*</span></label>
+                                        </div>
+                                    </div>
+                                    <table id="ha15_manager_table" class="table">
+                                        <thead>
+                                            <tr id="id_inputHeaders">
+                                                <td width="2%"></td>
+                                                <th width="4%"><h6><b>Asset</b></h6></th>
+                                                <th width="2%"><h6><b>Number</b></h6></th>
+                                                <th width="2%"><h6><b>Size</b></h6></th>
+                                                <th width="4%"><h6><b>Actions</b></h6></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr id="id_inputElements14">
+                                                <td width="2%"></td>
+                                                <td width="4%">
+                                                    {{ form.hhva_ha15_asset }}
+                                                    <div id="hhva_ha15_type_errormsg" style="display:none;">
+                                                        <small><p class="dialog_paragraph">This value is required</p></span></small><span>
+                                                    </div>
+                                                </td>
 
-	                                            	<div id="hhva_ha15_number_errormsg" style="display:none;">
-	                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-	                                                </div>
-	                                            </td>
+                                                <td width="2%">
+                                                    {{ form.hhva_ha15_number }}
+                                                    <div id="hhva_ha15_number_errormsg_" style="display:none;">
+                                                        <small><p class="dialog_paragraph">This value is must be digits</p></span></small><span>
+                                                    </div>
 
-	                                            <td width="2%">
-	                                            	{{ form.hhva_ha15_size }}
-	                                            	<div id="hhva_ha15_size_errormsg_" style="display:none;">
-	                                                    <small><p class="dialog_paragraph">This value is must be digits</p></span></small><span>
-	                                                </div>
+                                                    <div id="hhva_ha15_number_errormsg" style="display:none;">
+                                                        <small><p class="dialog_paragraph">This value is required</p></span></small><span>
+                                                    </div>
+                                                </td>
 
-	                                            	<div id="hhva_ha15_size_errormsg" style="display:none;">
-	                                                    <small><p class="dialog_paragraph">This value is required</p></span></small><span>
-	                                                </div>
-	                                            </td>
+                                                <td width="2%">
+                                                    {{ form.hhva_ha15_size }}
+                                                    <div id="hhva_ha15_size_errormsg_" style="display:none;">
+                                                        <small><p class="dialog_paragraph">This value is must be digits</p></span></small><span>
+                                                    </div>
 
-	                                            <td width="4%">
-	                                            	<h6><b>
-			                                            <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(2)">
-			                                                <i class="fa fa-plus"></i>  Add
-			                                            </button>
-	                                            	</b></h6>
-	                                            </td>
+                                                    <div id="hhva_ha15_size_errormsg" style="display:none;">
+                                                        <small><p class="dialog_paragraph">This value is required</p></span></small><span>
+                                                    </div>
+                                                </td>
+
+                                                <td width="4%">
+                                                    <h6><b>
+                                                        <button type="button" class="btn btn-sm btn-inverse m-r-5" onClick="AddRow(2)">
+                                                            <i class="fa fa-plus"></i>  Add
+                                                        </button>
+                                                    </b></h6>
+                                                </td>
                                         </tr>  
-	                                    </tbody>
+                                        </tbody>
                                     </table>
                                     {{ form.hhva_asset_list }}
-								</div>						
+                                </div>
 
-								<div class="divider pull-left width-full"></div>
-								<div class="divider pull-left width-full"></div>
-								<div class="row">
-									<div class="col-md-4">
-	                                    <div class="form-group block1">
-	                                        <label for="hhva_ha13">What is the household main source of income? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha13 }}
-	                                    </div>
-	                                </div>
+                                <div class="divider pull-left width-full"></div>
 
-	                                <div class="col-md-4">
-	                                    <div class="form-group block1">
-	                                        <label for="hhva_ha13">Who owns the house where members stay? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha14 }}
-	                                    </div>
-	                                </div>
+                                <div class="row">
+                                	<div class="col-md-5">
+                                        <div class="form-group block1">
+                                            <label for="hhva_ha16"><b>HA16: </b>What is the household's main source of cooking fuel? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha16 }}
+                                        </div>
+                                    </div>
 
-	                                <div class="col-md-4">
-	                                    <div class="form-group block1">
-	                                        <label for="hhva_ha16">What is the household's main source of cooking fuel? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha16 }}
-	                                    </div>
-	                                </div>
-								</div>
+                                    <div class="col-md-5">
+                                        <div class="form-group block1">
+                                            <label for="hhva_ha17"><b>HA17: </b>What is the average monthly income before purchase? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha17 }}
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="divider pull-left width-full"></div>
-								<div class="row">
-									<div class="col-md-4">
-	                                    <div class="form-group block1">
-	                                        <label for="hhva_ha17">What is the average monthly income before purchase? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha17 }}
-	                                    </div>
-	                                </div>
+                                <div class="divider pull-left width-full"></div>
 
-	                                <div class="col-md-4">
-	                                    <div class="form-group block1">
-	                                        <label for="hhva_ha18">What is the average monthly income after purchase? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha18 }}
-	                                    </div>
-	                                </div>
+                                <div class="row">
+                                	<div class="col-md-5">
+                                        <div class="form-group block1">
+                                            <label for="hhva_ha18"><b>HA18: </b>What is the average monthly income after purchase? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha18 }}
+                                        </div>
+                                    </div>
 
-	                                <div class="col-md-4">
-	                                    <div class="form-group block1">
-	                                        <label for="hhva_ha19">Which of the following take up most of the household income? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha19 }}
-	                                    </div>
-	                                </div>
-								</div>
+                                    <div class="col-md-5">
+                                        <div class="form-group block1">
+                                            <label for="hhva_ha19"><b>HA19: </b>Which of the following take up most of the household income? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha19 }}
+                                        </div>
+                                    </div>
+                                </div>
 
-								<div class="divider pull-left width-full"></div>
-								<div class="row">
-									<div class="col-md-4">
-	                                    <div class="form-group block1">
-	                                        <label for="hhva_ha20">Is any member of the household in any savings group? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha20 }}
-	                                    </div>
-	                                </div>
+                                <div class="divider pull-left width-full"></div>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <div class="form-group block1">
+                                            <label for="hhva_ha20"><b>HA20: </b>Is any member of the household in any savings group? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha20 }}
+                                        </div>
+                                    </div>
 
-	                                <div class="col-md-4">
-	                                    <div>
-	                                        <label for="hhva_ha18">Which of the following documents does the household posses? <span class="asteriskField">*</span></label>
-	                                        {{ form.hhva_ha21 }}
-	                                        <h6><span id="sel_hhva_ha21"></span></h6>
-	                                    </div>
-	                                </div>
-								</div>								
+                                    <div class="col-md-5">
+                                        <div>
+                                            <label for="hhva_ha21"><b>HA21: </b>Which of the following documents does the household posses? <span class="asteriskField">*</span></label>
+                                            {{ form.hhva_ha21 }}
+                                            <h6><span id="sel_hhva_ha21"></span></h6>
+                                        </div>
+                                    </div>
+                                </div>
+
 							</div>
 						</div> 
 						<!-- end wizard step-5 --> 
@@ -515,7 +521,7 @@
 							<div class="panel-body"> 
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Where household members access health services when sick? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA22: </b>Where household members access health services when sick? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha22 }}
 										<h6><span id="sel_hhva_ha22"></span></h6>
@@ -524,7 +530,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">How far is the nearest health facility? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA23: </b>How far is the nearest health facility? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha23 }}
 									</div>
@@ -532,7 +538,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Does the household have health insurance? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA24: </b>Does the household have health insurance? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha24 }}
 									</div>
@@ -540,7 +546,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Household using mosquito nets? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA25: </b>Household using mosquito nets? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha25 }}
 									</div>
@@ -548,7 +554,7 @@
 								</div>
 
 								<div class="form-group">
-				                  <label class="control-label col-md-4 col-sm-4" for="hhva_qs">Number of known HIV+ individuals in the household below 18 years : <span class="asteriskField">* </label>
+				                  <label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA26: </b>Number of known HIV+ individuals in the household below 18 years : <span class="asteriskField">* </label>
 				                  <div class="col-md-2 col-sm-2">
 				                    {{ form.hhva_ha26_male }}
 				                  </div>
@@ -559,7 +565,7 @@
 				                </div>
 
 				                <div class="form-group">
-				                  <label class="control-label col-md-4 col-sm-4" for="hhva_qs">Number of known HIV+ individuals in the household above 18 years : <span class="asteriskField">* </label>
+				                  <label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA27: </b>Number of known HIV+ individuals in the household above 18 years : <span class="asteriskField">* </label>
 				                  <div class="col-md-2 col-sm-2">
 				                    {{ form.hhva_ha27_male }}
 				                  </div>
@@ -576,7 +582,7 @@
 						<div class="wizard-step-7">
 							<div class="panel-body"> 
 								<div class="form-group">
-									<label class="control-label col-md-3 col-sm-3" for="hhva_qs">Where does the household access legal protection services when needed? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-3 col-sm-3" for="hhva_qs"><b>HA28: </b>Where does the household access legal protection services when needed? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha28 }}
 										<h6><span id="sel_hhva_ha28"></span></h6>
@@ -591,7 +597,7 @@
 						<div class="wizard-step-8">
 							<div class="panel-body"> 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Is the household access currently receiving support from any of the following? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA29: </b>Is the household access currently receiving support from any of the following? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha29 }}
 										<h6><span id="sel_hhva_ha29"></span></h6>
@@ -600,7 +606,7 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Select services received : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA30: </b>Select services received : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha30 }}
 										<h6><span id="sel_hhva_ha30"></span></h6>
@@ -615,7 +621,7 @@
 						<div class="wizard-step-9">
 							<div class="panel-body"> 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs">Household priorities? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA31: </b>Household priorities? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha31 }}
 										<h6><span id="sel_hhva_ha31"></span></h6>

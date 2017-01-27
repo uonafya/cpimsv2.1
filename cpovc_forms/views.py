@@ -2775,6 +2775,8 @@ def new_alternative_family_care(request, id):
             messages.add_message(request, messages.INFO, msg)
             return HttpResponseRedirect(reverse(alternative_family_care))
         else:
+            print 'Not a POST'
+            """
             # Init data
             check_fields = ['sex_id']
             vals = get_dict(field_name=check_fields)
@@ -2786,6 +2788,7 @@ def new_alternative_family_care(request, id):
                            'init_data': init_data,
                            'vals': vals,
                            'person_id': id})
+            """
     except Exception, e:
         msg = 'Alternative Family Care Save Error - %s' % str(e)
         messages.add_message(request, messages.ERROR, msg)
@@ -6972,22 +6975,26 @@ def save_form1a(request):
                 olmis_service_provided_list = request.POST.get('olmis_service_provided_list')
                 if olmis_service_provided_list:
                     olmis_service_data = json.loads(olmis_service_provided_list)
+                    print 'olmis_service_data >> %s' %olmis_service_data
                     org_unit = ou_primary if ou_primary else ou_attached[0]
 
                     for service_data in olmis_service_data:
                         service_grouping_id = new_guid_32()
-                        olmis_domain = service_data['olmis_domain']
-                        olmis_service = service_data['olmis_service']
+                        olmis_domain = service_data['olmis_domain']                        
                         olmis_service_date = service_data['olmis_service_date']
-                        olmis_service_date = convert_date(olmis_service_date) if olmis_service_date != 'None' else None                
-                        OVCCareServices(                    
-                            service_provided = olmis_service,
-                            service_provider = org_unit,
-                            # place_of_service = olmis_place_of_service,
-                            date_of_encounter_event = olmis_service_date,
-                            event = OVCCareEvents.objects.get(pk=new_pk),
-                            service_grouping_id = service_grouping_id
-                        ).save()
+                        olmis_service_date = convert_date(olmis_service_date) if olmis_service_date != 'None' else None   
+                        olmis_service = service_data['olmis_service']
+                        print 'olmis_service: %s' %olmis_service
+                        services = olmis_service.split(',')
+                        for service in services:
+                            OVCCareServices(                    
+                                service_provided = service,
+                                service_provider = org_unit,
+                                # place_of_service = olmis_place_of_service,
+                                date_of_encounter_event = olmis_service_date,
+                                event = OVCCareEvents.objects.get(pk=new_pk),
+                                service_grouping_id = service_grouping_id
+                            ).save()
 
             msg = 'Save Successful'
             jsonResponse.append({'msg': msg})

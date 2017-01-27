@@ -1,0 +1,546 @@
+[
+    {
+        "pk": 30156,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA5R",
+            "item_description_short": "River",
+            "sms_keyword": "False",
+            "item_description": "River",
+            "the_order": 1
+        }
+    }, 
+    {
+        "pk": 30157,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA5S",
+            "item_description_short": "Stream",
+            "sms_keyword": "False",
+            "item_description": "Stream",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30158,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA5P",
+            "item_description_short": "Pond",
+            "sms_keyword": "False",
+            "item_description": "Pond",
+            "the_order": 3
+        }
+    },
+    {
+        "pk": 30159,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA5L",
+            "item_description_short": "Lake",
+            "sms_keyword": "False",
+            "item_description": "Lake",
+            "the_order": 4
+        }
+    },
+    {
+        "pk": 30160,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA5B",
+            "item_description_short": "Borehole",
+            "sms_keyword": "False",
+            "item_description": "Borehole",
+            "the_order": 5
+        }
+    },
+    {
+        "pk": 30161,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA5D",
+            "item_description_short": "Ditch",
+            "sms_keyword": "False",
+            "item_description": "Ditch",
+            "the_order": 6
+        }
+    },
+    {
+        "pk": 30162,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HARC",
+            "item_description_short": "Rainwater collection",
+            "sms_keyword": "False",
+            "item_description": "Rainwater collection",
+            "the_order": 7
+        }
+    },
+    {
+        "pk": 30163,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAPP",
+            "item_description_short": "Purchase water (pipe)",
+            "sms_keyword": "False",
+            "item_description": "Purchase water (pipe)",
+            "the_order": 8
+        }
+    },
+    {
+        "pk": 30164,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha5_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAPT",
+            "item_description_short": "Purchase water (tap)",
+            "sms_keyword": "False",
+            "item_description": "Purchase water (tap)",
+            "the_order": 9
+        }
+    },
+    {
+        "pk": 30165,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha6_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA6B",
+            "item_description_short": "Boiling",
+            "sms_keyword": "False",
+            "item_description": "Boiling",
+            "the_order": 1
+        }
+    },
+    {
+        "pk": 30166,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha6_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA6N",
+            "item_description_short": "None",
+            "sms_keyword": "False",
+            "item_description": "None",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30167,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha6_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA6T",
+            "item_description_short": "Treatment",
+            "sms_keyword": "False",
+            "item_description": "Treatment",
+            "the_order": 3
+        }
+    },
+    {
+        "pk": 30168,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha7_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAPL",
+            "item_description_short": "Pit latrine",
+            "sms_keyword": "False",
+            "item_description": "Pit latrine",
+            "the_order": 1
+        }
+    },
+    {
+        "pk": 30169,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha7_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAFT",
+            "item_description_short": "Flush toilet",
+            "sms_keyword": "False",
+            "item_description": "Flush toilet",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30170,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha7_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HARP",
+            "item_description_short": "Rubbish pit",
+            "sms_keyword": "False",
+            "item_description": "Rubbish pit",
+            "the_order": 3
+        }
+    },
+    {
+        "pk": 30171,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha7_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAOD",
+            "item_description_short": "Open defecation",
+            "sms_keyword": "False",
+            "item_description": "Open defecation",
+            "the_order": 4
+        }
+    },
+    {
+        "pk": 30172,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha8_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAYS",
+            "item_description_short": "Yes",
+            "sms_keyword": "False",
+            "item_description": "Yes",
+            "the_order": 1
+        }
+    },
+    {
+        "pk": 30173,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Water, Sanitation & Hygiene",
+            "user_configurable": "False",
+            "field_name": "olmis_ha8_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HANO",
+            "item_description_short": "No",
+            "sms_keyword": "False",
+            "item_description": "No",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30174,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha9_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAGL",
+            "item_description_short": "Good based on local std",
+            "sms_keyword": "False",
+            "item_description": "Good based on local std",
+            "the_order": 1
+        }
+    },
+    {
+        "pk": 30175,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha9_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAFL",
+            "item_description_short": "Fair based on local std",
+            "sms_keyword": "False",
+            "item_description": "Fair based on local std",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30176,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha9_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HADP",
+            "item_description_short": "Dilapitated",
+            "sms_keyword": "False",
+            "item_description": "Dilapitated",
+            "the_order": 3
+        }
+    },
+    {
+        "pk": 30177,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha10_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAMA",
+            "item_description_short": "Matress",
+            "sms_keyword": "False",
+            "item_description": "Matress",
+            "the_order": 1
+        }
+    },
+    {
+        "pk": 30178,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha10_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HABL",
+            "item_description_short": "Blankets",
+            "sms_keyword": "False",
+            "item_description": "Blankets",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30179,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha10_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HASA",
+            "item_description_short": "Sack",
+            "sms_keyword": "False",
+            "item_description": "Sack",
+            "the_order": 3
+        }
+    },
+    {
+        "pk": 30180,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha10_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HABO",
+            "item_description_short": "Boxes",
+            "sms_keyword": "False",
+            "item_description": "Boxes",
+            "the_order": 4
+        }
+    },
+    {
+        "pk": 30181,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha10_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAHS",
+            "item_description_short": "Hide/Skin",
+            "sms_keyword": "False",
+            "item_description": "Hide/Skin",
+            "the_order": 5
+        }
+    },
+    {
+        "pk": 30182,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Shelter and Care",
+            "user_configurable": "False",
+            "field_name": "olmis_ha10_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAOC",
+            "item_description_short": "Old clothes",
+            "sms_keyword": "False",
+            "item_description": "Old clothes",
+            "the_order": 6
+        }
+    },
+    {
+        "pk": 30183,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Food, Security and Nutrition",
+            "user_configurable": "False",
+            "field_name": "olmis_ha11_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA1D",
+            "item_description_short": "1 meal a day",
+            "sms_keyword": "False",
+            "item_description": "1 meal a day",
+            "the_order": 1
+        }
+    },
+    {
+        "pk": 30184,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Food, Security and Nutrition",
+            "user_configurable": "False",
+            "field_name": "olmis_ha11_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA2D",
+            "item_description_short": "2 meals a day",
+            "sms_keyword": "False",
+            "item_description": "2 meals a day",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30185,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Food, Security and Nutrition",
+            "user_configurable": "False",
+            "field_name": "olmis_ha11_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HA3D",
+            "item_description_short": "3 meals a day",
+            "sms_keyword": "False",
+            "item_description": "3 meals a day",
+            "the_order": 3
+        }
+    },
+    {
+        "pk": 30186,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Food, Security and Nutrition",
+            "user_configurable": "False",
+            "field_name": "olmis_ha12_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAOF",
+            "item_description_short": "Own farm",
+            "sms_keyword": "False",
+            "item_description": "Own farm",
+            "the_order": 1
+        }
+    },
+    {
+        "pk": 30187,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Food, Security and Nutrition",
+            "user_configurable": "False",
+            "field_name": "olmis_ha12_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HAMP",
+            "item_description_short": "Market (purchased)",
+            "sms_keyword": "False",
+            "item_description": "Market (purchased)",
+            "the_order": 2
+        }
+    },
+    {
+        "pk": 30188,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Food, Security and Nutrition",
+            "user_configurable": "False",
+            "field_name": "olmis_ha12_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HALS",
+            "item_description_short": "Livestock",
+            "sms_keyword": "False",
+            "item_description": "Livestock",
+            "the_order": 3
+        }
+    },
+    {
+        "pk": 30189,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Food, Security and Nutrition",
+            "user_configurable": "False",
+            "field_name": "olmis_ha12_id",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "HADN",
+            "item_description_short": "Donations",
+            "sms_keyword": "False",
+            "item_description": "Donations",
+            "the_order": 4
+        }
+    }
+]
