@@ -341,7 +341,7 @@
 "fields": {
 "item_category": "Shelter and Care",
 "user_configurable": "False",
-"field_name": "olmis_ha10_id",
+"field_name": "olmis_ha10_type_id",
 "item_sub_category": "",
 "is_void": "False",
 "item_id": "HAMA",
@@ -357,7 +357,7 @@
 "fields": {
 "item_category": "Shelter and Care",
 "user_configurable": "False",
-"field_name": "olmis_ha10_id",
+"field_name": "olmis_ha10_type_id",
 "item_sub_category": "",
 "is_void": "False",
 "item_id": "HABL",
@@ -373,7 +373,7 @@
 "fields": {
 "item_category": "Shelter and Care",
 "user_configurable": "False",
-"field_name": "olmis_ha10_id",
+"field_name": "olmis_ha10_type_id",
 "item_sub_category": "",
 "is_void": "False",
 "item_id": "HASA",
@@ -389,7 +389,7 @@
 "fields": {
 "item_category": "Shelter and Care",
 "user_configurable": "False",
-"field_name": "olmis_ha10_id",
+"field_name": "olmis_ha10_type_id",
 "item_sub_category": "",
 "is_void": "False",
 "item_id": "HABO",
@@ -405,7 +405,7 @@
 "fields": {
 "item_category": "Shelter and Care",
 "user_configurable": "False",
-"field_name": "olmis_ha10_id",
+"field_name": "olmis_ha10_type_id",
 "item_sub_category": "",
 "is_void": "False",
 "item_id": "HAHS",
@@ -421,7 +421,7 @@
 "fields": {
 "item_category": "Shelter and Care",
 "user_configurable": "False",
-"field_name": "olmis_ha10_id",
+"field_name": "olmis_ha10_type_id",
 "item_sub_category": "",
 "is_void": "False",
 "item_id": "HAOC",
@@ -429,6 +429,38 @@
 "sms_keyword": "False",
 "item_description": "Old clothes",
 "the_order": 6
+}
+},
+{
+"pk": 30600,
+"model": "cpovc_main.SetupList",
+"fields": {
+"item_category": "Shelter and Care",
+"user_configurable": "False",
+"field_name": "olmis_ha10_condition_id",
+"item_sub_category": "",
+"is_void": "False",
+"item_id": "HAWO",
+"item_description_short": "Worn Out",
+"sms_keyword": "False",
+"item_description": "Worn Out",
+"the_order": 1
+}
+},
+{
+"pk": 30601,
+"model": "cpovc_main.SetupList",
+"fields": {
+"item_category": "Shelter and Care",
+"user_configurable": "False",
+"field_name": "olmis_ha10_condition_id",
+"item_sub_category": "",
+"is_void": "False",
+"item_id": "HAGD",
+"item_description_short": "Good",
+"sms_keyword": "False",
+"item_description": "Good",
+"the_order": 2
 }
 },
 {
