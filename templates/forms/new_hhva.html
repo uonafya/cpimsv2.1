@@ -264,11 +264,11 @@
 								</div>
 
 								<div class="form-group">
-									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA7: </b>What is the main mode of human disposal? : <span class="asteriskField">* </label>
+									<label class="control-label col-md-4 col-sm-4" for="hhva_qs"><b>HA7: </b>What is the main mode of human waste disposal? : <span class="asteriskField">* </label>
 									<div class="col-md-4 col-sm-4">
 										{{ form.hhva_ha7 }}
 									</div>
-									<a href="#" data-toggle="tooltip" title="Human disposal mode"><i class="fa fa-info-circle fa-sm"></i></a>
+									<a href="#" data-toggle="tooltip" title="Human waste disposal mode"><i class="fa fa-info-circle fa-sm"></i></a>
 								</div>
 
 								<div class="form-group">
@@ -828,12 +828,14 @@ function AddRow(x)
 				if(size)
 				{
 					// Validate if size
+					/**
 					var isnum = /^\d+$/.test(size);
 					if(!isnum){
 				        $('#hhva_ha15_size_errormsg_').css({'display': 'block'})
 				        return false;
 					}
 					$('#hhva_ha15_size_errormsg_').css({'display': 'none'})
+					**/
 
 					// Find a <table> element with id="ha15_manager_table":
                     var table = $('#ha15_manager_table')[0]; 
@@ -861,7 +863,7 @@ function AddRow(x)
                     cell0.innerHTML = '<h6 class="td_style">' + hstatus + '</h6>';        
                     cell1.innerHTML = '<h6 class="td_style">' + displayVals(2, "hhva_ha15_asset") + hasset + '</h6>';
                     cell2.innerHTML = '<h6 class="td_style">' + $('#hhva_ha15_number').val() + hnumber + '</h6>';
-                    cell3.innerHTML = '<h6 class="td_style">' + displayVals(2, "hhva_ha15_size") + hsize + '</h6>';
+                    cell3.innerHTML = '<h6 class="td_style">' + $('#hhva_ha15_size').val() + hsize + '</h6>';
                     cell4.innerHTML  = '<h6 class="dialog_paragraph">' + "<a id=" + btnRemoveSvcId + " class='btn btn-sm btn-link m-r-5 href='#'>Remove</a>" + '</h6>';
 
                     // AddClick Event To Remove Button

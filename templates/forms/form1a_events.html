@@ -162,7 +162,7 @@
 
                             <div class="panel-body panel-form">
                                 <div class="form-group">
-                                    <label class="control-label col-md-4 col-sm-4">Date of Event</label>
+                                    <label class="control-label col-md-4 col-sm-4">Date Assessment Recorded</label>
                                     <div class="col-md-2 col-sm-2">
                                         {{ form.date_of_assessment }}
                                         <div id="date_errormsg0" style="display:none;">
@@ -203,7 +203,7 @@
 
                             <div class="panel-body panel-form">
                                 <div class="form-group">
-                                    <label class="control-label col-md-4 col-sm-4">Date of Event</label>
+                                    <label class="control-label col-md-4 col-sm-4">Date Critical Event Recorded</label>
                                     <div class="col-md-2 col-sm-2">
                                         {{ form.date_of_cevent }}
                                         <div id="date_errormsg1" style="display:none;">
@@ -276,9 +276,9 @@
                                 </button>                               
                             </div>
 
-                            <div id="div-priority-need1-date" style="display: none" class="panel-body panel-form">
+                            <div id="div-priority-need1-date" class="panel-body panel-form">
                                 <div class="form-group">
-                                    <label class="control-label col-md-4 col-sm-4">Date of Event</label>
+                                    <label class="control-label col-md-4 col-sm-4">Date Priority Recorded</label>
                                     <div class="col-md-2 col-sm-2">
                                         {{ form.date_of_priority }}
                                         <div id="date_errormsg2" style="display:none;">
@@ -368,7 +368,7 @@
 
                             <div class="panel-body panel-form">
                                 <div class="form-group">
-                                    <label class="control-label col-md-4 col-sm-4">Date of Event</label>
+                                    <label class="control-label col-md-4 col-sm-4">Date Services Recorded</label>
                                     <div class="col-md-2 col-sm-2">
                                         {{ form.date_of_service }}
                                         <div id="date_errormsg3" style="display:none;">
@@ -478,7 +478,7 @@ jQuery(document).ready(function()
     getServices(4, 'DHES')
 
     // show/hide PriorityTab [Jan/May/Nov]
-    tabManager();
+    // tabManager();
 
     // load form1a events
     loadForm1aEvents();
@@ -1382,20 +1382,20 @@ function displayVals(x, value)
 
 function tabManager()
 {
-    var date = new Date();
+    var date = $("#date_of_priority").datepicker("getDate")
     var month = date.getMonth() + 1;
     if(month==1 || month==5 || month==11)
     {
         $('#div-priority-need0').css({'display': 'none'});
         $('#div-priority-need1').css({'display': 'block'});
-        $('#div-priority-need1-date').css({'display': 'block'});
+        //$('#div-priority-need1-date').css({'display': 'block'});
         $('#div-priority-need1-controls').css({'display': 'block'});
     }
     else
     {
         $('#div-priority-need0').css({'display': 'block'});
         $('#div-priority-need1').css({'display': 'none'});
-        $('#div-priority-need1-date').css({'display': 'none'});
+        //$('#div-priority-need1-date').css({'display': 'none'});
         $('#div-priority-need1-controls').css({'display': 'none'});        
     }
 }
@@ -1475,6 +1475,10 @@ $("#olmis_priority_service").change(function(event)
 $('#date_of_priority').datepicker({ format: 'dd-M-yyyy' });
 $('#date_of_priority').datepicker().on('change.dp', function(e) {
     $("#date_errormsg3").css({ 'display': "none" });
+});
+
+$('#date_of_priority').datepicker().on('change.dp', function(e) {
+    tabManager();
 });
 
 // -----------------------------------------------------------------------------------------

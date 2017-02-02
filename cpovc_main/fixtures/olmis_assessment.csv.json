@@ -254,6 +254,38 @@
             "item_description": "Regular Attendance",
             "the_order": 10
         }
+    },    
+    {
+        "pk": 30200,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Monitor",
+            "user_configurable": "False",
+            "field_name": "olmis_education_assessment_id_8",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "MSSC",
+            "item_description_short": "",
+            "sms_keyword": "False",
+            "item_description": "Lack of scholastic materials",
+            "the_order": 1
+        }
+    },    
+    {
+        "pk": 30201,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Monitor",
+            "user_configurable": "False",
+            "field_name": "olmis_education_assessment_id_8",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "MSLF",
+            "item_description_short": "",
+            "sms_keyword": "False",
+            "item_description": "Lack of fees",
+            "the_order": 2
+        }
     },
     {
         "pk": 30016,
@@ -744,13 +776,29 @@
             "field_name": "olmis_education_assessment_id",
             "item_sub_category": "olmis_education_assessment_id_7",
             "is_void": "False",
-            "item_id": "EACP",
+            "item_id": "EACE",
             "item_description_short": "",
             "sms_keyword": "False",
             "item_description": "Child Enrolled in School",
             "the_order": 7
         }
-    },
+    }, 
+    {
+        "pk": 30047,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Monitor",
+            "user_configurable": "False",
+            "field_name": "olmis_education_assessment_id",
+            "item_sub_category": "olmis_education_assessment_id_8",
+            "is_void": "False",
+            "item_id": "EANA",
+            "item_description_short": "",
+            "sms_keyword": "False",
+            "item_description": "Child Not Attending School",
+            "the_order": 8
+        }
+    },  
     {
         "pk": 30048,
         "model": "cpovc_main.SetupList",

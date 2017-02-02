@@ -6362,8 +6362,7 @@ def new_csi(request, id):
             social_behaviour = request.POST.get('social_behaviour')  # PSS2
             perfomance = request.POST.get('perfomance')  # EDU1
             education_work = request.POST.get('education_work')  # EDU2
-            household_strengthening = request.POST.get(
-                'household_strengthening')  # HES1
+            # household_strengthening = request.POST.get('household_strengthening')  # HES1
 
             my_kvals = []
             my_kvals.append({ "entity": "HNU1", "value": food_security })
@@ -6378,7 +6377,7 @@ def new_csi(request, id):
             my_kvals.append({ "entity": "PSS2", "value": social_behaviour })
             my_kvals.append({ "entity": "EDU1", "value": perfomance })
             my_kvals.append({ "entity": "EDU2", "value": education_work })
-            my_kvals.append({ "entity": "HES1", "value": household_strengthening })
+            # my_kvals.append({ "entity": "HES1", "value": household_strengthening })
             for kvals in my_kvals:
                 key = kvals["entity"]
                 value = kvals["value"]
@@ -6477,8 +6476,7 @@ def edit_csi(request, id):
             social_behaviour = request.POST.get('social_behaviour')  # PSS2
             perfomance = request.POST.get('perfomance')  # EDU1
             education_work = request.POST.get('education_work')  # EDU2
-            household_strengthening = request.POST.get(
-                'household_strengthening')  # HES1
+            # household_strengthening = request.POST.get('household_strengthening')  # HES1
             my_kvals = []
             my_kvals.append({ "entity": "HNU1", "value": food_security })
             my_kvals.append({ "entity": "HNU2", "value": nutrition_growth })
@@ -6492,7 +6490,7 @@ def edit_csi(request, id):
             my_kvals.append({ "entity": "PSS2", "value": social_behaviour })
             my_kvals.append({ "entity": "EDU1", "value": perfomance })
             my_kvals.append({ "entity": "EDU2", "value": education_work })
-            my_kvals.append({ "entity": "HES1", "value": household_strengthening })
+            # my_kvals.append({ "entity": "HES1", "value": household_strengthening })
             for kvals in my_kvals:
                 key = kvals["entity"]
                 value = kvals["value"]
@@ -7129,7 +7127,7 @@ def new_hhva(request, id):
             if date_of_hhva:
                 date_of_hhva = convert_date(date_of_hhva)
 
-            """ Save CSIEvent """
+            """ Save HHVAEvent """
             event_counter = OVCCareEvents.objects.filter(
                 event_type_id=event_type_id, person=id, is_void=False).count()
             ovccareevent = OVCCareEvents(

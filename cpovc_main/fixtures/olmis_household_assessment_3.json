@@ -368,6 +368,22 @@
 }
 },
 {
+"pk": 30500,
+"model": "cpovc_main.SetupList",
+"fields": {
+"item_category": "Shelter and Care",
+"user_configurable": "False",
+"field_name": "olmis_ha10_type_id",
+"item_sub_category": "",
+"is_void": "False",
+"item_id": "HARM",
+"item_description_short": "Reed Mat",
+"sms_keyword": "False",
+"item_description": "Reed Mat",
+"the_order": 7
+}
+},
+{
 "pk": 30179,
 "model": "cpovc_main.SetupList",
 "fields": {

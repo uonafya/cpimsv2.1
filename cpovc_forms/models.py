@@ -752,7 +752,7 @@ class OVCCareEAV(models.Model):
     eav_id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
     entity = models.CharField(max_length=5)
     attribute = models.CharField(max_length=5)
-    value = models.CharField(max_length=4)
+    value = models.CharField(max_length=25)
     value_for = models.CharField(max_length=10, null=True)
     event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
     is_void = models.BooleanField(default=False)
