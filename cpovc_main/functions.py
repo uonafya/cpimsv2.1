@@ -358,6 +358,34 @@ def get_dict(field_name=[], default_txt=False):
         return dict_val
 
 
+def get_mapped(field_name=[], default_txt=False):
+    '''
+    Push the item_id and item_description into a tuple.
+    Instead of sorting after, ordered dict works since query
+    results are already ordered from db
+    '''
+    # initial_list = {'': default_txt} if default_txt else {}
+    # all_list = collections.OrderedDict(initial_list)
+    # [{'item_id': u'TNRS', 'item_description': u'Residentia....'}
+    dict_val = {}
+    try:
+        my_list = get_general_list(field_names=field_name)
+        all_list = my_list.values(
+            'item_id', 'item_description', 'field_name')
+        for value in all_list:
+            item_id = value['item_id']
+            item_details = value['item_description']
+            item_field = value['field_name']
+            items = {'name': item_details, 'id': item_field}
+            dict_val[item_id] = items
+    except Exception, e:
+        error = 'Error getting list - %s' % (str(e))
+        print error
+        return {}
+    else:
+        return dict_val
+
+
 def tokenize_search_string(search_string):
     if not search_string:
         return []
