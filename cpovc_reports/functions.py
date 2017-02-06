@@ -3,6 +3,7 @@ import re
 import uuid
 import string
 import random
+import calendar
 from datetime import datetime, timedelta
 from calendar import monthrange, month_name
 from collections import OrderedDict
@@ -20,10 +21,10 @@ from reportlab.graphics.barcode import qr
 from reportlab.graphics.shapes import Drawing
 from reportlab.graphics import renderPDF
 
-from cpovc_main.functions import get_general_list, get_dict
+from cpovc_main.functions import get_general_list, get_dict, get_mapped
 from cpovc_main.models import SetupGeography
 
-from cpovc_ovc.models import OVCAggregate
+from cpovc_ovc.models import OVCAggregate, OVCRegistration
 
 from .config import reports
 from cpovc_registry.models import (
@@ -33,7 +34,7 @@ from cpovc_registry.models import (
 
 from cpovc_forms.models import (
     OVCCaseCategory, OVCCaseGeo, OVCCaseEventServices,
-    OVCPlacement, OVCAdverseEventsOtherFollowUp,
+    OVCPlacement, OVCAdverseEventsOtherFollowUp, OVCCareServices,
     OVCDischargeFollowUp, OVCCaseRecord, OVCAdverseEventsFollowUp)
 
 from django.conf import settings
@@ -1963,6 +1964,126 @@ def get_performance_detail(request, user_id=0, params={}):
         return persons, cases, reports
 
 
+def get_variables(request):
+    """Method to prepare all the variables for reporting."""
+    try:
+        dates = {v: k for k, v in enumerate(calendar.month_abbr)}
+        sub_county_ids = request.POST.getlist('sub_county[]')
+        sub_counties = request.POST.get('sub_county')
+        county = request.POST.get('county')
+        if not sub_county_ids:
+            sub_county_ids = [sub_counties]
+        report_type = request.POST.get('report_type')
+        rperiod = request.POST.get('report_period')
+        rpt_years = request.POST.get('report_year')
+        rpt_iyears = request.POST.get('report_years')
+        report = request.POST.get('report_id')
+        report_unit = request.POST.get('org_unit')
+        report_inst = request.POST.get('org_inst')
+        org_unit_name = request.POST.get('org_unit_name')
+        report_region = int(request.POST.get('report_region'))
+        # results = {'res': sub_county_ids}
+        case_categories = get_case_details(['case_category_id'])
+        institution_type = request.POST.get('institution_type')
+        adhoc_id = request.POST.get('report_vars')
+        org_type = request.POST.get('org_type')
+        categories = {}
+        report_id = int(report) if report else 0
+
+        if int(report_id) in [3, 4]:
+            report_unit = report_inst
+            rpt_years = rpt_iyears
+        region_names = {1: 'National', 2: 'County',
+                        3: 'Sub-county', 4: 'Organisation Unit'}
+        is_fin = '/' in rpt_years
+        report_year = rpt_years.split('/')[0] if is_fin else rpt_years
+        for case_category in case_categories:
+            case_id = case_category.item_id
+            case_name = case_category.item_description
+            categories[case_id] = case_name
+        my_county = county if report_region == 2 else False
+        if report_region == 1 or report_region == 4:
+            sub_county_ids = []
+        sub_counties = get_sub_county_info(
+            sub_county_ids, icounty=my_county)
+        variables = {'sub_county_id': [], 'sub_county': []}
+        for sub_county in sub_counties:
+            rep_var = sub_counties[sub_county]
+            variables['county'] = rep_var['county']
+            variables['sub_county_id'].append(rep_var['sub_county_id'])
+            variables['sub_county'].append(rep_var['sub_county'])
+        # Report variables
+        if int(report_region) == 1:
+            variables = {'county': 'National', 'sub_county': ['National']}
+        variables['sub_county'] = ', '.join(variables['sub_county'])
+        # Report variables
+        variables['report_region'] = report_region
+        today = datetime.now()
+        # year = today.strftime('%Y')
+        month = today.strftime('%m')
+        # Other parameters
+        if report_region == 4 or int(report_id) == 5:
+            rep_unit = report_unit if report_unit else False
+            variables['org_unit'] = rep_unit
+        else:
+            variables['org_unit'] = False
+        variables['report_id'] = report_id
+        rpd = rperiod[:3] if report_type == 'M' else rperiod
+        ryr = rperiod[0] if report_type == 'Y' else 'F'
+        if int(report_id) in [1]:
+            ryr = 'C'
+        year = int(report_year) + 1 if report_type == 'M' else report_year
+        if report_type == 'Q':
+            report_type = rperiod.replace('tr', '')
+        # Month value
+        month = dates[rpd] if rpd in dates else ''
+        period_params = get_period(
+            report_type=report_type, year=year, month=month, period=ryr)
+        report_variables = merge_two_dicts(variables, period_params)
+        report_variables['org_unit_name'] = org_unit_name
+        report_variables['institution_type'] = institution_type
+        org_type_id = org_type if org_type else 'ALL'
+        report_variables['org_type'] = org_type_id
+        adhoc_type = adhoc_id if adhoc_id else None
+        report_variables['adhoc_type'] = adhoc_type
+
+        report_variables['cci_si_title'] = region_names[report_region]
+        sc = variables['sub_county']
+        is_opt = report_region == 4
+        si_c = 'Sub-County: %s' % (sc) if report_region in [2, 3] else None
+        si_n = 'National' if report_region == 1 else si_c
+        si_name = 'Unit: %s' % org_unit_name if is_opt else si_n
+        report_variables['cci_si_name'] = si_name
+
+        # More parameters
+        inst_cats = {}
+        inst_cats["TNCI"] = "Charitable Children Institution"
+        inst_cats["TNSI"] = "Statutory Institution"
+
+        case_institutions = get_case_details(
+            ['si_unit_type_id', 'cci_unit_type_id'])
+        for itsi in case_institutions:
+            inst_id = itsi.item_id
+            inst_name = itsi.item_description
+            inst_cats[inst_id] = inst_name
+
+        inst_type = institution_type if org_type_id == 'ALL' else org_type
+        iname = inst_cats[inst_type] if inst_type in inst_cats else None
+
+        icheck = iname is None and inst_type
+        inst_type_name = inst_cats[inst_type] if icheck else iname
+        print 'INST TYPE', inst_type_name
+
+        unit_id = org_type_id if org_type_id != 'ALL' else institution_type
+        check_region = unit_id and report_region != 4
+        unit_type = 'for %s' % (inst_cats[unit_id]) if check_region else ''
+        report_variables['unit_type'] = unit_type
+    except Exception, e:
+        raise e
+    else:
+        return report_variables
+
+
 def get_pivot_data(request, params={}):
     """Method to get pivot data."""
     try:
@@ -2018,19 +2139,86 @@ def get_pivot_data(request, params={}):
         return records
 
 
-def get_pivot_ovc(request):
+def get_domain_data():
+    """Method to get data by domain."""
+    try:
+        datas = []
+        domains = {}
+        domains['olmis_shelter_service_id'] = 'Shelter and Care'
+        domains['olmis_pss_service_id'] = 'Psychosocial Support'
+        domains['olmis_protection_service_id'] = 'Protection'
+        domains['olmis_hes_service_id'] = 'HouseHold Economic Strengthening'
+        domains['olmis_health_service_id'] = 'Health and Nutrition'
+        domains['olmis_education_service_id'] = 'Education'
+        # sub domains
+        field_names = ["olmis_shelter_service_id", "olmis_pss_service_id",
+                       "olmis_protection_service_id", "olmis_hes_service_id",
+                       "olmis_health_service_id", "olmis_education_service_id"]
+        sub_domains = get_mapped(field_name=field_names)
+        print sub_domains
+        domain = 'Uknown'
+        services = OVCCareServices.objects.all()
+        for service in services:
+            event = service.event.event_type_id
+            age = service.event.person.years
+            sex = service.event.person.sex_id
+            user = service.event.created_by
+            serv = service.service_provided
+            count = 1
+            cbo = 1
+            county = 1
+            ward = 1
+            # User
+            if event == 'FSAM':
+                if serv in sub_domains:
+                    sd = sub_domains[serv]['id']
+                    domain = domains[sd]
+                print event, user, serv
+                gender = 'Female' if sex == 'SFEM' else 'Male'
+                data = {'OVC Count': count, 'Age': age,
+                        'Gender': gender, 'CBO': cbo, 'Domain': domain,
+                        'County': county, 'Ward': ward}
+                datas.append(data)
+
+    except Exception, e:
+        print 'error getting domain data - %s' % str(e)
+    else:
+        return datas
+
+
+def get_registration_data(kpis):
+    """Get OVC registration data."""
+    try:
+        datas = []
+        regs = OVCRegistration.objects.all()
+        for reg in regs:
+            count = 1
+            age = reg.person.years
+            sex = reg.person.sex_id
+            cbo = reg.child_cbo.org_unit_name
+            county = 1
+            ward = 1
+            kpi = kpis[1] % ('Number of')
+            gender = 'Female' if sex == 'SFEM' else 'Male'
+            data = {'OVC Count': count, 'Age': age,
+                    'Gender': gender, 'CBO': cbo,
+                    'County': county, 'Ward': ward,
+                    'Performance Indicator': kpi}
+            datas.append(data)
+    except Exception, e:
+        raise e
+    else:
+        return datas
+
+
+def get_pivot_ovc(request, params={}):
     """Method to get OVC Pivot Data."""
     try:
         datas = []
         report_id = int(request.POST.get('report_ovc'))
         print 'RPT', report_id
         genders = ["Male", "Female"]
-        domains = ["Wellness", "Social behaviour", "Shelter", "Performance",
-                   "Nutrition and growth", "Legal protection",
-                   "Health care services", "Food security",
-                   "Emotional health", "Education and work", "Care",
-                   "Abuse and exploitation"]
-
+        domains = ['DSHC', 'DPSS', 'DPRO', 'DHES', 'DHNU', 'DEDU']
         kpis = {}
         kpis[1] = '1.a %s OVCs Ever Registered'
         kpis[2] = '1.b %s New OVC Registrations within period'
@@ -2064,12 +2252,19 @@ def get_pivot_ovc(request):
         kpis[28] = '5.b %s ACTIVE CHVs within period'
         kpis[29] = '5.b %s OVC served with 3 or more services'
         kpis[30] = '5.c %s OVC NOT served with any service'
+        # served
+        services = {}
+        services[1] = '1 or 2 Services'
+        services[2] = '3 or More Services'
+        services[3] = 'Not Served'
         for i in range(1, 9000):
             gender = random.choice(genders)
             domain = random.choice(domains)
             kpi_id = random.randint(1, 30)
             sch_level = random.randint(1, 8)
+            serv_id = random.randint(1, 3)
             kpi = kpis[kpi_id]
+            service = services[serv_id]
             count = random.randint(0, 100)
             age = random.randint(0, 30)
             cbo = 'Test CBO %s' % (random.randint(1, 5))
@@ -2080,12 +2275,17 @@ def get_pivot_ovc(request):
                     'County': county, 'Ward': ward}
             if report_id == 3:
                 data['Performance Indicator'] = kpi
+            if report_id == 1:
+                data['Services'] = service
             else:
                 data['Domain'] = domain
                 if report_id == 2:
                     data['School Level'] = sch_level
             datas.append(data)
-        print datas
+        if report_id == 3:
+            datas = get_registration_data(kpis)
+        if report_id == 2:
+            datas = get_domain_data()
     except Exception, e:
         print 'Error getting OVC pivot data - %s' % (str(e))
         return []

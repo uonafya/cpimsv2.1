@@ -21,7 +21,7 @@ from .functions import (
     simple_document, draw_page, get_geo_locations, get_data, get_period,
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
     get_case_data, org_unit_tree, get_performance, get_performance_detail,
-    get_pivot_data, get_pivot_ovc)
+    get_pivot_data, get_pivot_ovc, get_variables)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -502,120 +502,9 @@ def reports_generate(request):
             results = {'status': 9, 'file_name': '', 'message': msg}
             return JsonResponse(results, content_type='application/json',
                                 safe=False)
-        dates = {v: k for k, v in enumerate(calendar.month_abbr)}
         if request.method == 'POST':
-            sub_county_ids = request.POST.getlist('sub_county[]')
-            sub_counties = request.POST.get('sub_county')
-            county = request.POST.get('county')
-            if not sub_county_ids:
-                sub_county_ids = [sub_counties]
-            report_type = request.POST.get('report_type')
-            rperiod = request.POST.get('report_period')
-            rpt_years = request.POST.get('report_year')
-            rpt_iyears = request.POST.get('report_years')
-            report_id = request.POST.get('report_id')
-            report_unit = request.POST.get('org_unit')
-            report_inst = request.POST.get('org_inst')
-            org_unit_name = request.POST.get('org_unit_name')
             report_region = int(request.POST.get('report_region'))
-            results = {'res': sub_county_ids}
-            case_categories = get_case_details(['case_category_id'])
-            institution_type = request.POST.get('institution_type')
-            adhoc_id = request.POST.get('report_vars')
-            org_type = request.POST.get('org_type')
-            ovc_type = request.POST.get('report_ovc')
-            categories = {}
-
-            print 'ID', report_id
-
-            if int(report_id) in [3, 4]:
-                report_unit = report_inst
-                rpt_years = rpt_iyears
-            region_names = {1: 'National', 2: 'County',
-                            3: 'Sub-county', 4: 'Organisation Unit'}
-            is_fin = '/' in rpt_years
-            report_year = rpt_years.split('/')[0] if is_fin else rpt_years
-            for case_category in case_categories:
-                case_id = case_category.item_id
-                case_name = case_category.item_description
-                categories[case_id] = case_name
-            my_county = county if report_region == 2 else False
-            if report_region == 1 or report_region == 4:
-                sub_county_ids = []
-            sub_counties = get_sub_county_info(
-                sub_county_ids, icounty=my_county)
-            variables = {'sub_county_id': [], 'sub_county': []}
-            for sub_county in sub_counties:
-                rep_var = sub_counties[sub_county]
-                variables['county'] = rep_var['county']
-                variables['sub_county_id'].append(rep_var['sub_county_id'])
-                variables['sub_county'].append(rep_var['sub_county'])
-            # Report variables
-            if int(report_region) == 1:
-                variables = {'county': 'National', 'sub_county': ['National']}
-            variables['sub_county'] = ', '.join(variables['sub_county'])
-            # Report variables
-            variables['report_region'] = report_region
-            today = datetime.now()
-            # year = today.strftime('%Y')
-            month = today.strftime('%m')
-            # Other parameters
-            if report_region == 4 or int(report_id) == 5:
-                rep_unit = report_unit if report_unit else False
-                variables['org_unit'] = rep_unit
-            else:
-                variables['org_unit'] = False
-            variables['report_id'] = report_id
-            rpd = rperiod[:3] if report_type == 'M' else rperiod
-            ryr = rperiod[0] if report_type == 'Y' else 'F'
-            if int(report_id) in [1]:
-                ryr = 'C'
-            year = int(report_year) + 1 if report_type == 'M' else report_year
-            if report_type == 'Q':
-                report_type = rperiod.replace('tr', '')
-            # Month value
-            month = dates[rpd] if rpd in dates else ''
-            period_params = get_period(
-                report_type=report_type, year=year, month=month, period=ryr)
-            report_variables = merge_two_dicts(variables, period_params)
-            report_variables['org_unit_name'] = org_unit_name
-            report_variables['institution_type'] = institution_type
-            org_type_id = org_type if org_type else 'ALL'
-            report_variables['org_type'] = org_type_id
-            adhoc_type = adhoc_id if adhoc_id else None
-            report_variables['adhoc_type'] = adhoc_type
-
-            report_variables['cci_si_title'] = region_names[report_region]
-            sc = variables['sub_county']
-            is_opt = report_region == 4
-            si_c = 'Sub-County: %s' % (sc) if report_region in [2, 3] else None
-            si_n = 'National' if report_region == 1 else si_c
-            si_name = 'Unit: %s' % org_unit_name if is_opt else si_n
-            report_variables['cci_si_name'] = si_name
-
-            # More parameters
-            inst_cats = {}
-            inst_cats["TNCI"] = "Charitable Children Institution"
-            inst_cats["TNSI"] = "Statutory Institution"
-
-            case_institutions = get_case_details(
-                ['si_unit_type_id', 'cci_unit_type_id'])
-            for itsi in case_institutions:
-                inst_id = itsi.item_id
-                inst_name = itsi.item_description
-                inst_cats[inst_id] = inst_name
-
-            inst_type = institution_type if org_type_id == 'ALL' else org_type
-            iname = inst_cats[inst_type] if inst_type in inst_cats else None
-
-            icheck = iname is None and inst_type
-            inst_type_name = inst_cats[inst_type] if icheck else iname
-            print 'INST TYPE', inst_type_name
-
-            unit_id = org_type_id if org_type_id != 'ALL' else institution_type
-            check_region = unit_id and report_region != 4
-            unit_type = 'for %s' % (inst_cats[unit_id]) if check_region else ''
-            report_variables['unit_type'] = unit_type
+            report_variables = get_variables(request)
             # all_datas = get_data(report_variables)
             # all_data = all_datas['data']
             all_data, raw_data = get_raw_data(report_variables)
@@ -626,6 +515,9 @@ def reports_generate(request):
                                     safe=False)
             user_id = request.user.id
             report_cat = report_variables['sub_county']
+            ovc_type = request.POST.get('report_ovc')
+            report_id = request.POST.get('report_id')
+            org_unit_name = request.POST.get('org_unit_name')
             if report_region == 4:
                 org_uniq = org_unit_name.split()[0]
                 report_cat = 'Org-%s' % (org_uniq)
@@ -937,7 +829,8 @@ def reports_ovc_kpi(request):
 def reports_rawdata(request):
     """Method to do adhoc pivot reports."""
     try:
-        results = get_pivot_data(request)
+        report_variables = get_variables(request)
+        results = get_pivot_data(request, report_variables)
         return JsonResponse(results, content_type='application/json',
                             safe=False)
     except Exception, e:
@@ -949,7 +842,8 @@ def reports_rawdata(request):
 def reports_ovc_rawdata(request):
     """Method to do adhoc pivot reports."""
     try:
-        results = get_pivot_ovc(request)
+        report_variables = get_variables(request)
+        results = get_pivot_ovc(request, report_variables)
         return JsonResponse(results, content_type='application/json',
                             safe=False)
     except Exception, e:
