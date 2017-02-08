@@ -3562,16 +3562,16 @@ ul.tagit.inverse li.tagit-choice .tagit-close:focus .ui-icon-close:before {
 /* 6.5 Page - Vector / Google Map */
             
 .page-sidebar-minified .map {
-    left: 60px;
+    left: 2px;
 }
 .map {
     position: absolute;
-    top: 54px;
+    top: 0px;
     bottom: 0;
-    left: 220px;
+    left: 0px;
     right: 0;
     z-index: 0;
-    -webkit-transform: translateZ(0);
+    min-height: 640px;
 }
 .map .jvectormap-zoomin,
 .map .jvectormap-zoomout {
@@ -6159,9 +6159,9 @@ body.flat-black {
     vertical-align: middle;
 }
 .promo{
-    width: 320px;
+    /* width: 120px; */
     text-align: center;
-    margin-right: 10px;
+    margin-right: 30px;
 }
 #footer .promo{
     float: right;
