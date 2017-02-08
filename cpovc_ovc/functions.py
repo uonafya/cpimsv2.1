@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth)
-from cpovc_registry.models import RegPerson
+from cpovc_registry.models import RegPerson, RegOrgUnit
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
 
@@ -14,6 +14,7 @@ def search_ovc(name, criteria):
     """Method to search OVC as per USG."""
     try:
         cid = int(criteria)
+        cbos, pids = [], []
         designs = ['COVC', 'CGOC']
         queryset = RegPerson.objects.filter(
             is_void=False, designation__in=designs)
@@ -23,17 +24,24 @@ def search_ovc(name, criteria):
         if cid == 1:
             for field in field_names:
                 q_filter |= Q(**{"%s__icontains" % field: name})
-            persons = queryset.filter(q_filter)
+            pids = queryset.filter(q_filter).values_list(
+                'id', flat=True)
+        elif cid == 4:
+            cbos = RegOrgUnit.objects.filter(
+                is_void=False, org_unit_name__icontains=name).values_list(
+                'id', flat=True)
         else:
             for field in field_names:
                 q_filter |= Q(**{"%s__icontains" % field: name})
-            persons = queryset.filter(q_filter)
+            pids = queryset.filter(q_filter).values_list(
+                'id', flat=True)
         # Query ovc table
-        pids = []
-        for person in persons:
-            pids.append(person.id)
-        ovcs = OVCRegistration.objects.filter(
-            is_void=False, person_id__in=pids)
+        if cbos:
+            ovcs = OVCRegistration.objects.filter(
+                is_void=False, child_cbo_id__in=cbos)
+        else:
+            ovcs = OVCRegistration.objects.filter(
+                is_void=False, person_id__in=pids)
     except Exception, e:
         print 'Error searching for OVC - %s' % (str(e))
         return {}

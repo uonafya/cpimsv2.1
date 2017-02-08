@@ -57,6 +57,11 @@
                             <h4><i class="fa fa-key"></i> ID: {{ person_details.id }} </h4>
                         </div>
                         <!-- end profile-highlight -->
+                        <center>
+                            <button id="btn_biometrics" class="btn btn-sm btn-primary m-r-5">
+                            <b> Biometrics </b>&nbsp; <i class="fa fa-edit"></i>
+                            </button>
+                        </center>
                     </div>
                     <!-- end profile-left -->
 
@@ -376,6 +381,34 @@
                 <!-- end profile-section -->
             </div>
             <!-- end profile-container -->
+            <!-- #modal-dialog -->
+            <div class="modal fade" id="modal-biometrics">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h4 class="modal-title">
+                            Biometric details
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                           <div id="errors"></div>
+                            <a href="#" >
+                            <div id="bmodules">
+                            <button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-pencil"></i>&nbsp; Upload Photo</button></a>
+                            <a href="http://IrisModule:BiometricOnly={{ person_details.id }}" >
+                            <button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-pencil"></i>&nbsp; Register Iris details</button></a>
+                            <a href="http://IrisModule:Edit={{ person_details.id }}" >
+                            <button type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-pencil"></i>&nbsp; Edit Iris details</button></a>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- #end modal-dialog -->
     <!-- End content area -->
 </div>
 <!-- end row -->
@@ -383,5 +416,27 @@
 
 
 {% block lazy_javascript_code %}
+<script>
+    $(document).ready(function() {
 
+        $('#btn_biometrics').click(function() {
+            $.ajax({
+                type: 'HEAD',
+                url: 'http://IrisModule',
+                success: function() {
+                    $("#errors").addClass( "alert alert-success fade in" );
+                   $('#errors').html("Biometric module found");
+                   $('#bmodules').show();
+                },
+                error: function() {
+                    $("#errors").addClass( "alert alert-danger fade in" );
+                    $('#errors').html("Biometric module not found.");
+                    $('#bmodules').hide();
+                }
+            });
+            
+            $('#modal-biometrics').modal('toggle');
+        });
+    });
+</script>
 {% endblock lazy_javascript_code %}

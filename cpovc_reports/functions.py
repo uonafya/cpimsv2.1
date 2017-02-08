@@ -2211,6 +2211,50 @@ def get_registration_data(kpis):
         return datas
 
 
+def get_services_data(servs):
+    """Get OVC registration data."""
+    try:
+        datas = []
+        events = {}
+        services = OVCCareServices.objects.all()
+        for service in services:
+            event_id = service.event.pk
+            event = service.event.event_type_id
+            person_id = service.event.person_id
+            # User
+            if event == 'FSAM':
+                if person_id not in events:
+                    events[person_id] = [event_id]
+                else:
+                    events[person_id].append(event_id)
+        regs = OVCRegistration.objects.all()
+        for reg in regs:
+            count = 1
+            age = reg.person.years
+            sex = reg.person.sex_id
+            child_id = reg.person_id
+            cbo = reg.child_cbo.org_unit_name
+            county = 1
+            ward = 1
+            serv_count = len(events[child_id]) if child_id in events else 0
+            serv_id = 3
+            if serv_count > 0 and serv_count < 3:
+                serv_id = 1
+            if serv_count > 2:
+                serv_id = 2
+            serv = servs[serv_id]
+            gender = 'Female' if sex == 'SFEM' else 'Male'
+            data = {'OVC Count': count, 'Age': age,
+                    'Gender': gender, 'CBO': cbo,
+                    'County': county, 'Ward': ward,
+                    'Services': serv}
+            datas.append(data)
+    except Exception, e:
+        raise e
+    else:
+        return datas
+
+
 def get_pivot_ovc(request, params={}):
     """Method to get OVC Pivot Data."""
     try:
@@ -2286,6 +2330,8 @@ def get_pivot_ovc(request, params={}):
             datas = get_registration_data(kpis)
         if report_id == 2:
             datas = get_domain_data()
+        if report_id == 1:
+            datas = get_services_data(services)
     except Exception, e:
         print 'Error getting OVC pivot data - %s' % (str(e))
         return []
