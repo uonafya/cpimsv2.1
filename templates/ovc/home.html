@@ -6,6 +6,7 @@
 
 {% block style_code %}
 <link href="{% static 'plugins/bootstrap-multiselect/dist/css/bootstrap-multiselect.css' %}" rel="stylesheet">
+<link href="{% static 'css/bootstrap-table.min.css' %}" rel="stylesheet" />
 {% endblock %}
 
 {% block primary %}
@@ -145,6 +146,8 @@
 
 {% block lazy_javascript_code %}
 <script src="{% static 'plugins/bootstrap-multiselect/dist/js/bootstrap-multiselect.js' %}"></script>
+<script src="{% static 'js/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-table-locale-all.min.js' %}"></script>  
 <script>
 $(document).ready(function() 
 {
@@ -157,6 +160,21 @@ $(document).ready(function()
         maxHeight: 300,
         buttonWidth: '100%',
         buttonClass: 'btn btn-white'
+    });
+    //
+    $('#data-table').bootstrapTable({ 
+        toggle: 'table', 
+        search: 'true',
+        locale: 'en-US',
+        pagination: 'true',
+        pageNumber: 1,
+        pageSize: 10,
+        //showRefresh: true,
+        showToggle: true,
+        //showColumns: true,
+        singleSelect: true,
+        clickToSelect:true,
+        maintainSelected: true                
     });
 });
 </script>

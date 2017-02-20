@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth)
-from cpovc_registry.models import RegPerson, RegOrgUnit
+from cpovc_registry.models import RegPerson, RegOrgUnit, RegPersonsTypes
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
 
@@ -14,34 +14,57 @@ def search_ovc(name, criteria):
     """Method to search OVC as per USG."""
     try:
         cid = int(criteria)
-        cbos, pids = [], []
+        cbos, pids, chvs = [], [], []
         designs = ['COVC', 'CGOC']
-        queryset = RegPerson.objects.filter(
-            is_void=False, designation__in=designs)
+        if cid in [2, 3, 4]:
+            queryset = None
+        else:
+            queryset = RegPerson.objects.filter(
+                is_void=False, designation__in=designs)
         field_names = ['surname', 'first_name', 'other_names']
         q_filter = Q()
         # 1: Names, 2: HH, 3: CHV, 4: CBO
+        names = name.split()
         if cid == 1:
-            for field in field_names:
-                q_filter |= Q(**{"%s__icontains" % field: name})
-            pids = queryset.filter(q_filter).values_list(
+            for nm in names:
+                for field in field_names:
+                    q_filter |= Q(**{"%s__icontains" % field: name})
+                pids = queryset.filter(q_filter).values_list(
+                    'id', flat=True)
+        elif cid == 2:
+            pids = OVCHHMembers.objects.filter(
+                is_void=False,
+                house_hold__head_identifier__iexact=name).values_list(
+                'person_id', flat=True)
+        elif cid == 3:
+            chv_ids = RegPersonsTypes.objects.filter(
+                is_void=False, person_type_id='TWVL').values_list(
+                'person_id', flat=True)
+            queryset = RegPerson.objects.filter(
+                is_void=False, id__in=chv_ids)
+            for nm in names:
+                for field in field_names:
+                    q_filter |= Q(**{"%s__icontains" % field: nm})
+            chvs = queryset.filter(q_filter).values_list(
                 'id', flat=True)
         elif cid == 4:
             cbos = RegOrgUnit.objects.filter(
                 is_void=False, org_unit_name__icontains=name).values_list(
                 'id', flat=True)
         else:
-            for field in field_names:
-                q_filter |= Q(**{"%s__icontains" % field: name})
-            pids = queryset.filter(q_filter).values_list(
-                'id', flat=True)
+            for nm in names:
+                for field in field_names:
+                    q_filter |= Q(**{"%s__icontains" % field: name})
+                pids = queryset.filter(q_filter).values_list(
+                    'id', flat=True)
         # Query ovc table
+        qs = OVCRegistration.objects.filter(is_void=False)
         if cbos:
-            ovcs = OVCRegistration.objects.filter(
-                is_void=False, child_cbo_id__in=cbos)
+            ovcs = qs.filter(child_cbo_id__in=cbos)
+        elif chvs:
+            ovcs = qs.filter(child_chv_id__in=chvs)
         else:
-            ovcs = OVCRegistration.objects.filter(
-                is_void=False, person_id__in=pids)
+            ovcs = qs.filter(person_id__in=pids)
     except Exception, e:
         print 'Error searching for OVC - %s' % (str(e))
         return {}
