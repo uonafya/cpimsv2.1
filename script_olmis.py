@@ -733,9 +733,43 @@ try:
         registration_date = row['ClientDateofRegistration']
         has_bcert = True if int(row['ClientBirthCert']) == 0 else False
         is_disabled = True if row['ClientIsDisabled'] != None else False
-        hiv_status = row['ClientHivStatus']
-        school_level = row['ClientSchoolLevel']
-        immunization_status = row['ClientImmunization']
+
+        hiv_status = None
+        if int(row['ClientHivStatus'])==1:
+            hiv_status = 'HSTP'
+        elif int(row['ClientHivStatus'])==2:
+            hiv_status = 'HSTN'
+        elif int(row['ClientHivStatus'])==3:
+            hiv_status = 'HSKN'
+        else:
+            hiv_status = 'XXXX'
+
+        school_level = None
+        if int(row['ClientSchoolLevel'])==1:
+            school_level = 'SLEC'
+        elif int(row['ClientSchoolLevel'])==2:
+            school_level = 'SLPR'
+        elif int(row['ClientSchoolLevel'])==3:
+            school_level = 'SLSE'
+        elif int(row['ClientSchoolLevel'])==4:
+            school_level = 'SLTV'
+        elif int(row['ClientSchoolLevel'])==5:
+            school_level = 'SLNS'
+        else:
+            school_level = 'XXXX'
+
+        immunization_status = None
+        if int(row['ClientImmunization'])==1:
+            immunization_status = 'IMFI'
+        elif int(row['ClientImmunization'])==2:
+            immunization_status = 'IMNC'
+        elif int(row['ClientImmunization'])==3:
+            immunization_status = 'IMNI'
+        elif int(row['ClientImmunization'])==4:
+            immunization_status = 'IMKN'
+        else:
+            immunization_status = 'XXXX'
+
         org_unique_id = org_unit_id
         exit_date = row['ClientDateofExit']
         caretaker_id = row['ClientHouseHoldheadID']
@@ -1018,7 +1052,7 @@ try:
             # conn2.commit()
             print 'inserting records into ovc_care_services(F1A) . . .'
 
-    ### ---------------  MIGRATE HHVA DATA ------------------- ####
+    ### ---------------  MIGRATE HHVA DATA ------------------- ###
     for data in OVCID_MATRIX:
         person_pk = data['person_pk']
         household_pk = data['household_pk']
