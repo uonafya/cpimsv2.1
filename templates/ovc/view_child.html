@@ -231,14 +231,18 @@
                     <center>
                         <button onclick="goBack()" type="button" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-arrow-left"></i> &nbsp;<b>Back to search</b>&nbsp; </button>
 
-                        <a href="{% url 'ovc_edit' id=creg.person_id %}"><button type="button" class="btn btn-primary"> <i class="fa fa-child"></i> Edit OVC</button></a>
+                        <a href="{% url 'ovc_edit' id=creg.person_id %}">
+                        <button type="button" class="btn btn-primary"> <i class="fa fa-child"></i> Edit OVC</button>
+                        </a>
                         
-                        <a href="#">
+                        <a href="{% url 'new_csi' id=child.id %}">
                         <button type="button" class="btn btn-primary" value="submit"> <i class="fa fa-file-text"></i> CSI Assessment</button>
                         </a>
 
-                        <a href="#">
-                        <button type="button" class="btn btn-primary" value="submit"> <i class="fa fa-file-text-o"></i> HH Assessment</button></a>
+                        <a href="{% url 'new_hhva' id=child.id %}">
+                        <button type="button" class="btn btn-primary" value="submit"> <i class="fa fa-file-text-o"></i> HH Assessment</button>
+                        </a>
+
                         <a href="{% url 'hh_manage' hhid=hhold.house_hold.id %}">
                         <button type="button" class="btn btn-primary"> <i class="fa fa-users"></i> Manage HH </button>
                         </a>
