@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .models import (
-    OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth)
+    OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth, OVCEligibility)
 from cpovc_registry.models import RegPerson, RegOrgUnit, RegPersonsTypes
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
@@ -123,6 +123,7 @@ def ovc_registration(request, ovc_id, edit=0):
         org_uid_check = request.POST.get('cbo_uid_check')
         caretaker = request.POST.get('caretaker')
         school_level = request.POST.get('school_level')
+        criterias = request.POST.getlist('eligibility')
         reg_date = datetime.now().strftime("%Y-%m-%d")
         if edit == 0:
             cbo_uid = gen_cbo_id(cbo_id, ovc_id)
@@ -142,6 +143,11 @@ def ovc_registration(request, ovc_id, edit=0):
             update_fields=["registration_date", "has_bcert", "is_disabled",
                            "hiv_status", "immunization_status",
                            "org_unique_id", "caretaker_id", "school_level"])
+        # Update eligibility
+        for criteria_id in criterias:
+            eligibility, created = OVCEligibility.objects.update_or_create(
+                person_id=ovc_id, criteria=criteria_id,
+                defaults={'person_id': ovc_id, 'criteria': criteria_id},)
         # Update Health status
         if hiv_status == 'HSTP':
             facility = request.POST.get('facility')
@@ -157,8 +163,11 @@ def ovc_registration(request, ovc_id, edit=0):
                           'is_void': False},)
         cgs = extract_post_params(request, naming='cg_')
         hhrs = extract_post_params(request, naming='hhr_')
+        # Alive status, HIV status and Death cause
+        ast = extract_post_params(request, naming='astatus_')
+        hst = extract_post_params(request, naming='gstatus_')
+        cst = extract_post_params(request, naming='cstatus_')
         todate = timezone.now()
-        hst = extract_post_params(request, 'gstatus_')
         if edit == 0:
             # Create House Hold and populate members
             caretaker_id = int(cgs[caretaker][0])
@@ -173,11 +182,15 @@ def ovc_registration(request, ovc_id, edit=0):
                 oid = int(ovc_id)
                 hh_head = True if int(hh_member) == caretaker_id else False
                 hh_hiv = hst[hh_member][0] if hh_member in hst else None
+                hh_alive = ast[hh_member][0] if hh_member in ast else 'AYES'
+                hh_death = cst[hh_member][0] if hh_member in cst else None
                 m_type = hhrs[hh_member][0] if hh_member in hhrs else 'TBVC'
                 member_type = 'TOVC' if oid == int(hh_member) else m_type
+                print 'hh_death', hh_death
                 OVCHHMembers(
                     house_hold_id=hh_id, person_id=hh_member,
                     hh_head=hh_head, member_type=member_type,
+                    death_cause=hh_death, member_alive=hh_alive,
                     hiv_status=hh_hiv, date_linked=todate).save()
         else:
             # Update HH details
@@ -191,11 +204,15 @@ def ovc_registration(request, ovc_id, edit=0):
             for hh_member in hhrs:
                 hh_hiv = hst[hh_member][0] if hh_member in hst else None
                 hh_head = True if hh_member == caretaker else False
+                hh_alive = ast[hh_member][0] if hh_member in ast else 'AYES'
+                hh_death = cst[hh_member][0] if hh_member in cst else None
                 member_type = hhrs[hh_member][0]
                 hhm, created = OVCHHMembers.objects.update_or_create(
                     person_id=hh_member, house_hold_id=hhid,
                     defaults={'person_id': hh_member, 'hh_head': hh_head,
                               'member_type': member_type, 'is_void': False,
+                              'death_cause': hh_death,
+                              'member_alive': hh_alive,
                               'date_linked': todate, 'hiv_status': hh_hiv},)
     except Exception, e:
         raise e

@@ -46,8 +46,8 @@
                 <div id="wizard">
                 <ol>
                   <li>
-                      OVC Details
-                      <small>Biodata.</small>
+                      OVC Details and Eligibility
+                      <small>Biodata and eligibility criteria.</small>
                   </li>
                   <li>
                       Health and Education
@@ -111,7 +111,7 @@
                     </div>
                     <!-- end col-2 -->
                     <!-- begin col-2 -->
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                     <div class="form-group">
                         <label>Birth Certificate No.</label>
                         {{ form.bcert_no }}
@@ -127,17 +127,28 @@
                     </div>
                     <!-- end col-2 -->
                     <!-- begin col-2 -->
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                     <div class="form-group">
                         <label>NCPWD No.</label>
                         {{ form.ncpwd_no }}
                       </div>
                     </div>
                     <!-- end col-2 -->
+                </div>
+                <!-- begin row -->
+                <div class="row">
+                    <!-- begin col-2 -->
+                    <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Eligibility Criteria</label>
+                        {{ form.eligibility }}
+                      </div>
+                    </div>
+                    <!-- end col-2 -->
                     <!-- begin col-2 -->
                     <div class="col-md-3">
                     <div class="form-group">
-                        <label>CBO Child ID <small>Might change on save</small></label>
+                        <label>CBO Child ID (<small>Might change on save</small>)</label>
                         {{ form.cbo_uid }}
                         {{ form.cbo_uid_check }}
                       </div>
@@ -271,7 +282,7 @@
                             <th>Relation</th>
                             <th>Telephone</th>
                             <th>Alive</th>
-                            <th>HIV Status</th>
+                            <th>HIV Status / Cause of Death</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -291,16 +302,21 @@
                             </td>
                             <td>{{ guardian.guardian_person.des_phone_number }}</td>
                             <td>
-                            {% if guardian.guardian_person.date_of_death %}
-                                No
-                            {% else %}
-                                Yes
-                            {% endif %}  
+                            {% with n="astatus_"|add:y %}
+                            {{ form|get_form:n }}
+                            {% endwith %}
                             </td>
                             <td>
+                            <div id="div_astatus_{{ y }}">
                             {% with n="gstatus_"|add:y %}
                             {{ form|get_form:n }}
                             {% endwith %}
+                            </div>
+                            <div id="ndiv_astatus_{{ y }}" style="display: none;">
+                            {% with n="cstatus_"|add:y %}
+                            {{ form|get_form:n }}
+                            {% endwith %}
+                            </div>
                             </td>                            
                             {% endwith %}
                         </tr>
@@ -346,6 +362,7 @@
                         </thead>
                         <tbody>
                        {% for sibling in siblings %}
+                       {% with y=sibling.sibling_person.id|stringformat:"s" %}
                         <tr>
                             <td>{{ sibling.sibling_person.id }}<input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
                             <td>{{ sibling.sibling_person.first_name }}</td>
@@ -365,8 +382,13 @@
                                 Yes
                             {% endif %}  
                             </td>
-                            <td>N/A</td>
+                            <td>
+                            {% with n="sgstatus_"|add:y %}
+                               {{ form|get_form:n }}
+                            {% endwith %}
+                            </td>
                         </tr>
+                        {% endwith %}
                         {% endfor %}
                         </tbody>
                     </table>
@@ -402,6 +424,7 @@
 
 {% block lazy_javascript_code %}
 <script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/bootstrap-multiselect.js' %}"></script>
 <script>
     $("#wizard").bwizard({ validating: function (e, ui) {
         
@@ -433,6 +456,16 @@
 
     }});
 
+    $('#eligibility').multiselect({
+        enableCaseInsensitiveFiltering: true,
+        numberDisplayed: 1,
+        maxHeight: 300,
+        buttonWidth: '100%',
+        disableIfEmpty: true,
+        enableClickableOptGroups: true,
+        buttonClass: 'btn btn-white'
+    });
+
     $('#reg_date, #link_date').datepicker({
         dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
         endDate: '+0d', enddate: '+0d', autoclose: true
@@ -454,13 +487,27 @@
     handle_hstatus(hstatus);
     handle_education(hlevel);
 
-    $('#hiv_status').change(
-    function(){
+    $('#hiv_status').change(function(){
         handle_hstatus(this.value);
     });
 
-    $('#school_level').change(
-    function(){
+    $('.alive').change(function(){
+        var id = $(this).attr('id');
+        var alive = this.value;
+        if (alive == 'ANNO'){
+           $('#div_' + id).hide();
+           $('#ndiv_' + id).show();
+           $('#div_' + id).attr("data-parsley-required", "false");
+           $('#ndiv_' + id).attr("data-parsley-required", "true");
+        }else{
+           $('#div_' + id).show();
+           $('#ndiv_' + id).hide();
+           $('#div_' + id).attr("data-parsley-required", "true");
+           $('#ndiv_' + id).attr("data-parsley-required", "false");
+        }
+    });
+
+    $('#school_level').change(function(){
         handle_education(this.value);
     });
 

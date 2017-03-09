@@ -8,7 +8,7 @@ from .forms import OVCSearchForm, OVCRegistrationForm
 from cpovc_registry.models import (
     RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds)
 from cpovc_main.functions import get_dict
-from .models import OVCRegistration, OVCHHMembers, OVCHealth
+from .models import OVCRegistration, OVCHHMembers, OVCHealth, OVCEligibility
 from .functions import (
     ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc)
 
@@ -49,10 +49,18 @@ def ovc_register(request, id):
         # Get guardians
         guardians = RegPersonsGuardians.objects.filter(
             is_void=False, child_person_id=child.id)
-        guids = []
+        # Get siblings
+        siblings = RegPersonsSiblings.objects.filter(
+            is_void=False, child_person_id=child.id)
+        print 'p', params, 'gp', gparams
+        guids, chids = [], []
         for guardian in guardians:
             guids.append(guardian.guardian_person_id)
         guids.append(child.id)
+        for sibling in siblings:
+            chids.append(sibling.sibling_person_id)
+        pids = {'guids': guids, 'chids': chids}
+        print pids
         # Existing
         extids = RegPersonsExternalIds.objects.filter(
             person_id__in=guids)
@@ -63,7 +71,7 @@ def ovc_register(request, id):
                 gkey = '%s_%s' % (extid.person_id, extid.identifier_type_id)
                 gparams[gkey] = extid.identifier
         if request.method == 'POST':
-            form = OVCRegistrationForm(guids=guids, data=request.POST)
+            form = OVCRegistrationForm(guids=pids, data=request.POST)
             print request.POST
             ovc_registration(request, ovc_id)
             msg = "OVC Registration completed successfully"
@@ -79,7 +87,7 @@ def ovc_register(request, id):
                 initial['bcert_no'] = params['ISOV']
                 initial['has_bcert'] = 'on'
             form = OVCRegistrationForm(
-                guids=guids, initial=initial)
+                guids=pids, initial=initial)
         # Check users changing ids in urls
         ovc_detail = get_hh_members(ovc_id)
         if ovc_detail:
@@ -87,10 +95,6 @@ def ovc_register(request, id):
             messages.error(request, msg)
             url = reverse('ovc_view', kwargs={'id': ovc_id})
             return HttpResponseRedirect(url)
-        # Get siblings
-        siblings = RegPersonsSiblings.objects.filter(
-            is_void=False, child_person_id=child.id)
-        print 'p', params, 'gp', gparams
         # Re-usable values
         check_fields = ['relationship_type_id']
         vals = get_dict(field_name=check_fields)
@@ -110,7 +114,6 @@ def ovc_edit(request, id):
         ovc_id = int(id)
         date_reg = None
         if request.method == 'POST':
-            form = OVCRegistrationForm(guids=[1], data=request.POST)
             ovc_registration(request, ovc_id, 1)
             # Save external ids from here
             msg = "OVC Registration details edited successfully"
@@ -130,10 +133,17 @@ def ovc_edit(request, id):
         # Get guardians
         guardians = RegPersonsGuardians.objects.filter(
             is_void=False, child_person_id=child.id)
-        guids = []
+        # Get siblings
+        siblings = RegPersonsSiblings.objects.filter(
+            is_void=False, child_person_id=child.id)
+        print 'p', params, 'gp', gparams
+        guids, chids = [], []
         for guardian in guardians:
             guids.append(guardian.guardian_person_id)
         guids.append(child.id)
+        for sibling in siblings:
+            chids.append(sibling.sibling_person_id)
+        pids = {'guids': guids, 'chids': chids}
         extids = RegPersonsExternalIds.objects.filter(
             person_id__in=guids)
         for extid in extids:
@@ -152,6 +162,10 @@ def ovc_edit(request, id):
             facility = health.facility_id
         bcert_no = params['ISOV'] if 'ISOV' in params else ''
         ncpwd_no = params['IPWD'] if 'IPWD' in params else ''
+        # Eligibility
+        criterias = OVCEligibility.objects.filter(
+            is_void=False, person_id=child.id).values_list(
+            'criteria', flat=True)
         if reg_date:
             date_reg = reg_date.strftime('%d-%b-%Y')
         all_values = {'reg_date': date_reg, 'cbo_uid': creg.org_unique_id,
@@ -161,12 +175,9 @@ def ovc_edit(request, id):
                       'immunization': creg.immunization_status,
                       'school_level': creg.school_level, 'facility': facility,
                       'hiv_status': creg.hiv_status, 'link_date': date_linked,
-                      'ccc_number': ccc_no, 'art_status': art_status}
-        form = OVCRegistrationForm(guids=guids, data=all_values)
-
-        # Get siblings
-        siblings = RegPersonsSiblings.objects.filter(
-            is_void=False, child_person_id=child.id)
+                      'ccc_number': ccc_no, 'art_status': art_status,
+                      'eligibility': criterias}
+        form = OVCRegistrationForm(guids=pids, data=all_values)
         # Get house hold
         hhold = OVCHHMembers.objects.get(
             is_void=False, person_id=child.id)
@@ -183,7 +194,8 @@ def ovc_edit(request, id):
         return render(request, 'ovc/edit_child.html',
                       {'form': form, 'status': 200, 'child': child,
                        'guardians': guardians, 'siblings': siblings,
-                       'vals': vals, 'hhold': hhold, 'extids': gparams})
+                       'vals': vals, 'hhold': hhold, 'extids': gparams,
+                       'hhmembers': hhmembers})
     except Exception, e:
         print "error with OVC editing - %s" % (str(e))
         raise e

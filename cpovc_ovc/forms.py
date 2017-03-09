@@ -10,9 +10,12 @@ immunization_list = get_list('immunization_status_id', 'Please Select')
 
 person_type_list = get_list('person_type_id', 'Please Select Type')
 school_level_list = get_list('school_level_id', 'Please Select Level')
-hiv_status_list = get_list('hiv_status_id', 'Please Select Status')
+hiv_status_list = get_list('hiv_status_id', 'Please Select HIV Status')
+alive_status_list = get_list('yesno_id', '')
 art_status_list = get_list('art_status_id', 'Please Select Status')
 ovc_form_type_list = get_list('ovc_form_type_id', 'Please Select')
+eligibility_list = get_list('eligibility_criteria_id', '')
+death_cause_list = get_list('death_cause_id', 'Please Select Cause of Death')
 
 health_unit_list = get_org_units_list(
     default_txt='Select Unit', org_types=['HFGU'])
@@ -56,15 +59,52 @@ class OVCRegistrationForm(forms.Form):
     def __init__(self, guids, *args, **kwargs):
         """Override methods."""
         super(OVCRegistrationForm, self).__init__(*args, **kwargs)
-        for i in guids:
+        pids = guids['guids']
+        kids = guids['chids']
+        # Guardians
+        for i in pids:
             gid = 'gstatus_%s' % str(i)
+            aid = 'astatus_%s' % str(i)
+            cid = 'cstatus_%s' % str(i)
             gstatus = forms.ChoiceField(
                 choices=hiv_status_list,
                 initial='0',
                 widget=forms.Select(
                     attrs={'class': 'form-control', 'id': gid,
                            'data-parsley-required': "true"}))
+            astatus = forms.ChoiceField(
+                choices=alive_status_list,
+                initial='AYES',
+                widget=forms.Select(
+                    attrs={'class': 'form-control alive', 'id': aid,
+                           'data-parsley-required': "true"}))
+            cstatus = forms.ChoiceField(
+                choices=death_cause_list,
+                initial='AYES',
+                widget=forms.Select(
+                    attrs={'class': 'form-control alive', 'id': cid}))
             self.fields[gid] = gstatus
+            self.fields[aid] = astatus
+            self.fields[cid] = cstatus
+        # Siblings
+        for i in kids:
+            gid = 'sgstatus_%s' % str(i)
+            aid = 'sastatus_%s' % str(i)
+            sgstatus = forms.ChoiceField(
+                choices=hiv_status_list,
+                initial='0',
+                widget=forms.Select(
+                    attrs={'class': 'form-control', 'id': gid,
+                           'data-parsley-required': "true"}))
+            sastatus = forms.ChoiceField(
+                choices=alive_status_list,
+                initial='AYES',
+                widget=forms.Select(
+                    attrs={'class': 'form-control', 'id': aid,
+                           'data-parsley-required': "true"}))
+            self.fields[gid] = sgstatus
+            self.fields[aid] = sastatus
+
 
     reg_date = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control',
@@ -112,6 +152,15 @@ class OVCRegistrationForm(forms.Form):
             attrs={'class': 'form-control',
                    'data-parsley-required': "true",
                    'id': 'immunization'}))
+
+    eligibility = forms.MultipleChoiceField(
+        choices=eligibility_list,
+        initial='0',
+        required=True,
+        widget=forms.SelectMultiple(
+            attrs={'class': 'form-control',
+                   'data-parsley-required': "true",
+                   'id': 'eligibility'}))
 
     hiv_status = forms.ChoiceField(
         choices=hiv_status_list,

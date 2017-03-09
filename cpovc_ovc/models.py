@@ -90,6 +90,28 @@ class OVCRegistration(models.Model):
         return self.org_unique_id
 
 
+class OVCEligibility(models.Model):
+    """Model for Organisational Units details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    person = models.ForeignKey(RegPerson)
+    criteria = models.CharField(max_length=5)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_eligibility'
+        verbose_name = 'OVC Eligibility'
+        verbose_name_plural = 'OVC Eligibility'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return str(self.id)
+
+
 class OVCHouseHold(models.Model):
     """Model for Organisational Units details."""
 
@@ -121,6 +143,7 @@ class OVCHHMembers(models.Model):
     person = models.ForeignKey(RegPerson)
     hh_head = models.BooleanField(default=False)
     member_type = models.CharField(max_length=4)
+    member_alive = models.CharField(max_length=4, default='AYES')
     death_cause = models.CharField(max_length=4, null=True)
     hiv_status = models.CharField(max_length=4, null=True)
     date_linked = models.DateField(default=timezone.now)
