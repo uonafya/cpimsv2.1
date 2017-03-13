@@ -9,7 +9,7 @@ import uuid
 #--------------------------------NOTES------------------------------------------#
 
 """
-- Pending insert to reg_person_orgunits
+- -Pending insert to reg_person_orgunits
 - Review insert into reg_org_unit
 """
 #---------------------------------END NOTES-------------------------------------#
