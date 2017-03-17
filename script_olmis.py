@@ -481,20 +481,22 @@ OVCID_MATRIX = []
 OVCIDS = []
 dictXarray = []
 
+mssql_conn = None
+pgsql_conn = None
+
 try:
     # connect to SQL SERVER & Postgresql >> DESKTOP-N2TORCL\Palladium
-    mssql_conn = pymssql.connect(
-        host='localhost', user='olmis_user', password='P@55w0rd', database='APHIAMAINDB')
+    # mssql_conn = pymssql.connect(host='localhost', user='.\William Watembo', password='H48tgj3q!', database='APHIAMAINDB')
+    mssql_conn = pymssql.connect(host='localhost', user='olmis_user', password='olmis2017', database='APHIAMAINDB')
     mssql_cursor = mssql_conn.cursor(as_dict=True)
     print 'connected to SQL SERVER! (APHIAMAINDB)'
 
-    pgsql_conn = psycopg2.connect(
-        "dbname='cpims' user='postgres' host='localhost' password='postgres'")
+    pgsql_conn = psycopg2.connect("dbname='cpims' user='postgres' host='localhost' password='postgres'")
     pgsql_cursor = pgsql_conn.cursor()
     print 'connected to PostgreSQL!'
 
     # flatten dataset/push to temp_table
-    mssql_query_select = ("SELECT TOP (100) Clientdetails.ClientID AS ClientID, Clientdetails.OVCID AS OVCID, Clientdetails.FirstName AS ClientFirstName," +
+    mssql_query_select = ("SELECT TOP(10)  Clientdetails.ClientID AS ClientID, Clientdetails.OVCID AS OVCID, Clientdetails.FirstName AS ClientFirstName," +
                           "Clientdetails.MiddleName AS ClientMiddleName, Clientdetails.Surname AS ClientSurname, Clientdetails.Gender AS ClientGender," +
                           "Clientdetails.DateofBirth AS ClientDateofBirth, Clientdetails.BirthCert AS ClientBirthCert,Clientdetails.ClientType AS ClientType," +
                           "Clientdetails.Cbo AS ClientCbo, Clientdetails.District AS ClientDistrict, Clientdetails.Location AS ClientLocation,"
@@ -619,12 +621,14 @@ try:
             psycopg2.extras.register_uuid()
             hh_head = False
             member_type = 'CCGV'
+            member_alive = 'AYES'
+            death_cause = None
             date_linked = created_at
             date_delinked = None
             house_hold_id = household_pk
             person_id = parent_pk
-            pgsql_cursor.execute("INSERT INTO ovc_household_members(id, hh_head, member_type, date_linked, date_delinked, is_void,house_hold_id, person_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
-                                 (hash_key, hh_head, member_type, date_linked, date_delinked, is_void, house_hold_id, person_id))
+            pgsql_cursor.execute("INSERT INTO ovc_household_members(id, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void,house_hold_id, person_id) VALUES(%s, %s, %s, %s, %s, %s,%s, %s, %s, %s) RETURNING id;",
+                                 (hash_key, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void, house_hold_id, person_id))
             # conn2.commit()
             print 'inserting records into ovc_household_members (parent) . . .'
 
@@ -682,12 +686,14 @@ try:
                     psycopg2.extras.register_uuid()
                     hh_head = False
                     member_type = 'TBVC'
+                    member_alive = 'AYES'
+                    death_cause = None
                     date_linked = created_at
                     date_delinked = None
                     house_hold_id = d['household_id']
                     person_id = person_pk
-                    pgsql_cursor.execute("INSERT INTO ovc_household_members(id, hh_head, member_type, date_linked, date_delinked, is_void,house_hold_id, person_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
-                                         (hash_key, hh_head, member_type, date_linked, date_delinked, is_void, house_hold_id, person_id))
+                    pgsql_cursor.execute("INSERT INTO ovc_household_members(id, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void,house_hold_id, person_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
+                                         (hash_key, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void, house_hold_id, person_id))
                     # conn2.commit()
                     print 'inserting records into ovc_household_members(ovc). . .'
 
@@ -1119,7 +1125,7 @@ try:
                 event = event_pk
                 is_void = False
                 sync_id = hash_key2
-            pgsql_cursor.execute("INSERT INTO ovc_care_eav(eav_id, entity, attribute, value, value_for, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING eav_id;",
+            pgsql_cursor.execute("INSERT INTO ovc_care_eav(eav_i, entity, attribute, value, value_for, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING eav_id;",
                                  (eav_id, entity, attribute, value, value_for, event, is_void, sync_id))
             # conn2.commit()
             print 'inserting records into ovc_care_eav(HHVA) . . .'
@@ -1140,9 +1146,10 @@ try:
 except Exception as e:
     print 'An error occured when running the script - (%s)' % str(e)
 
-    # rollback insert transactions
-    # conn2.rollback()
-    # conn2.close()
+    mssql_cursor.execute("DROP TABLE TEMPORARY_FLAT_TABLE")
+    mssql_conn.commit()
+    mssql_conn.close()
+    pgsql_conn.close()
     raise e
 else:
     pass
