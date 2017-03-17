@@ -1,0 +1,211 @@
+[
+    {
+        "pk": 1145, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 1, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECFD", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Father Dead", 
+            "sms_keyword": "False", 
+            "item_description": "Father Dead", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1146, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 2, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECMD", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Mother Dead", 
+            "sms_keyword": "False", 
+            "item_description": "Mother Dead", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1147, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 3, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECMF", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Mother and Father Dead", 
+            "sms_keyword": "False", 
+            "item_description": "Mother and Father Dead", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1148, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 4, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECCP", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "HIV Positive", 
+            "sms_keyword": "False", 
+            "item_description": "Child is HIV Positive", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1149, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 5, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECLI", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Lives in Institution", 
+            "sms_keyword": "False", 
+            "item_description": "Child lives in Institution", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1150, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 6, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECHO", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Household with orphan(s)", 
+            "sms_keyword": "False", 
+            "item_description": "Child lives in household which has taken orphan(s)", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1151, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 7, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECLS", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Lives on the street", 
+            "sms_keyword": "False", 
+            "item_description": "Child lives on the street", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1152, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 8, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECCH", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Child headed household", 
+            "sms_keyword": "False", 
+            "item_description": "Child lives in a child headed household", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1153, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 9, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECEC", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Elderly caregiver(60 plus)", 
+            "sms_keyword": "False", 
+            "item_description": "Child lives with elderly caregiver(60 plus)", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1154, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 10, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECHV", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Household affected by HIV", 
+            "sms_keyword": "False", 
+            "item_description": "Child lives in household affected by HIV", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1155, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 11, 
+            "user_configurable": "False", 
+            "field_name": "eligibility_criteria_id", 
+            "item_id": "ECMS", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Marginalized", 
+            "sms_keyword": "False", 
+            "item_description": "Child is marginalized, stigmatized or discriminated", 
+            "item_category": "Eligibility Criteria"
+        }
+    },
+    {
+        "pk": 1156, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 1, 
+            "user_configurable": "False", 
+            "field_name": "death_cause_id", 
+            "item_id": "DCHR", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "HIV Related", 
+            "sms_keyword": "False", 
+            "item_description": "HIV Related", 
+            "item_category": "Cause of Death"
+        }
+    },
+    {
+        "pk": 1157, 
+        "model": "cpovc_main.SetupList", 
+        "fields": {
+            "the_order": 2, 
+            "user_configurable": "False", 
+            "field_name": "death_cause_id", 
+            "item_id": "DCOT", 
+            "is_void": "False", 
+            "item_sub_category": "", 
+            "item_description_short": "Other", 
+            "sms_keyword": "False", 
+            "item_description": "Other", 
+            "item_category": "Cause of Death"
+        }
+    }
+]
+
