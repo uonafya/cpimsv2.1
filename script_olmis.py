@@ -456,7 +456,7 @@ def translator(x, value):
         fields = {'area_id': '1'}
         cur2 = conn2.cursor()
         cur2.execute("SELECT area_id FROM list_geo " +
-                     "WHERE LOWER(area_name) = '" + value.lower() + "'")
+                     "WHERE area_type_id='GWRD' AND LOWER(area_name) = '" + value.lower() + "'")
         if cur2.rowcount > 0:
             for row in cur2.fetchall():
                 fields['area_id'] = row[0]
@@ -487,16 +487,16 @@ pgsql_conn = None
 try:
     # connect to SQL SERVER & Postgresql >> DESKTOP-N2TORCL\Palladium
     # mssql_conn = pymssql.connect(host='localhost', user='.\William Watembo', password='H48tgj3q!', database='APHIAMAINDB')
-    mssql_conn = pymssql.connect(host='localhost', user='olmis_user', password='olmis2017', database='APHIAMAINDB')
+    mssql_conn = pymssql.connect(host='(local)', user='sa', password='root', database='APHIAMAINDB')
     mssql_cursor = mssql_conn.cursor(as_dict=True)
     print 'connected to SQL SERVER! (APHIAMAINDB)'
 
-    pgsql_conn = psycopg2.connect("dbname='cpims' user='postgres' host='localhost' password='postgres'")
+    pgsql_conn = psycopg2.connect("dbname='cpims_olmis' user='postgres' host='localhost' password='postgres'")
     pgsql_cursor = pgsql_conn.cursor()
     print 'connected to PostgreSQL!'
 
     # flatten dataset/push to temp_table
-    mssql_query_select = ("SELECT TOP(10)  Clientdetails.ClientID AS ClientID, Clientdetails.OVCID AS OVCID, Clientdetails.FirstName AS ClientFirstName," +
+    mssql_query_select = ("SELECT TOP (10) Clientdetails.ClientID AS ClientID, Clientdetails.OVCID AS OVCID, Clientdetails.FirstName AS ClientFirstName," +
                           "Clientdetails.MiddleName AS ClientMiddleName, Clientdetails.Surname AS ClientSurname, Clientdetails.Gender AS ClientGender," +
                           "Clientdetails.DateofBirth AS ClientDateofBirth, Clientdetails.BirthCert AS ClientBirthCert,Clientdetails.ClientType AS ClientType," +
                           "Clientdetails.Cbo AS ClientCbo, Clientdetails.District AS ClientDistrict, Clientdetails.Location AS ClientLocation,"
@@ -519,12 +519,14 @@ try:
                           "ParentDetails.YearconfirmedHIV AS ParentYearconfirmedHIV,ParentDetails.HBCProgram AS ParentHBCProgram, ParentDetails.YearsinHBC AS ParentYearsinHBC," +
                           "ParentDetails.CHW AS ParentCHW, ParentDetails.ARTStatus AS ParentARTStatus, ParentDetails.Facility AS ParentFacility, ParentDetails.CCCNo AS ParentCCCNo," +
                           "ParentDetails.DateofRegistration AS ParentDateofRegistration, ParentDetails.ovccbo AS ParentCbo, County.County AS County," +
-                          "District.District AS District, CBO.CBO AS CBOName INTO TEMPORARY_FLAT_TABLE " +
+                          "District.District AS District, CBO.CBO AS CBOName, Wards.Ward AS WardName INTO TEMPORARY_FLAT_TABLE " +
                           "FROM District INNER JOIN " +
                           "CBO ON District.DistrictID = CBO.DistrictID INNER JOIN " +
+                          "Location ON Location.DistrictID = CBO.DistrictID INNER JOIN " +
                           "County ON District.Countyid = County.CountyID INNER JOIN " +
                           "Clientdetails INNER JOIN " +
-                          "ParentDetails ON Clientdetails.HouseHoldheadID = ParentDetails.ParentId ON CBO.CBOID = ParentDetails.ovccbo ")
+ 						  "ParentDetails ON Clientdetails.HouseHoldheadID = ParentDetails.ParentId ON CBO.CBOID = ParentDetails.ovccbo INNER JOIN "+
+                      	  "Wards ON Location.Wardid = Wards.Wardid")
     tic = time()
     mssql_cursor.execute(mssql_query_select)
     mssql_conn.commit()
@@ -536,7 +538,10 @@ try:
     mssql_temp_query_select = (
         "SELECT * FROM dbo.TEMPORARY_FLAT_TABLE ORDER BY OVCID ASC")
     mssql_cursor.execute(mssql_temp_query_select)
+    hrcnt, thrcnt=0, mssql_cursor.rowcount
     for row in mssql_cursor:
+    	hrcnt+=1
+    	print 'OVC registration record number ', hrcnt, '/', thrcnt
         # harvest OVCIDS
         OVCIDS.append(str(row['OVCID']))
 
@@ -553,7 +558,7 @@ try:
         pgsql_cursor.execute("INSERT INTO reg_person(first_name, other_names, surname, designation, sex_id, date_of_birth, is_void, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
                              (cfirst_name, cother_names, csurname, cdesignation, csex_id, cdate_of_birth, is_void, created_at))
         person_pk = pgsql_cursor.fetchone()[0]
-        print 'inserting records into reg_person(ovc) . . .'
+        # print 'inserting records into reg_person(ovc) . . .'
 
         # insert reg_persons_types_client
         person_type_id = 'TBVC'
@@ -562,18 +567,18 @@ try:
         person_id = person_pk
         pgsql_cursor.execute("INSERT INTO reg_persons_types(person_type_id, date_began, date_ended, person_id, is_void) VALUES(%s, %s, %s, %s, %s) RETURNING id;",
                              (person_type_id, date_began, date_ended, person_id, is_void))
-        print 'inserting records into reg_persons_types(ovc) . . .'
+        # print 'inserting records into reg_persons_types(ovc) . . .'
 
         # insert into reg_persons_geo_client
         date_linked = created_at
         date_delinked = None
-        area_type = 'GPRV'
-        fields = translator(7, row['County'])
+        area_type = 'GWRD'
+        fields = translator(7, row['WardName'])
         area_id = fields['area_id']
         person_id = person_pk
         pgsql_cursor.execute("INSERT INTO reg_persons_geo(date_linked, date_delinked, area_type, area_id, person_id, is_void) VALUES(%s, %s, %s, %s, %s, %s) RETURNING id;",
                              (date_linked, date_delinked, area_type, area_id, person_id, is_void))
-        print 'inserting records into reg_persons_geo(ovc) . . .'
+        # print 'inserting records into reg_persons_geo(ovc) . . .'
 
         if not (row['ClientHouseHoldheadID']) in HouseHoldheadIDs:
             # insert into reg_person_parent
@@ -587,7 +592,7 @@ try:
                                  (pfirst_name, pother_names, psurname, pdesignation, psex_id, pdate_of_birth, is_void, created_at))
             # conn2.commit()
             parent_pk = pgsql_cursor.fetchone()[0]
-            print 'inserting records into reg_person(parent) . . .'
+            # print 'inserting records into reg_person(parent) . . .'
 
             # insert into reg_person_parent
             identifier_type_id = 'INTL'
@@ -596,7 +601,7 @@ try:
             pgsql_cursor.execute("INSERT INTO reg_persons_external_ids(identifier_type_id, identifier, is_void, person_id) VALUES(%s, %s, %s, %s) RETURNING id;",
                                  (identifier_type_id, identifier, is_void, person_id))
             # conn2.commit()
-            print 'inserting records into reg_persons_external_ids . . .'
+            # print 'inserting records into reg_persons_external_ids . . .'
 
             # insert into ovc_household
             hash_key = uuid.uuid4()
@@ -615,7 +620,7 @@ try:
                 'household_id': household_pk,
                 'parent_id': parent_pk
             })
-            print 'inserting records into ovc_household . . .'
+            # print 'inserting records into ovc_household . . .'
 
             hash_key = uuid.uuid4()
             psycopg2.extras.register_uuid()
@@ -630,7 +635,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_household_members(id, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void,house_hold_id, person_id) VALUES(%s, %s, %s, %s, %s, %s,%s, %s, %s, %s) RETURNING id;",
                                  (hash_key, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void, house_hold_id, person_id))
             # conn2.commit()
-            print 'inserting records into ovc_household_members (parent) . . .'
+            # print 'inserting records into ovc_household_members (parent) . . .'
 
             # insert reg_persons_types_parent
             person_type_id = 'TBGR'
@@ -640,7 +645,7 @@ try:
             pgsql_cursor.execute("INSERT INTO reg_persons_types(person_type_id, date_began, date_ended, person_id, is_void) VALUES(%s, %s, %s, %s, %s) RETURNING id;",
                                  (person_type_id, date_began, date_ended, person_id, is_void))
             # conn2.commit()
-            print 'inserting records into reg_persons_types . . .'
+            # print 'inserting records into reg_persons_types . . .'
 
             # insert into reg_persons_geo_parent
             date_linked = created_at
@@ -652,7 +657,7 @@ try:
             pgsql_cursor.execute("INSERT INTO reg_persons_geo(date_linked, date_delinked, area_type, area_id, person_id, is_void) VALUES(%s, %s, %s, %s, %s, %s) RETURNING id;",
                                  (date_linked, date_delinked, area_type, area_id, person_id, is_void))
             # conn2.commit()
-            print 'inserting records into reg_persons_geo(parent) . . .'
+            # print 'inserting records into reg_persons_geo(parent) . . .'
 
             # insert into reg_persons_guardians
             date_linked = created_at
@@ -665,7 +670,7 @@ try:
             pgsql_cursor.execute("INSERT INTO reg_persons_guardians(date_linked, date_delinked, relationship, child_headed, child_person_id, guardian_person_id, is_void) VALUES(%s, %s, %s, %s, %s, %s, %s) RETURNING id;",
                                  (date_linked, date_delinked, relationship, child_headed, child_person_id, guardian_person_id, is_void))
             # conn2.commit()
-            print 'inserting records into reg_persons_guardians . . .'
+            # print 'inserting records into reg_persons_guardians . . .'
 
         # insert into reg_persons_siblings.insert into ovc_household_members
         date_linked = created_at
@@ -681,7 +686,7 @@ try:
                         pgsql_cursor.execute("INSERT INTO reg_persons_siblings(date_linked, date_delinked, remarks, child_person_id, sibling_person_id, is_void) VALUES(%s, %s, %s, %s, %s, %s) RETURNING id;",
                                              (date_linked, date_delinked, remarks, d['child_person_id'], sibling_person_id, is_void))
                         # conn2.commit()
-                        print 'inserting records into reg_persons_siblings . . .'
+                        # print 'inserting records into reg_persons_siblings . . .'
                     hash_key = uuid.uuid4()
                     psycopg2.extras.register_uuid()
                     hh_head = False
@@ -695,7 +700,7 @@ try:
                     pgsql_cursor.execute("INSERT INTO ovc_household_members(id, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void,house_hold_id, person_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
                                          (hash_key, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void, house_hold_id, person_id))
                     # conn2.commit()
-                    print 'inserting records into ovc_household_members(ovc). . .'
+                    # print 'inserting records into ovc_household_members(ovc). . .'
 
         # insert into reg_org_unit
         org_unit_id = None
@@ -714,7 +719,7 @@ try:
             date_closed = None
             handle_ovc = True
             parent_org_unit_id = 1
-            created_by_id = 1
+            created_by_id = 5
             org_unit_name = row['CBOName']
             pgsql_cursor.execute("INSERT INTO reg_org_unit(org_unit_id_vis, org_unit_name, org_unit_type_id, date_operational, date_closed, handle_ovc, is_void, parent_org_unit_id, created_at, created_by_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
                                  (org_unit_id_vis, org_unit_name, org_unit_type_id, date_operational, date_closed, handle_ovc, is_void, parent_org_unit_id, created_at, created_by_id))
@@ -722,7 +727,7 @@ try:
             org_unit_pk = pgsql_cursor.fetchone()[0]
             org_unit_name = row['CBOName']
             # CBONames.append(org_unit_name)
-            print 'inserting records into reg_org_unit . . .'
+            # print 'inserting records into reg_org_unit . . .'
 
             # insert into reg_org_units_geo
             date_linked = created_at
@@ -733,7 +738,7 @@ try:
             pgsql_cursor.execute("INSERT INTO reg_org_units_geo(date_linked, date_delinked, area_id, org_unit_id, is_void) VALUES(%s, %s, %s, %s, %s) RETURNING id;",
                                  (date_linked, date_delinked, area_id, org_unit_id, is_void))
             # conn2.commit()
-            print 'inserting records into reg_org_units_geo . . .'
+            # print 'inserting records into reg_org_units_geo . . .'
 
         # insert into ovc_registration
         registration_date = row['ClientDateofRegistration']
@@ -786,7 +791,7 @@ try:
         pgsql_cursor.execute("INSERT INTO ovc_registration(id, registration_date, has_bcert, is_disabled, hiv_status, school_level, immunization_status, org_unique_id, exit_date, created_at, is_void, caretaker_id, child_cbo_id, child_chv_id, person_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                              (hash_key, registration_date, has_bcert, is_disabled, hiv_status, school_level, immunization_status, org_unique_id, exit_date, created_at, is_void, parent_pk, child_cbo_id, child_chv_id, person_pk))
         # conn2.commit()
-        print 'inserting records into ovc_registration . . .'
+        # print 'inserting records into ovc_registration . . .'
 
         OVCID_MATRIX.append({
             'person_pk': person_pk,
@@ -805,8 +810,10 @@ try:
                 'needs_assessment_pk': row['NeedsAssessmentID'],
                 'date_of_assessment': row['DateofAssessment'],
                 'is_initial': row['Is_InitialAssessment']})
-
+    cscnt, tcscnt=0, len(OVCCareEvents_CSI)
     for OVCCareEvents in OVCCareEvents_CSI:
+    	cscnt+=1
+    	print 'events record number ', cscnt, '/', tcscnt
         NeedsAssessmentPK = OVCCareEvents['needs_assessment_pk']
 
         # insert into ovc_care_events
@@ -828,7 +835,7 @@ try:
                              (hash_key, event_type_id, event_counter, event_score, date_of_event, is_void, person, house_hold, timestamp_created, created_by, hash_key2))
         # conn2.commit()
         event_pk = pgsql_cursor.fetchone()[0]
-        print 'inserting records into ovc_care_events(CSI) . . .'
+        # print 'inserting records into ovc_care_events(CSI) . . .'
 
         # TAB1
         mssql_cursor.execute("SELECT NeedsAssessmentMain.NeedsAssessmentID AS NeedsAssessmentID, NeedsAssessmentMain.OVCID AS OVCID, NeedsAssessmentMain.DateofAssessment AS DateofAssessment, " +
@@ -855,7 +862,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_care_eav(eav_id, entity, attribute, value, value_for, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING eav_id;",
                                  (eav_id, entity, attribute, value, value_for, event, is_void, sync_id))
             # conn2.commit()
-            print 'inserting records into ovc_care_eav(CSI) . . .'
+            # print 'inserting records into ovc_care_eav(CSI) . . .'
 
         # TAB2
         mssql_cursor.execute("SELECT NeedsAssessmentMain.NeedsAssessmentID, NeedsAssessmentMain.OVCID, NeedsAssessmentMain.DateofAssessment," +
@@ -883,7 +890,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_care_priority(priority_id, domain, service, service_grouping_id, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s) RETURNING priority_id;",
                                  (priority_id, domain, service, service_grouping_id, event, is_void, sync_id))
             # conn2.commit()
-            print 'inserting records into ovc_care_priority(CSI) . . .'
+            # print 'inserting records into ovc_care_priority(CSI) . . .'
 
         # TAB3
         mssql_cursor.execute("SELECT NeedsAssessmentMain.NeedsAssessmentID, NeedsAssessmentMain.OVCID, NeedsAssessmentMain.DateofAssessment," +
@@ -913,7 +920,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_care_services(service_id, service_provided, service_provider, place_of_service, date_of_encounter_event, service_grouping_id, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING service_id;",
                                  (service_id, service_provided, service_provider, place_of_service, date_of_encounter_event, service_grouping_id, event, is_void, sync_id))
             # conn2.commit()
-            print 'inserting records into ovc_care_services(CSI) . . .'
+            # print 'inserting records into ovc_care_services(CSI) . . .'
 
     ### ---------------  MIGRATE F1A DATA ------------------- ###
     for data in OVCID_MATRIX:
@@ -928,8 +935,10 @@ try:
                 'service_pk': row['SSVID'],
                 'date_of_visit': row['DateofVisit'],
                 'visit_type': row['VisitType']})
-
+    crcnt, tcrcnt=0, len(OVCCareEvents_F1A) 
     for OVCCareEvents in OVCCareEvents_F1A:
+    	crcnt+=1
+    	print 'F1A record number ', crcnt, '/', tcrcnt
         ServicePK = OVCCareEvents['service_pk']
 
         # insert into ovc_care_events
@@ -951,7 +960,7 @@ try:
                              (hash_key, event_type_id, event_counter, event_score, date_of_event, is_void, person, house_hold, timestamp_created, created_by, hash_key2))
         # conn2.commit()
         event_pk = pgsql_cursor.fetchone()[0]
-        print 'inserting records into ovc_care_events(F1A) . . .'
+        # print 'inserting records into ovc_care_events(F1A) . . .'
 
         # TAB 1
         mssql_cursor.execute("SELECT StatusAndServiceVisit.SSVID, StatusAndServiceVisit.OVCID, StatusAndServiceVisit.DateofVisit, StatusAndServiceVisit.VisitType, StatusAndServiceMonitoring_Assessment.SSID," +
@@ -979,7 +988,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_care_assessment(assessment_id, domain, service, service_status, service_grouping_id, is_void, sync_id, event_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING assessment_id;",
                                  (assessment_id, domain, service, service_status, service_grouping_id, is_void, sync_id, event))
             # conn2.commit()
-            print 'inserting records into ovc_care_assessment(F1A) . . .'
+            # print 'inserting records into ovc_care_assessment(F1A) . . .'
 
         # TAB2
         mssql_cursor.execute("SELECT StatusAndServiceVisit.SSVID, StatusAndServiceVisit.OVCID, StatusAndServiceVisit.DateofVisit," +
@@ -1004,7 +1013,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_care_eav(eav_id, entity, attribute, value, value_for, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING eav_id;",
                                  (eav_id, entity, attribute, value, value_for, event, is_void, sync_id))
             # conn2.commit()
-            print 'inserting records into ovc_care_eav(F1A) . . .'
+            # print 'inserting records into ovc_care_eav(F1A) . . .'
 
         # TAB3
         mssql_cursor.execute("SELECT StatusAndServiceVisit.SSVID, StatusAndServiceVisit.OVCID, StatusAndServiceVisit.DateofVisit," +
@@ -1028,7 +1037,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_care_priority(priority_id, domain, service, service_grouping_id, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s) RETURNING priority_id;",
                                  (priority_id, domain, service, service_grouping_id, event, is_void, sync_id))
             # conn2.commit()
-            print 'inserting records into ovc_care_priority(F1A) . . .'
+            # print 'inserting records into ovc_care_priority(F1A) . . .'
 
         # TAB4
         mssql_cursor.execute("SELECT StatusAndServiceVisit.SSVID, StatusAndServiceVisit.OVCID, StatusAndServiceVisit.DateofVisit, StatusAndServiceVisit.VisitType, StatusAndServiceMonitoring_Service.SSID," +
@@ -1056,7 +1065,7 @@ try:
             pgsql_cursor.execute("INSERT INTO ovc_care_services(service_id, service_provided, service_provider, place_of_service, date_of_encounter_event, service_grouping_id, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING service_id;",
                                  (service_id, service_provided, service_provider, place_of_service, date_of_encounter_event, service_grouping_id, event, is_void, sync_id))
             # conn2.commit()
-            print 'inserting records into ovc_care_services(F1A) . . .'
+            # print 'inserting records into ovc_care_services(F1A) . . .'
 
     ### ---------------  MIGRATE HHVA DATA ------------------- ###
     for data in OVCID_MATRIX:
@@ -1074,7 +1083,11 @@ try:
                     'hhva_pk': row['HHAssessmentid'],
                     'date_of_assessment': row['DateofAssessment'],
                     'is_initial': row['Is_InitialAssessment']})
+
+    hvcnt, thvcnt = 0, len(HHVAPKs)
     for OVCCareEvents in OVCCareEvents_HHVA:
+        hvcnt += 1
+    	print 'HHVA record number ', hvcnt, '/', thvcnt
         HHVAFK = OVCCareEvents['hhva_pk']
 
         # insert into ovc_care_events
@@ -1095,7 +1108,7 @@ try:
                              (hash_key, event_type_id, event_counter, event_score, date_of_event, is_void, person, house_hold, timestamp_created, created_by, hash_key2))
         # conn2.commit()
         event_pk = pgsql_cursor.fetchone()[0]
-        print 'inserting records into ovc_care_events(HHVA) . . .'
+        # print 'inserting records into ovc_care_events(HHVA) . . .'
 
         mssql_cursor.execute("SELECT HHAssessmentMain.HHAssessmentid, HHAssessmentMain.OVCID, HHAssessmentMain.DateofAssessment," +
                              "HHAssessmentMain.Is_InitialAssessment,HHAssessment.Responseid AS ResponseId, HHAssessment.Amount AS Amount, HHAssessment.Condition_Size AS Size," +
@@ -1125,10 +1138,10 @@ try:
                 event = event_pk
                 is_void = False
                 sync_id = hash_key2
-            pgsql_cursor.execute("INSERT INTO ovc_care_eav(eav_i, entity, attribute, value, value_for, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING eav_id;",
+            pgsql_cursor.execute("INSERT INTO ovc_care_eav(eav_id, entity, attribute, value, value_for, event_id, is_void, sync_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING eav_id;",
                                  (eav_id, entity, attribute, value, value_for, event, is_void, sync_id))
             # conn2.commit()
-            print 'inserting records into ovc_care_eav(HHVA) . . .'
+            # print 'inserting records into ovc_care_eav(HHVA) . . .'
 
     # commit
     mssql_cursor.execute("DROP TABLE TEMPORARY_FLAT_TABLE")
