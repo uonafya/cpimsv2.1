@@ -1,6 +1,7 @@
 """Reports functions."""
 import re
 import uuid
+import time
 import string
 import random
 import calendar
@@ -612,6 +613,8 @@ def get_period(report_type='M', month='', year='', period='F'):
             # for using timedelta replace day=1
             days = 364
             month = 12 if period == 'C' else 6
+        elif report_type == 'U':
+            days, month = 364, 9
         year = int(year) + yr_add
         start_day_week, end_day = monthrange(int(year), int(month))
         end_date = '%s-%s-%s' % (end_day, month, year)
@@ -1967,6 +1970,7 @@ def get_performance_detail(request, user_id=0, params={}):
 def get_variables(request):
     """Method to prepare all the variables for reporting."""
     try:
+        print request.POST
         dates = {v: k for k, v in enumerate(calendar.month_abbr)}
         sub_county_ids = request.POST.getlist('sub_county[]')
         sub_counties = request.POST.get('sub_county')
@@ -2035,6 +2039,9 @@ def get_variables(request):
         year = int(report_year) + 1 if report_type == 'M' else report_year
         if report_type == 'Q':
             report_type = rperiod.replace('tr', '')
+        # Pepfar us U for USG
+        if rperiod == 'PEPFAR':
+            report_type = 'U'
         # Month value
         month = dates[rpd] if rpd in dates else ''
         period_params = get_period(
@@ -2139,7 +2146,92 @@ def get_pivot_data(request, params={}):
         return records
 
 
-def get_domain_data():
+def get_geo_details(geo_ids):
+    """Method to return geo ids dictionary."""
+    try:
+        areas = {}
+        for county in range(1, 48):
+            geo_ids.append(county)
+        geos = SetupGeography.objects.filter(
+            area_id__in=geo_ids)
+        for geo in geos:
+            area_id = geo.area_id
+            area_name = geo.area_name
+            vals = {'name': area_name}
+            cid = geo.parent_area_id
+            if cid:
+                vals['county'] = cid
+            areas[area_id] = vals
+    except Exception as e:
+        raise e
+    else:
+        return areas
+
+
+def get_person_geodata(pers_ids):
+    """Method to get cbo data RegPersonsGeo."""
+    try:
+        pers_data, sub_ids = {}, []
+        pers_geos = RegPersonsGeo.objects.filter(
+            is_void=False, person_id__in=pers_ids)
+        sub_county_id = 0
+        for pers in pers_geos:
+            pers_id = pers.person_id
+            area_type = pers.area.area_type_id
+            area_name = pers.area.area_name
+            pers_data[pers_id] = {}
+            if area_type == 'GWRD':
+                print 'here -1'
+                sub_county_id = pers.area.parent_area_id
+                pers_data[pers_id]['ward'] = area_name
+            if sub_county_id:
+                pers_data[pers_id]['sub_county'] = sub_county_id
+                sub_ids.append(sub_county_id)
+        print 0
+        geo_ids = get_geo_details(sub_ids)
+        print 1
+        for pdata in pers_data:
+            sub_id = pers_data[pdata]['sub_county']
+            print 'SI', sub_id
+            if sub_id in geo_ids:
+                sc_name = geo_ids[sub_id]['name']
+                county_id = geo_ids[sub_id]['county']
+                print sc_name, county_id
+                county_name = geo_ids[county_id]['name']
+                pers_data[pdata]['sub_county'] = sc_name
+                pers_data[pdata]['county'] = county_name
+        print 'GD', pers_data
+    except Exception as e:
+        print 'error getting person geo data - %s' % (str(e))
+        raise e
+    else:
+        return pers_data
+
+
+def get_cbo_geodata(cbo_ids):
+    """Method to get cbo data RegPersonsGeo."""
+    try:
+        cbo_data = {}
+        cbos = RegOrgUnitGeography.objects.filter(
+            is_void=False, org_unit_id__in=cbo_ids)
+        for cbo in cbos:
+            cbo_id = cbo.org_unit_id
+            area_type = cbo.area.area_type_id
+            area_name = cbo.area.area_name
+            if area_type == 'GPRV':
+                cbo_data[cbo_id] = {'county': area_name}
+            if area_type == 'GDIS':
+                cbo_data[cbo_id] = {'sub_county': area_name}
+            if area_type == 'GWRD':
+                cbo_data[cbo_id] = {'ward': area_name}
+    except Exception as e:
+        print 'error getting cbo geo data - %s' % (str(e))
+        raise e
+    else:
+        return cbo_data
+
+
+def get_domain_data(params):
     """Method to get data by domain."""
     try:
         datas = []
@@ -2157,7 +2249,14 @@ def get_domain_data():
         sub_domains = get_mapped(field_name=field_names)
         print sub_domains
         domain = 'Uknown'
-        services = OVCCareServices.objects.all()
+        end_date = params['end_date']
+        start_date = params['start_date']
+        cbo = params['org_unit']
+        cbo_id = int(cbo) if cbo else 0
+        print cbo_id
+        services = OVCCareServices.objects.filter(
+            is_void=False,
+            event__date_of_event__range=(start_date, end_date))
         for service in services:
             event = service.event.event_type_id
             age = service.event.person.years
@@ -2211,12 +2310,21 @@ def get_registration_data(kpis):
         return datas
 
 
-def get_services_data(servs):
+def get_services_data(servs, params):
     """Get OVC registration data."""
     try:
         datas = []
         events = {}
-        services = OVCCareServices.objects.all()
+        start = time.clock()
+        print 0, start
+        end_date = params['end_date']
+        start_date = params['start_date']
+        cbo = params['org_unit']
+        cbo_id = int(cbo) if cbo else 0
+        services = OVCCareServices.objects.filter(
+            is_void=False,
+            event__date_of_event__range=(start_date, end_date))
+        # date_of_encounter_event
         for service in services:
             event_id = service.event.pk
             event = service.event.event_type_id
@@ -2227,15 +2335,29 @@ def get_services_data(servs):
                     events[person_id] = [event_id]
                 else:
                     events[person_id].append(event_id)
-        regs = OVCRegistration.objects.all()
+        print 1, time.clock() - start
+        regs = OVCRegistration.objects.filter(
+            is_void=False)
+        if cbo_id > 0:
+            regs = regs.filter(child_cbo_id=cbo_id)
+        # Ge all the cbo data
+        person_ids = []
+        for rg in regs:
+            person_id = rg.person_id
+            person_ids.append(person_id)
+        pers = get_person_geodata(person_ids)
         for reg in regs:
             count = 1
             age = reg.person.years
             sex = reg.person.sex_id
             child_id = reg.person_id
+            child_id = reg.person_id
             cbo = reg.child_cbo.org_unit_name
-            county = 1
-            ward = 1
+            county, ward = 1, 1
+            if child_id in pers:
+                cbo_obj = pers[child_id]
+                county = cbo_obj['county'] if 'county' in cbo_obj else 1
+                ward = cbo_obj['ward'] if 'ward' in cbo_obj else 1
             serv_count = len(events[child_id]) if child_id in events else 0
             serv_id = 3
             if serv_count > 0 and serv_count < 3:
@@ -2246,9 +2368,10 @@ def get_services_data(servs):
             gender = 'Female' if sex == 'SFEM' else 'Male'
             data = {'OVC Count': count, 'Age': age,
                     'Gender': gender, 'CBO': cbo,
-                    'County': county, 'Ward': ward,
+                    'County': county, 'Ward': str(ward),
                     'Services': serv}
             datas.append(data)
+        print 2, time.clock() - start
     except Exception, e:
         raise e
     else:
@@ -2258,6 +2381,7 @@ def get_services_data(servs):
 def get_pivot_ovc(request, params={}):
     """Method to get OVC Pivot Data."""
     try:
+        print params
         datas = []
         report_id = int(request.POST.get('report_ovc'))
         print 'RPT', report_id
@@ -2329,9 +2453,9 @@ def get_pivot_ovc(request, params={}):
         if report_id == 3:
             datas = get_registration_data(kpis)
         if report_id == 2:
-            datas = get_domain_data()
+            datas = get_domain_data(params)
         if report_id == 1:
-            datas = get_services_data(services)
+            datas = get_services_data(services, params)
     except Exception, e:
         print 'Error getting OVC pivot data - %s' % (str(e))
         return []
