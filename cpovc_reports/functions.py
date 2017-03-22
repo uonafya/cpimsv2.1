@@ -2042,6 +2042,7 @@ def get_variables(request):
         # Pepfar us U for USG
         if rperiod == 'PEPFAR':
             report_type = 'U'
+            year = int(report_year) + 1
         # Month value
         month = dates[rpd] if rpd in dates else ''
         period_params = get_period(
@@ -2256,7 +2257,8 @@ def get_domain_data(params):
         print cbo_id
         services = OVCCareServices.objects.filter(
             is_void=False,
-            event__date_of_event__range=(start_date, end_date))
+            event__date_of_event__range=(start_date, end_date),
+            event__event_type_id='FSAM')
         for service in services:
             event = service.event.event_type_id
             age = service.event.person.years
@@ -2268,16 +2270,15 @@ def get_domain_data(params):
             county = 1
             ward = 1
             # User
-            if event == 'FSAM':
-                if serv in sub_domains:
-                    sd = sub_domains[serv]['id']
-                    domain = domains[sd]
-                print event, user, serv
-                gender = 'Female' if sex == 'SFEM' else 'Male'
-                data = {'OVC Count': count, 'Age': age,
-                        'Gender': gender, 'CBO': cbo, 'Domain': domain,
-                        'County': county, 'Ward': ward}
-                datas.append(data)
+            if serv in sub_domains:
+                sd = sub_domains[serv]['id']
+                domain = domains[sd]
+            print event, user, serv
+            gender = 'Female' if sex == 'SFEM' else 'Male'
+            data = {'OVC Count': count, 'Age': age,
+                    'Gender': gender, 'CBO': cbo, 'Domain': domain,
+                    'County': county, 'Ward': ward}
+            datas.append(data)
 
     except Exception, e:
         print 'error getting domain data - %s' % str(e)
@@ -2337,7 +2338,7 @@ def get_services_data(servs, params):
                     events[person_id].append(event_id)
         print 1, time.clock() - start
         regs = OVCRegistration.objects.filter(
-            is_void=False)
+            is_void=False, registration_date__lt=end_date)
         if cbo_id > 0:
             regs = regs.filter(child_cbo_id=cbo_id)
         # Ge all the cbo data
