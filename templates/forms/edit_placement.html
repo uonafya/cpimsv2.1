@@ -74,6 +74,7 @@
                         </ol>
 
                         {{ form.placement_type }}
+                        {{ form.hinstitution_name }}
                         {{ form.person_id }}
                         {{ form.user_id }}
 
@@ -243,10 +244,6 @@
 <script>
 jQuery(document).ready(function() 
 {
-    // get org_units a user ia attached to of org_unit_type = ['TNAS','TNSI','TNCI']
-    // populate institution names with this list
-    // getUserOrgUnits();
-
     //multi selects
     $('#residential_institution_name, #transfer_from').multiselect({
         selectAllValue: 'multiselect-all',
@@ -257,6 +254,14 @@ jQuery(document).ready(function()
         buttonWidth: '100%',
         buttonClass: 'btn btn-white'
     });
+
+    // get org_unit
+    getUserOrgUnits();
+    var org_unit = $('#hinstitution_name').val();
+    console.log('org_unit=' + org_unit);
+    // $("#residential_institution_name option[value='" + org_unit.split() + "']").prop("selected", true);
+    $('#residential_institution_name').val(org_unit).trigger("liszt:updated");
+    $('#residential_institution_name').multiselect("refresh");
 
    // Handling Court divs Show/Hide
     var has_court_committal_order = $("#has_court_committal_order").val();
