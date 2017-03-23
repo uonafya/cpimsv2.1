@@ -17,6 +17,9 @@ document_type = (('DSCE', 'Social enquiry'), ('DSUM', 'Summons'))
 report_types = (('', 'Select type'), ('M', 'Monthly'),
                 ('Q', 'Quarterly'), ('Y', 'Yearly'))
 
+report_types_datim = (('', 'Select type'), ('S', 'Semi Annual'),
+                      ('Y', 'Annual'))
+
 report_vars = (('', 'Select Variable'), (1, 'Organisation Unit'),
                (2, 'Institution Register'))
 # (3, 'Case category'))
@@ -93,6 +96,15 @@ class CaseLoad(forms.Form):
         initial='',
         widget=forms.Select(
             attrs={'class': 'form-control',
+                   'data-parsley-required': 'true',
+                   'autofocus': 'true'}))
+
+    report_type_datim = forms.ChoiceField(
+        choices=report_types_datim,
+        initial='',
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'id': 'id_report_type',
                    'data-parsley-required': 'true',
                    'autofocus': 'true'}))
 

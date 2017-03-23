@@ -421,8 +421,10 @@ function printReport() {
       }
       var mapContainerParent = mapContainer.parent();
       var printContainer     = $('<div>');
-      var prnt = '<center><img src="{% static 'img/gok_logo.jpg' %}" alt="" /></center>';
-      prnt += 'Case data for 2016'
+      var prnt = '<center><img src="{% static 'img/logo_private.png' %}" alt="" /></center>';
+      var rname = $("#id_report_type option:selected").text();
+      var ryear = $("#id_report_year option:selected").text();
+      prnt += 'PEPFAR Report '+ rname + ' ' + ryear;
       //$("#print_title").val();
 
       printContainer

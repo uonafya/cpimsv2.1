@@ -843,7 +843,12 @@ def reports_ovc_rawdata(request):
     """Method to do adhoc pivot reports."""
     try:
         report_variables = get_variables(request)
-        results = get_pivot_ovc(request, report_variables)
+        start_date = report_variables['start_date']
+        today = datetime.now()
+        if start_date > today:
+            results = []
+        else:
+            results = get_pivot_ovc(request, report_variables)
         return JsonResponse(results, content_type='application/json',
                             safe=False)
     except Exception, e:

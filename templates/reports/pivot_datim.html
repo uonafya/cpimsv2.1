@@ -57,9 +57,7 @@
                         <label class="control-label col-md-4 col-sm-4">Report Region :</label>
                         <div class="col-md-6 col-sm-6">
                             <label><input data-parsley-required="true" data-parsley-errors-container="#type_error" id="report_type_0" name="report_region" class="report_region" type="radio" value="1" checked="checked" /> National</label>
-                            <label><input data-parsley-required="true" data-parsley-errors-container="#type_error" id="report_type_1" name="report_region" class="report_region" type="radio" value="2" /> County</label>
-                            <label><input data-parsley-required="true" data-parsley-errors-container="#type_error" id="report_type_2" name="report_region" class="report_region" type="radio" value="3" /> Sub-county</label>
-                            <label><input data-parsley-required="true" data-parsley-errors-container="#type_error" id="report_type_3" name="report_region" class="report_region" type="radio" value="4" /> Organisation Unit</label>
+                            <label><input data-parsley-required="true" data-parsley-errors-container="#type_error" id="report_type_3" name="report_region" class="report_region" type="radio" value="4" /> Organisation Unit (CBO)</label>
                             <div id="type_error"></div>
                         </div>
                         <a href="#" data-toggle="tooltip" title="Select report type."><i class="fa fa-info-circle fa-lg"></i></a>
@@ -90,7 +88,7 @@
                     <div class="form-group">
                         <label class="control-label col-md-4 col-sm-4">Reporting period :</label>
                         <div class="col-md-2 col-sm-2">
-                            {{ form.report_type }}
+                            {{ form.report_type_datim }}
                         </div>
                         <div class="col-md-2 col-sm-2">
                         {{ form.report_period }}
@@ -199,8 +197,8 @@ jQuery(document).ready(function() {
                             return ags >= 25 ? agesw[6] : ags > 17 ? agesw[5] : ags > 14 ? agesw[4] : ags > 9 ? agesw[3] : ags > 4 ? agesw[2]: ags > 1 ? agesw[1] : agesw[0];
                         }
                     },
-                    cols: ["Services", "Age Set", "Gender"],
-                    rows: ["CBO"],
+                    cols: [ "Age Set", "Gender"],
+                    rows: ["CBO", "Services"],
                     aggregators: {
                         "Number of OVC":  function() { 
                             return tpl.count()()
@@ -210,7 +208,7 @@ jQuery(document).ready(function() {
                         }
                     },
                     rendererName: "Table"
-                });
+                }, true);
                 //
                 $('#report_results').html("");
                 $('#map-print').show();
@@ -314,6 +312,7 @@ jQuery(document).ready(function() {
     M = new Array('January','February','March','April','May','June',
                   'July','August','September','October','November','December');
     Q = new Array('Qtr1','Qtr2','Qtr3','Qtr4');
+    S = new Array('PEPFAR');
     Y = new Array('PEPFAR');
 
     populateSelect();
@@ -421,8 +420,10 @@ function printReport() {
       }
       var mapContainerParent = mapContainer.parent();
       var printContainer     = $('<div>');
-      var prnt = '<center><img src="{% static 'img/gok_logo.jpg' %}" alt="" /></center>';
-      prnt += 'Case data for 2016'
+      var prnt = '<center><img src="{% static 'img/logo_private.png' %}" alt="" /></center>';
+      var rname = $("#id_report_type option:selected").text();
+      var ryear = $("#id_report_year option:selected").text();
+      var prnt = 'DATIM Report '+ rname + ' ' + ryear;
       //$("#print_title").val();
 
       printContainer

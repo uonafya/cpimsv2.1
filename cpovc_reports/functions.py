@@ -615,6 +615,8 @@ def get_period(report_type='M', month='', year='', period='F'):
             month = 12 if period == 'C' else 6
         elif report_type == 'U':
             days, month = 364, 9
+        elif report_type == 'S':
+            days, month = 180, 3
         year = int(year) + yr_add
         start_day_week, end_day = monthrange(int(year), int(month))
         end_date = '%s-%s-%s' % (end_day, month, year)
@@ -1978,6 +1980,7 @@ def get_variables(request):
         if not sub_county_ids:
             sub_county_ids = [sub_counties]
         report_type = request.POST.get('report_type')
+        report_datim = request.POST.get('report_type_datim')
         rperiod = request.POST.get('report_period')
         rpt_years = request.POST.get('report_year')
         rpt_iyears = request.POST.get('report_years')
@@ -2040,8 +2043,11 @@ def get_variables(request):
         if report_type == 'Q':
             report_type = rperiod.replace('tr', '')
         # Pepfar us U for USG
+        print report_datim
         if rperiod == 'PEPFAR':
             report_type = 'U'
+            if report_datim == 'S':
+                report_type = 'S'
             year = int(report_year) + 1
         # Month value
         month = dates[rpd] if rpd in dates else ''
@@ -2182,7 +2188,6 @@ def get_person_geodata(pers_ids):
             area_name = pers.area.area_name
             pers_data[pers_id] = {}
             if area_type == 'GWRD':
-                print 'here -1'
                 sub_county_id = pers.area.parent_area_id
                 pers_data[pers_id]['ward'] = area_name
             if sub_county_id:
@@ -2193,15 +2198,12 @@ def get_person_geodata(pers_ids):
         print 1
         for pdata in pers_data:
             sub_id = pers_data[pdata]['sub_county']
-            print 'SI', sub_id
             if sub_id in geo_ids:
                 sc_name = geo_ids[sub_id]['name']
                 county_id = geo_ids[sub_id]['county']
-                print sc_name, county_id
                 county_name = geo_ids[county_id]['name']
                 pers_data[pdata]['sub_county'] = sc_name
                 pers_data[pdata]['county'] = county_name
-        print 'GD', pers_data
     except Exception as e:
         print 'error getting person geo data - %s' % (str(e))
         raise e
@@ -2361,9 +2363,7 @@ def get_services_data(servs, params):
                 ward = cbo_obj['ward'] if 'ward' in cbo_obj else 1
             serv_count = len(events[child_id]) if child_id in events else 0
             serv_id = 3
-            if serv_count > 0 and serv_count < 3:
-                serv_id = 1
-            if serv_count > 2:
+            if serv_count > 0:
                 serv_id = 2
             serv = servs[serv_id]
             gender = 'Female' if sex == 'SFEM' else 'Male'
@@ -2423,9 +2423,9 @@ def get_pivot_ovc(request, params={}):
         kpis[30] = '5.c %s OVC NOT served with any service'
         # served
         services = {}
-        services[1] = '1 or 2 Services'
-        services[2] = '3 or More Services'
-        services[3] = 'Not Served'
+        services[1] = 'a.OVC HIVSTAT'
+        services[2] = 'b.OVC Served'
+        services[3] = 'c.OVC Not Served'
         for i in range(1, 9000):
             gender = random.choice(genders)
             domain = random.choice(domains)
