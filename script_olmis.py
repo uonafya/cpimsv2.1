@@ -481,6 +481,7 @@ OVCID_MATRIX = []
 OVCIDS = []
 dictXarray = []
 
+org_unit_pk = None
 mssql_conn = None
 pgsql_conn = None
 
@@ -491,7 +492,7 @@ try:
     mssql_cursor = mssql_conn.cursor(as_dict=True)
     print 'connected to SQL SERVER! (APHIAMAINDB)'
 
-    pgsql_conn = psycopg2.connect("dbname='cpims_olmis' user='postgres' host='localhost' password='postgres'")
+    pgsql_conn = psycopg2.connect("dbname='cpims' user='postgres' host='localhost' password='postgres'")
     pgsql_cursor = pgsql_conn.cursor()
     print 'connected to PostgreSQL!'
 
@@ -519,13 +520,15 @@ try:
                           "ParentDetails.YearconfirmedHIV AS ParentYearconfirmedHIV,ParentDetails.HBCProgram AS ParentHBCProgram, ParentDetails.YearsinHBC AS ParentYearsinHBC," +
                           "ParentDetails.CHW AS ParentCHW, ParentDetails.ARTStatus AS ParentARTStatus, ParentDetails.Facility AS ParentFacility, ParentDetails.CCCNo AS ParentCCCNo," +
                           "ParentDetails.DateofRegistration AS ParentDateofRegistration, ParentDetails.ovccbo AS ParentCbo, County.County AS County," +
+                          "CHW.FirstName AS CHWFirstName, CHW.MiddleName AS CHWMiddleName, CHW.Surname AS CHWSurname,CHW.ID AS CHWIDNumber, CHW.CBOID AS CHWSCBOID,CHW.Gender AS CHWGender," +
                           "District.District AS District, CBO.CBO AS CBOName, Wards.Ward AS WardName INTO TEMPORARY_FLAT_TABLE " +
                           "FROM District INNER JOIN " +
                           "CBO ON District.DistrictID = CBO.DistrictID INNER JOIN " +
                           "Location ON Location.DistrictID = CBO.DistrictID INNER JOIN " +
                           "County ON District.Countyid = County.CountyID INNER JOIN " +
                           "Clientdetails INNER JOIN " +
- 						  "ParentDetails ON Clientdetails.HouseHoldheadID = ParentDetails.ParentId ON CBO.CBOID = ParentDetails.ovccbo INNER JOIN "+
+ 						  "ParentDetails ON Clientdetails.HouseHoldheadID = ParentDetails.ParentId ON CBO.CBOID = ParentDetails.ovccbo INNER JOIN " +
+                          "CHW ON Clientdetails.VolunteerId = CHW.CHWID INNER JOIN " +
                       	  "Wards ON Location.Wardid = Wards.Wardid")
     tic = time()
     mssql_cursor.execute(mssql_query_select)
@@ -540,15 +543,95 @@ try:
     mssql_cursor.execute(mssql_temp_query_select)
     hrcnt, thrcnt=0, mssql_cursor.rowcount
     for row in mssql_cursor:
-    	hrcnt+=1
-    	print 'OVC registration record number ', hrcnt, '/', thrcnt
-        # harvest OVCIDS
-        OVCIDS.append(str(row['OVCID']))
-
-        # insert reg_person_client
         OVCID = row['OVCID']
         is_void = False
         created_at = datetime.datetime.now()
+    	hrcnt+=1
+    	print 'OVC registration record number ', hrcnt, '/', thrcnt
+
+        # harvest OVCIDS
+        OVCIDS.append(str(row['OVCID']))
+
+        # insert into reg_org_unit
+        org_unit_id = None
+        org_unit_name = None
+        pgsql_cursor.execute(
+            "SELECT id, org_unit_id_vis, org_unit_name FROM reg_org_unit WHERE org_unit_name='" + row['CBOName'] + "'")
+        if pgsql_cursor.rowcount > 0:
+            for r in pgsql_cursor:
+                org_unit_id = r[0]
+                org_unit_name = r[2]
+        else:
+            org_unit_id_vis = 'U000000'
+            org_unit_name = row['CBOName']
+            org_unit_type_id = 'TNCB'
+            date_operational = None
+            date_closed = None
+            handle_ovc = True
+            parent_org_unit_id = 1
+            created_by_id = 5
+            org_unit_name = row['CBOName']
+            pgsql_cursor.execute("INSERT INTO reg_org_unit(org_unit_id_vis, org_unit_name, org_unit_type_id, date_operational, date_closed, handle_ovc, is_void, parent_org_unit_id, created_at, created_by_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
+                                 (org_unit_id_vis, org_unit_name, org_unit_type_id, date_operational, date_closed, handle_ovc, is_void, parent_org_unit_id, created_at, created_by_id))
+            # conn2.commit()
+            org_unit_id = pgsql_cursor.fetchone()[0]
+            org_unit_name = row['CBOName']
+            # CBONames.append(org_unit_name)
+            # print 'inserting records into reg_org_unit . . .'
+
+            # insert into reg_org_units_geo
+            date_linked = created_at
+            date_delinked = None
+            fields = translator(7, row['WardName'])
+            area_id = fields['area_id']
+            org_unit_id = org_unit_id
+            pgsql_cursor.execute("INSERT INTO reg_org_units_geo(date_linked, date_delinked, area_id, org_unit_id, is_void) VALUES(%s, %s, %s, %s, %s) RETURNING id;",
+                                 (date_linked, date_delinked, area_id, org_unit_id, is_void))
+            # conn2.commit()
+            # print 'inserting records into reg_org_units_geo . . .'
+
+        # insert reg_person_user (CHW)
+        ufirst_name = row['CHWFirstName']
+        uother_names = row['CHWMiddleName']
+        usurname = row['CHWSurname']
+        udesignation = 'DVCO'
+        usex_id = 'SMAL' if str(row['CHWGender']) == 'Male' else 'SFEM'
+        udate_of_birth = None
+        pgsql_cursor.execute("INSERT INTO reg_person(first_name, other_names, surname, designation, sex_id, date_of_birth, is_void, created_at) VALUES(%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
+                             (ufirst_name, uother_names, usurname, udesignation, usex_id, udate_of_birth, is_void, created_at))
+        # conn2.commit()
+        user_pk = pgsql_cursor.fetchone()[0]
+
+        # insert reg_persons_types_user (CHW)
+        person_type_id = 'TWVL'
+        date_began = created_at
+        date_ended = None
+        person_id = user_pk
+        pgsql_cursor.execute("INSERT INTO reg_persons_types(person_type_id, date_began, date_ended, person_id, is_void) VALUES(%s, %s, %s, %s, %s) RETURNING id;",
+                             (person_type_id, date_began, date_ended, person_id, is_void))
+
+        # insert into reg_persons_geo_user (CHW)
+        date_linked = created_at
+        date_delinked = None
+        area_type = 'GWRD'
+        fields = translator(7, row['WardName'])
+        area_id = fields['area_id']
+        person_id = user_pk
+        pgsql_cursor.execute("INSERT INTO reg_persons_geo(date_linked, date_delinked, area_type, area_id, person_id, is_void) VALUES(%s, %s, %s, %s, %s, %s) RETURNING id;",
+                             (date_linked, date_delinked, area_type, area_id, person_id, is_void))
+        # print 'inserting records into reg_persons_geo(ovc) . . .'
+
+        # insert to reg_persons_org_units (CHW)
+        person = user_pk
+        org_unit = org_unit_id
+        date_linked = created_at
+        date_delinked = None
+        primary_unit = True
+        reg_assistant = True
+        pgsql_cursor.execute("INSERT INTO reg_persons_org_units(person_id, org_unit_id, date_linked, date_delinked, primary_unit, reg_assistant, is_void) VALUES(%s, %s, %s, %s, %s, %s, %s) RETURNING id;",
+                             (person_id, org_unit, date_linked, date_delinked, primary_unit, reg_assistant, is_void))
+
+        # insert reg_person_client
         cfirst_name = row['ClientFirstName']
         cother_names = row['ClientMiddleName']
         csurname = row['ClientSurname']
@@ -651,7 +734,7 @@ try:
             date_linked = created_at
             date_delinked = None
             area_type = 'GPRV'
-            fields = translator(7, row['County'])
+            fields = translator(7, row['WardName'])
             area_id = fields['area_id']
             person_id = parent_pk
             pgsql_cursor.execute("INSERT INTO reg_persons_geo(date_linked, date_delinked, area_type, area_id, person_id, is_void) VALUES(%s, %s, %s, %s, %s, %s) RETURNING id;",
@@ -700,45 +783,7 @@ try:
                     pgsql_cursor.execute("INSERT INTO ovc_household_members(id, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void,house_hold_id, person_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
                                          (hash_key, hh_head, member_type, member_alive, death_cause, date_linked, date_delinked, is_void, house_hold_id, person_id))
                     # conn2.commit()
-                    # print 'inserting records into ovc_household_members(ovc). . .'
-
-        # insert into reg_org_unit
-        org_unit_id = None
-        org_unit_name = None
-        pgsql_cursor.execute(
-            "SELECT id, org_unit_id_vis, org_unit_name FROM reg_org_unit WHERE org_unit_name='" + row['CBOName'] + "'")
-        if pgsql_cursor.rowcount > 0:
-            for r in pgsql_cursor:
-                org_unit_id = r[0]
-                org_unit_name = r[2]
-        else:
-            org_unit_id_vis = 'U000000'
-            org_unit_name = row['CBOName']
-            org_unit_type_id = 'TNCB'
-            date_operational = None
-            date_closed = None
-            handle_ovc = True
-            parent_org_unit_id = 1
-            created_by_id = 5
-            org_unit_name = row['CBOName']
-            pgsql_cursor.execute("INSERT INTO reg_org_unit(org_unit_id_vis, org_unit_name, org_unit_type_id, date_operational, date_closed, handle_ovc, is_void, parent_org_unit_id, created_at, created_by_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;",
-                                 (org_unit_id_vis, org_unit_name, org_unit_type_id, date_operational, date_closed, handle_ovc, is_void, parent_org_unit_id, created_at, created_by_id))
-            # conn2.commit()
-            org_unit_pk = pgsql_cursor.fetchone()[0]
-            org_unit_name = row['CBOName']
-            # CBONames.append(org_unit_name)
-            # print 'inserting records into reg_org_unit . . .'
-
-            # insert into reg_org_units_geo
-            date_linked = created_at
-            date_delinked = None
-            fields = translator(7, row['County'])
-            area_id = fields['area_id']
-            org_unit_id = org_unit_pk
-            pgsql_cursor.execute("INSERT INTO reg_org_units_geo(date_linked, date_delinked, area_id, org_unit_id, is_void) VALUES(%s, %s, %s, %s, %s) RETURNING id;",
-                                 (date_linked, date_delinked, area_id, org_unit_id, is_void))
-            # conn2.commit()
-            # print 'inserting records into reg_org_units_geo . . .'
+                    # print 'inserting records into ovc_household_members(ovc). . .'        
 
         # insert into ovc_registration
         registration_date = row['ClientDateofRegistration']
