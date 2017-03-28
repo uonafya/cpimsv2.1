@@ -679,7 +679,7 @@ try:
 
             # insert into reg_person_parent
             identifier_type_id = 'INTL'
-            identifier = row['ParentIDNumber']
+            identifier = row['ParentIDNumber'] if row['ParentIDNumber'] else 'XXXX'
             person_id = parent_pk
             pgsql_cursor.execute("INSERT INTO reg_persons_external_ids(identifier_type_id, identifier, is_void, person_id) VALUES(%s, %s, %s, %s) RETURNING id;",
                                  (identifier_type_id, identifier, is_void, person_id))
