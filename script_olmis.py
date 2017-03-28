@@ -591,9 +591,9 @@ try:
             # print 'inserting records into reg_org_units_geo . . .'
 
         # insert reg_person_user (CHW)
-        ufirst_name = row['CHWFirstName']
+        ufirst_name = row['CHWFirstName'] if row['CHWFirstName'] else 'XXXX'
         uother_names = row['CHWMiddleName']
-        usurname = row['CHWSurname']
+        usurname = row['CHWSurname'] if row['CHWSurname'] else 'XXXX'
         udesignation = 'DVCO'
         usex_id = 'SMAL' if str(row['CHWGender']) == 'Male' else 'SFEM'
         udate_of_birth = None
@@ -632,9 +632,9 @@ try:
                              (person_id, org_unit, date_linked, date_delinked, primary_unit, reg_assistant, is_void))
 
         # insert reg_person_client
-        cfirst_name = row['ClientFirstName']
+        cfirst_name = row['ClientFirstName'] if row['ClientFirstName'] else 'XXXX'
         cother_names = row['ClientMiddleName']
-        csurname = row['ClientSurname']
+        csurname = row['ClientSurname'] if row['ClientSurname'] else 'XXXX'
         cdesignation = 'COVC'
         csex_id = 'SMAL' if str(row['ClientGender']) == 'Male' else 'SFEM'
         cdate_of_birth = row['ClientDateofBirth']
@@ -665,9 +665,9 @@ try:
 
         if not (row['ClientHouseHoldheadID']) in HouseHoldheadIDs:
             # insert into reg_person_parent
-            pfirst_name = row['ParentFirstName']
+            pfirst_name = row['ParentFirstName'] if row['ParentFirstName'] else 'XXXX'
             pother_names = row['ParentMiddleName']
-            psurname = row['ParentSurname']
+            psurname = row['ParentSurname'] if row['ParentSurname'] else 'XXXX'
             pdesignation = 'CCGV'
             psex_id = 'SMAL' if str(row['ParentGender']) == 'Male' else 'SFEM'
             pdate_of_birth = row['ParentDateofBirth']
