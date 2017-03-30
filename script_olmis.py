@@ -547,7 +547,7 @@ try:
         is_void = False
         created_at = datetime.datetime.now()
     	hrcnt+=1
-    	print 'OVC registration record number ', hrcnt, '/', thrcnt
+    	print 'OVC registration record number ', hrcnt, '/', (mssql_cursor.rowcount + 1)
 
         # harvest OVCIDS
         OVCIDS.append(str(row['OVCID']))
