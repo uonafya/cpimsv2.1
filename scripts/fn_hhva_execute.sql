@@ -15,7 +15,7 @@ BEGIN
 	CASE WHEN SUM(vulnerability)=0 THEN 0
 		WHEN SUM(vulnerability) BETWEEN 1 AND 9 THEN 1
 		WHEN SUM(vulnerability) BETWEEN 10 AND 18 THEN 2
-		WHEN SUM(vulnerability) >=19 THEN 4
+		WHEN SUM(vulnerability) >=19 THEN 3
 		END
 	AS event_score
 	FROM(
