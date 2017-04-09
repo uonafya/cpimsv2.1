@@ -16,6 +16,8 @@ art_status_list = get_list('art_status_id', 'Please Select Status')
 ovc_form_type_list = get_list('ovc_form_type_id', 'Please Select')
 eligibility_list = get_list('eligibility_criteria_id', '')
 death_cause_list = get_list('death_cause_id', 'Please Select Cause of Death')
+exit_list = get_list('exit_reason_id', 'Please Select one')
+
 
 health_unit_list = get_org_units_list(
     default_txt='Select Unit', org_types=['HFGU'])
@@ -105,7 +107,6 @@ class OVCRegistrationForm(forms.Form):
             self.fields[gid] = sgstatus
             self.fields[aid] = sastatus
 
-
     reg_date = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control',
                'id': 'reg_date',
@@ -115,6 +116,11 @@ class OVCRegistrationForm(forms.Form):
         widget=forms.CheckboxInput(
             attrs={'class': 'form-control',
                    'id': 'has_bcert'}))
+
+    is_exited = forms.CharField(
+        widget=forms.CheckboxInput(
+            attrs={'class': 'form-control',
+                   'id': 'is_exited'}))
 
     bcert_no = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control',
@@ -161,6 +167,14 @@ class OVCRegistrationForm(forms.Form):
             attrs={'class': 'form-control',
                    'data-parsley-required': "true",
                    'id': 'eligibility'}))
+
+    exit_reason = forms.ChoiceField(
+        choices=exit_list,
+        initial='0',
+        required=True,
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'id': 'exit_reason'}))
 
     hiv_status = forms.ChoiceField(
         choices=hiv_status_list,

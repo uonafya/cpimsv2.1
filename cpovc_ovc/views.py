@@ -124,6 +124,7 @@ def ovc_edit(request, id):
         creg = OVCRegistration.objects.get(is_void=False, person_id=ovc_id)
         bcert = 'on' if creg.has_bcert else ''
         disb = 'on' if creg.is_disabled else ''
+        exited = '' if creg.is_active else 'on'
         reg_date = creg.registration_date
         child.caretaker = creg.caretaker_id
         child.cbo = creg.child_cbo.org_unit_name
@@ -176,7 +177,8 @@ def ovc_edit(request, id):
                       'school_level': creg.school_level, 'facility': facility,
                       'hiv_status': creg.hiv_status, 'link_date': date_linked,
                       'ccc_number': ccc_no, 'art_status': art_status,
-                      'eligibility': criterias}
+                      'eligibility': criterias, 'is_exited': exited,
+                      'exit_reason': creg.exit_reason}
         form = OVCRegistrationForm(guids=pids, data=all_values)
         # Get house hold
         hhold = OVCHHMembers.objects.get(

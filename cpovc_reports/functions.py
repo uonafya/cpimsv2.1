@@ -5,7 +5,7 @@ import time
 import string
 import random
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from calendar import monthrange, month_name
 from collections import OrderedDict
 
@@ -2197,7 +2197,9 @@ def get_person_geodata(pers_ids):
         geo_ids = get_geo_details(sub_ids)
         print 1
         for pdata in pers_data:
-            sub_id = pers_data[pdata]['sub_county']
+            sub_id = 0
+            if 'sub_county' in pers_data[pdata]:
+                sub_id = pers_data[pdata]['sub_county']
             if sub_id in geo_ids:
                 sc_name = geo_ids[sub_id]['name']
                 county_id = geo_ids[sub_id]['county']
@@ -2258,14 +2260,11 @@ def get_domain_data(params):
         cbo_id = int(cbo) if cbo else 0
         print cbo_id
         services = OVCCareServices.objects.filter(
-            is_void=False,
-            event__date_of_event__range=(start_date, end_date),
-            event__event_type_id='FSAM')
+            is_void=False, event__event_type_id='FSAM',
+            event__date_of_event__range=(start_date, end_date))
         for service in services:
-            event = service.event.event_type_id
             age = service.event.person.years
             sex = service.event.person.sex_id
-            user = service.event.created_by
             serv = service.service_provided
             count = 1
             cbo = 1
@@ -2275,7 +2274,6 @@ def get_domain_data(params):
             if serv in sub_domains:
                 sd = sub_domains[serv]['id']
                 domain = domains[sd]
-            print event, user, serv
             gender = 'Female' if sex == 'SFEM' else 'Male'
             data = {'OVC Count': count, 'Age': age,
                     'Gender': gender, 'CBO': cbo, 'Domain': domain,
@@ -2288,25 +2286,65 @@ def get_domain_data(params):
         return datas
 
 
-def get_registration_data(kpis):
+def get_kpi(kpis, reg_obj):
+    """Method to get the parameter."""
+    try:
+        pass
+    except Exception as e:
+        raise e
+    else:
+        pass
+
+
+def get_registration_data(kpis, params):
     """Get OVC registration data."""
     try:
         datas = []
-        regs = OVCRegistration.objects.all()
+        kpdts = [1, 2, 3, 4, 5, 7, 10, 11, 17, 24]
+        end_date = params['end_date']
+        start_date = params['start_date']
+        #
+        dt = date(start_date.year, start_date.month, start_date.day)
+        print dt
+        regs = OVCRegistration.objects.filter(
+            is_void=False, registration_date__lt=end_date)
         for reg in regs:
-            count = 1
             age = reg.person.years
             sex = reg.person.sex_id
             cbo = reg.child_cbo.org_unit_name
+            reg_date = reg.registration_date
+            exit_date = reg.exit_date
             county = 1
             ward = 1
-            kpi = kpis[1] % ('Number of')
+            kvar = 'Number of'
             gender = 'Female' if sex == 'SFEM' else 'Male'
-            data = {'OVC Count': count, 'Age': age,
-                    'Gender': gender, 'CBO': cbo,
-                    'County': county, 'Ward': ward,
-                    'Performance Indicator': kpi}
-            datas.append(data)
+            for kp in kpdts:
+                if kp == 1:
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 2 and reg_date > dt:
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 3 and reg.is_active:
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 4 and not reg.is_active:
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 5 and not reg.is_active and exit_date > dt:
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 7 and not reg.has_bcert:
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 10 and reg.hiv_status == 'HSTP':
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 11 and reg.hiv_status == 'HSTN':
+                    kpi = kpis[kp] % (kvar)
+                elif kp == 17 and reg.is_active and reg.hiv_status == 'HSTP':
+                    kpi = kpis[kp] % (kvar)
+                else:
+                    kpi = None
+                if kpi:
+                    data = {'OVC Count': 1, 'Age': age,
+                            'Gender': gender, 'CBO': cbo,
+                            'County': county, 'Ward': ward,
+                            'Performance Indicator': kpi}
+                    datas.append(data)
     except Exception, e:
         raise e
     else:
@@ -2325,19 +2363,17 @@ def get_services_data(servs, params):
         cbo = params['org_unit']
         cbo_id = int(cbo) if cbo else 0
         services = OVCCareServices.objects.filter(
-            is_void=False,
+            is_void=False, event__event_type_id='FSAM',
             event__date_of_event__range=(start_date, end_date))
         # date_of_encounter_event
         for service in services:
             event_id = service.event.pk
-            event = service.event.event_type_id
             person_id = service.event.person_id
             # User
-            if event == 'FSAM':
-                if person_id not in events:
-                    events[person_id] = [event_id]
-                else:
-                    events[person_id].append(event_id)
+            if person_id not in events:
+                events[person_id] = [event_id]
+            else:
+                events[person_id].append(event_id)
         print 1, time.clock() - start
         regs = OVCRegistration.objects.filter(
             is_void=False, registration_date__lt=end_date)
@@ -2356,6 +2392,7 @@ def get_services_data(servs, params):
             child_id = reg.person_id
             child_id = reg.person_id
             cbo = reg.child_cbo.org_unit_name
+            hiv_status = reg.hiv_status
             county, ward = 1, 1
             if child_id in pers:
                 cbo_obj = pers[child_id]
@@ -2372,6 +2409,12 @@ def get_services_data(servs, params):
                     'County': county, 'Ward': str(ward),
                     'Services': serv}
             datas.append(data)
+            if hiv_status == 'HSTP':
+                data = {'OVC Count': 1, 'Age': age,
+                        'Gender': gender, 'CBO': cbo,
+                        'County': county, 'Ward': str(ward),
+                        'Services': servs[1]}
+                datas.append(data)
         print 2, time.clock() - start
     except Exception, e:
         raise e
@@ -2415,7 +2458,7 @@ def get_pivot_ovc(request, params={}):
         kpis[23] = '4.j %s ACTIVE OVC HIV+ and LINKED to Facilities'
         kpis[24] = ('4.k %s ACTIVE OVC HIV+ and LINKED to Facilities '
                     'within period')
-        kpis[25] = '4.l %s HIV+ve OVC Tested within period'
+        kpis[25] = '4.l %s HIV+ OVC Tested within period'
         kpis[26] = '5.a %s ACTIVE HouseHolds/Caregivers within period'
         kpis[27] = '5.a %s OVC served with 1 or 2 services'
         kpis[28] = '5.b %s ACTIVE CHVs within period'
@@ -2452,7 +2495,7 @@ def get_pivot_ovc(request, params={}):
                     data['School Level'] = sch_level
             datas.append(data)
         if report_id == 3:
-            datas = get_registration_data(kpis)
+            datas = get_registration_data(kpis, params)
         if report_id == 2:
             datas = get_domain_data(params)
         if report_id == 1:

@@ -151,6 +151,22 @@
                       </div>
                     </div>
                     <!-- end col-2 -->
+                     <!-- begin col-1 -->
+                    <div class="col-md-1">
+                    <div class="form-group">
+                        <label>Exit</label>
+                        {{ form.is_exited }}
+                      </div>
+                    </div>
+                    <!-- end col-1 -->
+                    <!-- begin col-4 -->
+                    <div class="col-md-4" id="exit_reason_div">
+                    <div class="form-group">
+                        <label>Exit reason</label>
+                        {{ form.exit_reason }}
+                      </div>
+                    </div>
+                    <!-- end col-4 -->
                     </div>
             </fieldset>
         </div>
@@ -289,7 +305,7 @@
                     <tbody>
 
                     {% for guardian in hhmembers %}
-                        {% if 'OVC' not in guardian.member_type %}
+                        {% if 'OVC' not in guardian.member_type and 'TBVC' not in guardian.member_type%}
                         {% with y=guardian.person.id|stringformat:"s" %}
                         <tr>
                             <td><input type="hidden" name="hh_member" value="{{ guardian.person.id }}">
@@ -463,8 +479,10 @@
         }
 
     }});
+    var is_exit = $('#is_exited').is(":checked");
+    disable_fields(is_exit, 'exit_reason');
 
-    $('#eligibility').multiselect({
+    $('#eligibility, #exit_reason').multiselect({
         enableCaseInsensitiveFiltering: true,
         numberDisplayed: 1,
         maxHeight: 300,
@@ -478,12 +496,17 @@
         dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
         endDate: '+0d', enddate: '+0d', autoclose: true
     });
-
     var ccond = $('#has_bcert').is(":checked");
     disable_fields(ccond, 'bcert_no');
 
     var dcond = $('#disb').is(":checked");
     disable_fields(dcond, 'ncpwd_no');
+
+    $('#is_exited').live('change', function() {
+        var is_exit = $('#is_exited').is(":checked");
+        disable_fields(is_exit, 'exit_reason');
+        $('#exit_reason').multiselect('rebuild');
+    });
 
     $('#has_bcert').live('change', function() {
         var cond = $('#has_bcert').is(":checked");
@@ -568,9 +591,11 @@
 
     function disable_fields(cond, field_id){
         if (cond){
+            console.log(field_id + ' 1');
             $('#'+ field_id).prop('disabled', false);
-            $('#'+ field_id).attr("data-parsley-required", "true");   
+            $('#'+ field_id).attr("data-parsley-required", "true");  
         }else{
+            console.log(field_id + ' 2');
             $('#'+ field_id).prop('disabled', true);
             $('#'+ field_id).attr("data-parsley-required", "false");
         }

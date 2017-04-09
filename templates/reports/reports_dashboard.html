@@ -138,7 +138,8 @@
                                 <th>#</th>
                                 <th>Date</th>
                                 <th>Children</th>
-                                <th>Cases</th>
+                                <th>Cases(Reporting)</th>
+                                <th>Cases(Occurence)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -231,14 +232,18 @@ $(document).ready(function() {
                var dt = '';
                var tchildren = 0;
                var tcases = 0;
+               var trpts = 0;
                $.each(response.data, function(key, val) {
                     dt += '<tr><td>'+ val.id +'</td><td>'+ val.date;
-                    dt += '</td><td>'+ val.children +'</td><td>'+ val.cases +'</td></tr>';
+                    dt += '</td><td>'+ val.children +'</td><td>'+ val.cases;
+                    dt += '</td><td>'+ val.reports + '</td></tr>';
                     tchildren += val.children;
                     tcases += val.cases;
+                    trpts += val.reports;
                 });
                dt += '<tr><td></td><td>TOTALS</td><td>';
-               dt += tchildren +'</td><td>'+ tcases +'</td></tr>';
+               dt += tchildren +'</td><td>'+ tcases +'</td>';
+               dt += '<td>'+ trpts +'</td></tr>';
                $('#mywork > tbody').html(dt);
            },
             error: function(){

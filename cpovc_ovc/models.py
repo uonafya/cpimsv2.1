@@ -74,8 +74,10 @@ class OVCRegistration(models.Model):
     caretaker = models.ForeignKey(RegPerson, null=True, related_name='ctaker')
     child_cbo = models.ForeignKey(RegOrgUnit)
     child_chv = models.ForeignKey(RegPerson, related_name='chv')
+    exit_reason = models.CharField(max_length=4, null=True)
     exit_date = models.DateField(default=timezone.now, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
     is_void = models.BooleanField(default=False)
 
     class Meta:
