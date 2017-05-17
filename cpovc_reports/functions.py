@@ -3,12 +3,12 @@ import re
 import uuid
 import time
 import string
-import random
 import calendar
+from django.db import connection
 from datetime import datetime, timedelta, date
 from calendar import monthrange, month_name
 from collections import OrderedDict
-
+from openpyxl import Workbook
 from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 from reportlab.platypus import (
@@ -2429,8 +2429,6 @@ def get_pivot_ovc(request, params={}):
         datas = []
         report_id = int(request.POST.get('report_ovc'))
         print 'RPT', report_id
-        genders = ["Male", "Female"]
-        domains = ['DSHC', 'DPSS', 'DPRO', 'DHES', 'DHNU', 'DEDU']
         kpis = {}
         kpis[1] = '1.a %s OVCs Ever Registered'
         kpis[2] = '1.b %s New OVC Registrations within period'
@@ -2469,31 +2467,6 @@ def get_pivot_ovc(request, params={}):
         services[1] = 'a.OVC HIVSTAT'
         services[2] = 'b.OVC Served'
         services[3] = 'c.OVC Not Served'
-        for i in range(1, 9000):
-            gender = random.choice(genders)
-            domain = random.choice(domains)
-            kpi_id = random.randint(1, 30)
-            sch_level = random.randint(1, 8)
-            serv_id = random.randint(1, 3)
-            kpi = kpis[kpi_id]
-            service = services[serv_id]
-            count = random.randint(0, 100)
-            age = random.randint(0, 30)
-            cbo = 'Test CBO %s' % (random.randint(1, 5))
-            ward = 'Test Ward %s' % (random.randint(1, 10))
-            county = 'County %s' % (random.randint(1, 2))
-            data = {'OVC Count': count, 'Age': age,
-                    'Gender': gender, 'CBO': cbo,
-                    'County': county, 'Ward': ward}
-            if report_id == 3:
-                data['Performance Indicator'] = kpi
-            if report_id == 1:
-                data['Services'] = service
-            else:
-                data['Domain'] = domain
-                if report_id == 2:
-                    data['School Level'] = sch_level
-            datas.append(data)
         if report_id == 3:
             datas = get_registration_data(kpis, params)
         if report_id == 2:
@@ -2505,6 +2478,33 @@ def get_pivot_ovc(request, params={}):
         return []
     else:
         return datas
+
+
+def write_xls(response, data):
+    """Method to write excel."""
+    try:
+        wb = Workbook()
+        ws = wb.active
+        for dt in data:
+            ws.append(dt)
+        # Save the file
+        wb.save(response)
+    except Exception, e:
+        print "error creating excel - %s" % (str(e))
+        raise e
+    else:
+        pass
+
+
+def get_sql_data(request):
+    """Method to write data."""
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT * FROM reg_person WHERE LOWER(first_name) = 'atieno'")
+        row = cursor.fetchall()
+    for r in row:
+        print r
+    return row
 
 
 if __name__ == '__main__':

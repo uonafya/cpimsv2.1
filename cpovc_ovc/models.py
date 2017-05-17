@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 from django.utils import timezone
 from cpovc_registry.models import RegPerson, RegOrgUnit
+from cpovc_main.models import SetupGeography
 
 
 class OVCAggregate(models.Model):
@@ -120,7 +121,7 @@ class OVCHouseHold(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
     head_person = models.ForeignKey(RegPerson)
-    head_identifier = models.CharField(max_length=15)
+    head_identifier = models.CharField(max_length=255)
     created_at = models.DateTimeField(default=timezone.now)
     is_void = models.BooleanField(default=False)
 
@@ -164,13 +165,33 @@ class OVCHHMembers(models.Model):
         return self.id
 
 
+class OVCFacility(models.Model):
+    """Model for OVC Care health details."""
+
+    sub_county = models.ForeignKey(SetupGeography, null=True)
+    facility_code = models.CharField(max_length=10, null=True)
+    facility_name = models.CharField(max_length=200)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_facility'
+        verbose_name = 'OVC Facility'
+        verbose_name_plural = 'OVC Facilities'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return str(self.facility_name)
+
+
 class OVCHealth(models.Model):
     """Model for OVC Care health details."""
 
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
     person = models.ForeignKey(RegPerson)
-    facility = models.ForeignKey(RegOrgUnit)
+    facility = models.ForeignKey(OVCFacility)
     art_status = models.CharField(max_length=4)
     date_linked = models.DateField()
     ccc_number = models.CharField(max_length=20)
@@ -187,3 +208,22 @@ class OVCHealth(models.Model):
     def __unicode__(self):
         """To be returned by admin actions."""
         return str(self.id)
+
+
+class OVCSchool(models.Model):
+    """Model for OVC Care health details."""
+
+    sub_county = models.ForeignKey(SetupGeography)
+    school_name = models.CharField(max_length=200)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_school'
+        verbose_name = 'OVC school'
+        verbose_name_plural = 'OVC Schools'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return str(self.school_name)

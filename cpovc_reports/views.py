@@ -21,7 +21,7 @@ from .functions import (
     simple_document, draw_page, get_geo_locations, get_data, get_period,
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
     get_case_data, org_unit_tree, get_performance, get_performance_detail,
-    get_pivot_data, get_pivot_ovc, get_variables)
+    get_pivot_data, get_pivot_ovc, get_variables, get_sql_data, write_xls)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -855,3 +855,26 @@ def reports_ovc_rawdata(request):
         print 'error getting raw data - %s' % (str(e))
         return JsonResponse([], content_type='application/json',
                             safe=False)
+
+@login_required
+def reports_ovc(request, id):
+    """Method to do pivot reports."""
+    try:
+        form = CaseLoad(request.user)
+        return render(request, 'reports/pivot_ovc.html', {'form': form})
+    except Exception, e:
+        raise e
+    else:
+        pass
+
+
+def reports_ovc_download(request):
+    """Get certificate."""
+    mc_name = "Report.xlsx"
+    file_name = 'attachment; filename="%s"' % (mc_name)
+    ctype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response = HttpResponse(content_type=ctype)
+    response['Content-Disposition'] = file_name
+    data = get_sql_data(request)
+    write_xls(response, data)
+    return response

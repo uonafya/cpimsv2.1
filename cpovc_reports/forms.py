@@ -164,6 +164,13 @@ class CaseLoad(forms.Form):
                    'data-parsley-required': 'false',
                    'autofocus': 'true'}))
 
+    cluster = forms.ChoiceField(
+        choices=(),
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'data-parsley-required': 'false',
+                   'autofocus': 'true'}))
+
     report_ovc = forms.ChoiceField(
         choices=usg_reports,
         widget=forms.Select(
