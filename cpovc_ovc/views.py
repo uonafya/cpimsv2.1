@@ -1,6 +1,6 @@
 """OVC Care views."""
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -34,6 +34,19 @@ def ovc_home(request):
         return render(request, 'ovc/home.html', {'form': form, 'status': 200})
     except Exception, e:
         raise e
+
+
+def ovc_search(request):
+    """Method to do ovc search."""
+    try:
+        results = []
+    except Exception, e:
+        print 'error with search - %s' % (str(e))
+        return JsonResponse(results, content_type='application/json',
+                            safe=False)
+    else:
+        return JsonResponse(results, content_type='application/json',
+                            safe=False)
 
 
 @login_required(login_url='/')
@@ -190,6 +203,20 @@ def ovc_edit(request, id):
         for hhm in hhmembers:
             status_id = 'gstatus_%s' % (hhm.person_id)
             all_values[status_id] = hhm.hiv_status
+        # Class levels
+        levels = {}
+        levels["SLNS"] = []
+        levels["AECD"] = ["BABY,Baby Class", "MIDC,Middle Class",
+                          "PREU,Pre-Unit"]
+        levels["ACPR"] = ["CLS1,Class 1", "CLS2,Class 2", "CLS3,Class 3",
+                          "CLS4,Class 4", "CLS5,Class 5", "CLS6,Class 6",
+                          "CLS7,Class 7", "CLS8,Class 8"]
+        levels["ACSC"] = ["FOM1,Form 1", "FOM2,Form 2", "FOM3,Form 3",
+                          "FOM4,Form 4", "FOM5,Form 5", "FOM6,Form 6"]
+        levels["ACVT"] = ["YER1,Year 1", "YER2,Year 2", "YER3,Year 3",
+                          "YER4,Year 4", "YER5,Year 5", "YER6,Year 6"]
+        levels["AUNV"] = ["TVC1,Year 1", "TVC2,Year 2", "TVC3,Year 3",
+                          "TVC4,Year 4", "TVC5,Year 5"]
         # Re-usable values
         check_fields = ['relationship_type_id']
         vals = get_dict(field_name=check_fields)
@@ -197,7 +224,7 @@ def ovc_edit(request, id):
                       {'form': form, 'status': 200, 'child': child,
                        'guardians': guardians, 'siblings': siblings,
                        'vals': vals, 'hhold': hhold, 'extids': gparams,
-                       'hhmembers': hhmembers})
+                       'hhmembers': hhmembers, 'levels': levels})
     except Exception, e:
         print "error with OVC editing - %s" % (str(e))
         raise e
@@ -239,8 +266,9 @@ def ovc_view(request, id):
             is_void=False, person_id=child.id)
         # Get HH members
         hhid = hhold.house_hold_id
-        hhmembers = OVCHHMembers.objects.filter(
+        hhmqs = OVCHHMembers.objects.filter(
             is_void=False, house_hold_id=hhid).order_by("-hh_head")
+        hhmembers = hhmqs.exclude(person_id=child.id)
         # Re-usable values
         check_fields = ['relationship_type_id', 'school_level_id',
                         'hiv_status_id', 'immunization_status_id',

@@ -5,6 +5,7 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns(
     'cpovc_ovc.views',
     url(r'^$', 'ovc_home', name='ovc_home'),
+    url(r'^search/$', 'ovc_search', name='ovc_search'),
     url(r'^register/(?P<id>\d+)/$',
         'ovc_register', name='ovc_register'),
     url(r'^edit/(?P<id>\d+)/$',

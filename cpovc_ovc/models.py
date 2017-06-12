@@ -214,6 +214,7 @@ class OVCSchool(models.Model):
     """Model for OVC Care health details."""
 
     sub_county = models.ForeignKey(SetupGeography)
+    school_level = models.CharField(max_length=5)
     school_name = models.CharField(max_length=200)
     is_void = models.BooleanField(default=False)
 
@@ -227,3 +228,28 @@ class OVCSchool(models.Model):
     def __unicode__(self):
         """To be returned by admin actions."""
         return str(self.school_name)
+
+
+class OVCEducation(models.Model):
+    """Model for OVC Care health details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    person = models.ForeignKey(RegPerson)
+    school = models.ForeignKey(OVCSchool)
+    school_level = models.CharField(max_length=4)
+    school_class = models.CharField(max_length=4)
+    admission_type = models.CharField(max_length=4)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_care_education'
+        verbose_name = 'OVC Care Education'
+        verbose_name_plural = 'OVC Care Education'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return str(self.id)

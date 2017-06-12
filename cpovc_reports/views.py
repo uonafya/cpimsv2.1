@@ -856,6 +856,7 @@ def reports_ovc_rawdata(request):
         return JsonResponse([], content_type='application/json',
                             safe=False)
 
+
 @login_required
 def reports_ovc(request, id):
     """Method to do pivot reports."""
@@ -870,11 +871,13 @@ def reports_ovc(request, id):
 
 def reports_ovc_download(request):
     """Get certificate."""
-    mc_name = "Report.xlsx"
+    today = datetime.now()
+    dates = today.strftime('%d%m%Y')
+    mc_name = "%sREGISTRATION.xlsx" % (dates)
     file_name = 'attachment; filename="%s"' % (mc_name)
     ctype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     response = HttpResponse(content_type=ctype)
     response['Content-Disposition'] = file_name
-    data = get_sql_data(request)
-    write_xls(response, data)
+    data, titles = get_sql_data(request)
+    write_xls(response, data, titles)
     return response

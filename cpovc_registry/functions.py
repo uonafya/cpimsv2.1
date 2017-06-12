@@ -534,7 +534,7 @@ def remove_locations(area_ids, person_id):
 def names_from_ids(ids, registry='orgs'):
     """Method to return geo names from list of ids."""
     try:
-        orgs = get_specific_geos(ids, registry, reg_type=['GDIS'])
+        orgs = get_specific_geos(ids, registry, reg_type=['GDIS', 'GWRD'])
         orgs_name = {}
         # For getting all area names comma separated
         for geo in ids:

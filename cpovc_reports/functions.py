@@ -44,6 +44,8 @@ from django.db.models import Count
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATICFILES_DIRS[0]
 
+from queries import QUERIES
+
 
 class Canvas(canvas.Canvas):
     """Pagination extention for canvas."""
@@ -2303,11 +2305,14 @@ def get_registration_data(kpis, params):
         kpdts = [1, 2, 3, 4, 5, 7, 10, 11, 17, 24]
         end_date = params['end_date']
         start_date = params['start_date']
+        ou = params['org_unit']
+        cbo_id = int(ou) if ou else 0
+        cbos = [cbo_id]
         #
         dt = date(start_date.year, start_date.month, start_date.day)
-        print dt
         regs = OVCRegistration.objects.filter(
-            is_void=False, registration_date__lt=end_date)
+            is_void=False, registration_date__lt=end_date,
+            child_cbo_id__in=cbos)
         for reg in regs:
             age = reg.person.years
             sex = reg.person.sex_id
@@ -2480,11 +2485,14 @@ def get_pivot_ovc(request, params={}):
         return datas
 
 
-def write_xls(response, data):
+def write_xls(response, data, titles=None):
     """Method to write excel."""
     try:
         wb = Workbook()
         ws = wb.active
+        if titles:
+            title = [i[0].upper() for i in titles]
+            ws.append(title)
         for dt in data:
             ws.append(dt)
         # Save the file
@@ -2498,13 +2506,14 @@ def write_xls(response, data):
 
 def get_sql_data(request):
     """Method to write data."""
+    cbo = request.GET.get('org_unit')
+    cbo_id = int(cbo) if cbo else 0
+    sql = QUERIES['registration']
     with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT * FROM reg_person WHERE LOWER(first_name) = 'atieno'")
+        cursor.execute(sql % (cbo_id))
         row = cursor.fetchall()
-    for r in row:
-        print r
-    return row
+    desc = cursor.description
+    return row, desc
 
 
 if __name__ == '__main__':

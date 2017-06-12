@@ -9,7 +9,7 @@ search_criteria_list = (('', 'Select Criteria'), ('1', 'Names'),
 immunization_list = get_list('immunization_status_id', 'Please Select')
 
 person_type_list = get_list('person_type_id', 'Please Select Type')
-school_level_list = get_list('school_level_id', 'Please Select Level')
+school_level_list = get_list('admission_class_id', 'Please Select Level')
 hiv_status_list = get_list('hiv_status_id', 'Please Select HIV Status')
 alive_status_list = get_list('yesno_id', '')
 art_status_list = get_list('art_status_id', 'Please Select Status')
@@ -17,7 +17,7 @@ ovc_form_type_list = get_list('ovc_form_type_id', 'Please Select')
 eligibility_list = get_list('eligibility_criteria_id', '')
 death_cause_list = get_list('death_cause_id', 'Please Select Cause of Death')
 exit_list = get_list('exit_reason_id', 'Please Select one')
-
+admission_list = get_list('school_type_id', 'Please Select one')
 
 health_unit_list = get_org_units_list(
     default_txt='Select Unit', org_types=['HFGU'])
@@ -194,14 +194,16 @@ class OVCRegistrationForm(forms.Form):
                    'data-parsley-required': "true",
                    'id': 'school_level'}))
 
-    facility = forms.ChoiceField(
-        choices=health_unit_list,
-        initial='0',
-        required=True,
-        widget=forms.Select(
-            attrs={'class': 'form-control',
-                   'data-parsley-required': "true",
-                   'id': 'facility'}))
+    facility = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'data-parsley-required': "true",
+               'placeholder': 'Start typing then select',
+               'id': 'facility'}))
+
+    school_name = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'placeholder': 'Start typing then select',
+               'id': 'school_name'}))
 
     art_status = forms.ChoiceField(
         choices=art_status_list,
@@ -219,3 +221,29 @@ class OVCRegistrationForm(forms.Form):
     ccc_number = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control',
                'id': 'ccc_number'}))
+
+    facility_id = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'readonly': 'readonly',
+               'id': 'facility_id'}))
+
+    school_id = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control',
+               'readonly': 'readonly',
+               'id': 'school_id'}))
+
+    admission_type = forms.ChoiceField(
+        choices=admission_list,
+        initial='0',
+        required=True,
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'id': 'admission_type'}))
+
+    school_class = forms.ChoiceField(
+        choices=(),
+        initial='0',
+        required=True,
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'id': 'school_class'}))
