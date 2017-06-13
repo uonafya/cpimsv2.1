@@ -204,6 +204,12 @@
                       </div>
                     </div>
                     <!-- end col-2 -->
+                    <div class="col-md-1" id="school_id_div">
+                    <div class="form-group">
+                        <label>ID</label>
+                        {{ form.facility_id }}
+                      </div>
+                    </div>
                     <!-- begin col-2 -->
                     <div class="col-md-2" id="art_div">
                     <div class="form-group">
@@ -221,7 +227,7 @@
                     </div>
                     <!-- end col-2 -->
                     <!-- begin col-2 -->
-                    <div class="col-md-2" id="ccc_no_div">
+                    <div class="col-md-1" id="ccc_no_div">
                     <div class="form-group">
                         <label>CCC Number</label>
                         {{ form.ccc_number }}
@@ -243,23 +249,21 @@
                     <div class="col-md-3" id="school_class_div">
                     <div class="form-group">
                         <label>Class</label>
-                        <select class="form-control" name="school_class" id="school_class" >
-                            <option value="">Please Select Class</option>
-                            <option value="1">Class 1</option>
-                             <option value="2">Class 2</option>
-                        </select>
+                        {{ form.school_class }}
                       </div>
                     </div>
                     <!-- end col-2 -->  
                     <!-- begin col-2 -->
-                    <div class="col-md-4" id="school_name_div">
+                    <div class="col-md-3" id="school_name_div">
                     <div class="form-group">
                         <label>School Name</label>
-                        <select class="form-control" name="school_name" id="school_name" >
-                            <option value="">Please Select School</option>
-                            <option value="1">School A</option>
-                             <option value="2">School B</option>
-                        </select>
+                        {{ form.school_name }}
+                      </div>
+                    </div>
+                    <div class="col-md-1" id="school_id_div">
+                    <div class="form-group">
+                        <label>ID</label>
+                        {{ form.school_id }}
                       </div>
                     </div>
                     <!-- end col-2 -->
@@ -267,12 +271,7 @@
                     <div class="col-md-2">
                     <div class="form-group" id="admission_type_div">
                         <label>Boarding / Day</label>
-                        <select class="form-control" name="admission_type" id="admission_type" >
-                            <option value="">Please Select Type</option>
-                            <option value="1">Day</option>
-                            <option value="2">Boarding</option>
-                            <option value="3">Not Applicable</option>
-                        </select>
+                        {{ form.admission_type }}
                       </div>
                     </div>
                     <!-- end col-2 -->
@@ -482,6 +481,11 @@
     var is_exit = $('#is_exited').is(":checked");
     disable_fields(is_exit, 'exit_reason');
 
+    //Class levels
+    {% for key, values in levels.items %}
+        var {{ key }} = {{ values|safe }};
+    {% endfor %}
+
     $('#eligibility, #exit_reason').multiselect({
         enableCaseInsensitiveFiltering: true,
         numberDisplayed: 1,
@@ -530,6 +534,7 @@
 
     $('#school_level').change(function(){
         handle_education(this.value);
+        handle_levels(this.value);
     });
 
     $('.alive').change(function(){
@@ -548,18 +553,91 @@
         }
     });
 
+    //Facility query
+    $( "#facility" ).autocomplete({
+        source: function( request, response ) {
+        $.ajax({
+          url: "{% url 'ovc_search' %}",
+          dataType: "json",
+          data: {q: request.term, id: 1},
+          success: function( data ) {
+            response( data );
+          }
+        });
+      },
+      minLength: 4,
+      select: function( event, ui ) {
+         $('#facility').val(ui.item.name);
+         $('#facility_id').val(ui.item.id);
+      },
+      open: function() {
+        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+      },
+      close: function() {
+        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+      }
+    });
+
+    //School query
+    $( "#school_name" ).autocomplete({
+        source: function( request, response ) {
+        $.ajax({
+          url: "{% url 'ovc_search' %}",
+          dataType: "json",
+          data: {q: request.term, id: 2},
+          success: function( data ) {
+            response( data );
+          }
+        });
+      },
+      minLength: 4,
+      select: function( event, ui ) {
+         $('#school_name').val(ui.item.name);
+         $('#school_id').val(ui.item.id);
+      },
+      open: function() {
+        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+      },
+      close: function() {
+        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+      }
+    });
+    function handle_levels(person_type){
+        var default_txt = "<option value=''>Select title</option>";
+        if (person_type != ''){
+            var person_txt = ((eval(person_type)).length == 1) ? '' : default_txt;
+        }else{
+            var person_txt = "<option value=''>Select Class</option>";
+        }
+        $('#school_class').html(person_txt);
+        if (person_type != ''){
+            eval(person_type).forEach(function(tts) {
+                var tts_attribs = tts.split(",");
+                $('#school_class')
+                    .append($("<option></option>")
+                    .attr("value", tts_attribs[0])
+                    .text(tts_attribs[1]));
+            });
+        }else{
+             $('#school_class').append('<option></option>'); 
+        }
+    }
+
     function handle_hstatus(hstatus){
         if (hstatus == 'HSTP') {
             $('#facility_div').show();
+            $('#facility_id_div').show();
             $('#art_div').show();
             $('#link_date_div').show();
             $('#ccc_no_div').show();
             $('#facility').attr("data-parsley-required", "true");
+            $('#facility_id').attr("data-parsley-required", "true");
             $('#art_status').attr("data-parsley-required", "true");
             $('#link_date').attr("data-parsley-required", "true");
             $('#ccc_number').attr("data-parsley-required", "true");
         }else{
             $('#facility_div').hide();
+            $('#facility_id_div').hide();
             $('#art_div').hide();
             $('#link_date_div').hide();
             $('#ccc_no_div').hide();
@@ -573,16 +651,20 @@
     function handle_education(hlevel){
         if ((hlevel == 'SLNS') || (hlevel == '')) {
             $('#school_name_div').hide();
+            $('#school_id_div').hide();
             $('#school_class_div').hide();
             $('#admission_type_div').hide();
             $('#school_name').attr("data-parsley-required", "false");
+            $('#school_id').attr("data-parsley-required", "false");
             $('#school_class').attr("data-parsley-required", "false");
             $('#admission_type').attr("data-parsley-required", "false");
         }else{
             $('#school_name_div').show();
+            $('#school_id_div').show();
             $('#school_class_div').show();
             $('#admission_type_div').show();
             $('#school_name').attr("data-parsley-required", "true");
+            $('#school_id').attr("data-parsley-required", "true");
             $('#school_class').attr("data-parsley-required", "true");
             $('#admission_type').attr("data-parsley-required", "true");
         }
