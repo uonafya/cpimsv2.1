@@ -10,7 +10,8 @@ from cpovc_registry.models import (
 from cpovc_main.functions import get_dict
 from .models import OVCRegistration, OVCHHMembers, OVCHealth, OVCEligibility
 from .functions import (
-    ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc)
+    ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc,
+    search_master)
 
 
 @login_required(login_url='/')
@@ -39,7 +40,7 @@ def ovc_home(request):
 def ovc_search(request):
     """Method to do ovc search."""
     try:
-        results = []
+        results = search_master(request)
     except Exception, e:
         print 'error with search - %s' % (str(e))
         return JsonResponse(results, content_type='application/json',

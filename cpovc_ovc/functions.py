@@ -4,7 +4,8 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .models import (
-    OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth, OVCEligibility)
+    OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth, OVCEligibility,
+    OVCFacility, OVCSchool)
 from cpovc_registry.models import RegPerson, RegOrgUnit, RegPersonsTypes
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
@@ -70,6 +71,38 @@ def search_ovc(name, criteria):
         return {}
     else:
         return ovcs
+
+
+def search_master(request):
+    """Method to query existing customers."""
+    try:
+        results = []
+        query_id = int(request.GET.get('id'))
+        query = request.GET.get('q')
+        # Filters for external ids
+        if query_id == 1:
+            agents = OVCFacility.objects.filter(
+                facility_name__icontains=query)
+            for agent in agents:
+                name = agent.facility_name
+                agent_id = agent.id
+                val = {'id': agent_id, 'label': name,
+                       'value': name}
+                results.append(val)
+        elif query_id == 2:
+            agents = OVCSchool.objects.filter(
+                school_name__icontains=query)
+            for agent in agents:
+                name = agent.school_name
+                agent_id = agent.id
+                val = {'id': agent_id, 'label': name,
+                       'value': name}
+                results.append(val)
+    except Exception, e:
+        print 'error searching master list - %s' % (str(e))
+        return []
+    else:
+        return results
 
 
 def get_hh_members(ovc_id):
@@ -156,7 +189,7 @@ def ovc_registration(request, ovc_id, edit=0):
                 defaults={'person_id': ovc_id, 'criteria': criteria_id},)
         # Update Health status
         if hiv_status == 'HSTP':
-            facility = request.POST.get('facility')
+            facility = request.POST.get('facility_id')
             art_status = request.POST.get('art_status')
             link_date = request.POST.get('link_date')
             date_linked = convert_date(link_date)

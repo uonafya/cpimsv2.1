@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from cpovc_registry.models import RegPerson, RegOrgUnit
 from cpovc_main.models import SetupGeography
+from cpovc_auth.models import AppUser
 
 
 class OVCAggregate(models.Model):
@@ -253,3 +254,47 @@ class OVCEducation(models.Model):
     def __unicode__(self):
         """To be returned by admin actions."""
         return str(self.id)
+
+
+class OVCCluster(models.Model):
+    """Model for OVC Care health details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    cluster_name = models.CharField(max_length=150)
+    created_by = models.ForeignKey(AppUser)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_cluster'
+        verbose_name = 'OVC Cluster'
+        verbose_name_plural = 'OVC Clusters'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return str(self.cluster_name)
+
+
+class OVCClusterCBO(models.Model):
+    """Model for OVC Care health details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    cluster = models.ForeignKey(OVCCluster)
+    cbo = models.ForeignKey(RegOrgUnit)
+    added_at = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_cluster_cbo'
+        verbose_name = 'OVC Cluster CBO'
+        verbose_name_plural = 'OVC Cluster CBOs'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return str(self.cbo)

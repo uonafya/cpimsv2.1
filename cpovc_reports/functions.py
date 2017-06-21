@@ -4,6 +4,7 @@ import uuid
 import time
 import string
 import calendar
+import collections
 from django.db import connection
 from datetime import datetime, timedelta, date
 from calendar import monthrange, month_name
@@ -25,7 +26,7 @@ from reportlab.graphics import renderPDF
 from cpovc_main.functions import get_general_list, get_dict, get_mapped
 from cpovc_main.models import SetupGeography
 
-from cpovc_ovc.models import OVCAggregate, OVCRegistration
+from cpovc_ovc.models import OVCAggregate, OVCRegistration, OVCCluster
 
 from .config import reports
 from cpovc_registry.models import (
@@ -40,11 +41,10 @@ from cpovc_forms.models import (
 
 from django.conf import settings
 from django.db.models import Count
+from queries import QUERIES
 
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATICFILES_DIRS[0]
-
-from queries import QUERIES
 
 
 class Canvas(canvas.Canvas):
@@ -2514,6 +2514,24 @@ def get_sql_data(request):
         row = cursor.fetchall()
     desc = cursor.description
     return row, desc
+
+
+def get_clusters(user, default_txt=False):
+    """Method to return clusters."""
+    initial_list = {'': default_txt} if default_txt else {}
+    all_list = collections.OrderedDict(initial_list)
+    try:
+        my_list = OVCCluster.objects.filter(
+            is_void=False).order_by('cluster_name')
+        for a_list in my_list:
+            unit_names = a_list.cluster_name
+            all_list[a_list.id] = unit_names
+    except Exception, e:
+        error = 'Error getting list - %s' % (str(e))
+        print error
+        return ()
+    else:
+        return all_list.items
 
 
 if __name__ == '__main__':

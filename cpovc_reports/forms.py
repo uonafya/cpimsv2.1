@@ -4,7 +4,7 @@ from cpovc_registry.functions import (
     get_all_geo_list, get_geo_list, get_specific_orgs)
 from cpovc_main.functions import get_org_units_list
 
-from .functions import create_year_list
+from .functions import create_year_list, get_clusters
 
 
 all_list = get_all_geo_list()
@@ -45,6 +45,8 @@ class CaseLoad(forms.Form):
         super(CaseLoad, self).__init__(*args, **kwargs)
         org_units = get_specific_orgs(self.user.reg_person_id)
         org_inst = get_specific_orgs(self.user.reg_person_id, 1)
+        # clusters
+        cluster_list = get_clusters(self.user)
         if user.is_superuser:
             org_units = get_org_units_list('Please select Unit')
             inst_types = ['TNRH', 'TNRB', 'TNRR', 'TNRS', 'TNAP', 'TNRC']
@@ -65,6 +67,14 @@ class CaseLoad(forms.Form):
                        'autofocus': 'true',
                        'id': 'id_org_unit'}))
         self.fields['org_inst'] = org_inst
+
+        cluster = forms.ChoiceField(
+            choices=cluster_list,
+            widget=forms.Select(
+                attrs={'class': 'form-control',
+                       'data-parsley-required': 'false',
+                       'autofocus': 'true'}))
+        self.fields['cluster'] = cluster
 
     county = forms.ChoiceField(
         choices=county_list,
@@ -158,13 +168,6 @@ class CaseLoad(forms.Form):
                    'autofocus': 'true'}))
 
     org_type = forms.ChoiceField(
-        choices=(),
-        widget=forms.Select(
-            attrs={'class': 'form-control',
-                   'data-parsley-required': 'false',
-                   'autofocus': 'true'}))
-
-    cluster = forms.ChoiceField(
         choices=(),
         widget=forms.Select(
             attrs={'class': 'form-control',

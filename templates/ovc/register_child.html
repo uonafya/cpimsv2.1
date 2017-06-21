@@ -541,6 +541,56 @@
         handle_levels(this.value);
     });
 
+    //Facility query
+    $( "#facility" ).autocomplete({
+        source: function( request, response ) {
+        $.ajax({
+          url: "{% url 'ovc_search' %}",
+          dataType: "json",
+          data: {q: request.term, id: 1},
+          success: function( data ) {
+            response( data );
+          }
+        });
+      },
+      minLength: 4,
+      select: function( event, ui ) {
+         $('#facility').val(ui.item.name);
+         $('#facility_id').val(ui.item.id);
+      },
+      open: function() {
+        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+      },
+      close: function() {
+        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+      }
+    });
+
+    //School query
+    $( "#school_name" ).autocomplete({
+        source: function( request, response ) {
+        $.ajax({
+          url: "{% url 'ovc_search' %}",
+          dataType: "json",
+          data: {q: request.term, id: 2},
+          success: function( data ) {
+            response( data );
+          }
+        });
+      },
+      minLength: 4,
+      select: function( event, ui ) {
+         $('#school_name').val(ui.item.name);
+         $('#school_id').val(ui.item.id);
+      },
+      open: function() {
+        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+      },
+      close: function() {
+        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+      }
+    });
+
      function handle_levels(person_type){
         var default_txt = "<option value=''>Select title</option>";
         if (person_type != ''){
@@ -582,6 +632,7 @@
             $('#link_date_div').hide();
             $('#ccc_no_div').hide();
             $('#facility').attr("data-parsley-required", "false");
+            $('#facility_id').attr("data-parsley-required", "false");
             $('#art_status').attr("data-parsley-required", "false");
             $('#link_date').attr("data-parsley-required", "false");
             $('#ccc_number').attr("data-parsley-required", "false");
