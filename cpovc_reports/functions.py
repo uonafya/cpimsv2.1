@@ -26,7 +26,8 @@ from reportlab.graphics import renderPDF
 from cpovc_main.functions import get_general_list, get_dict, get_mapped
 from cpovc_main.models import SetupGeography
 
-from cpovc_ovc.models import OVCAggregate, OVCRegistration, OVCCluster
+from cpovc_ovc.models import (
+    OVCAggregate, OVCRegistration, OVCCluster, OVCClusterCBO)
 
 from .config import reports
 from cpovc_registry.models import (
@@ -564,7 +565,7 @@ def get_sub_county_info(sub_county_ids, a_type='GDIS', icounty=None):
                                          'sub_county': area_name}
     except Exception, e:
         print 'error getting sub-county ids - %s' % (str(e))
-        raise e
+        return []
     else:
         return area_ids
 
@@ -1996,6 +1997,7 @@ def get_variables(request):
         institution_type = request.POST.get('institution_type')
         adhoc_id = request.POST.get('report_vars')
         org_type = request.POST.get('org_type')
+        cluster = request.POST.get('cluster')
         categories = {}
         report_id = int(report) if report else 0
 
@@ -2003,7 +2005,8 @@ def get_variables(request):
             report_unit = report_inst
             rpt_years = rpt_iyears
         region_names = {1: 'National', 2: 'County',
-                        3: 'Sub-county', 4: 'Organisation Unit'}
+                        3: 'Sub-county', 4: 'Organisation Unit',
+                        5: 'Cluster'}
         is_fin = '/' in rpt_years
         report_year = rpt_years.split('/')[0] if is_fin else rpt_years
         for case_category in case_categories:
@@ -2027,6 +2030,7 @@ def get_variables(request):
         variables['sub_county'] = ', '.join(variables['sub_county'])
         # Report variables
         variables['report_region'] = report_region
+        variables['cluster'] = cluster if cluster else '0'
         today = datetime.now()
         # year = today.strftime('%Y')
         month = today.strftime('%m')
@@ -2255,33 +2259,32 @@ def get_domain_data(params):
                        "olmis_health_service_id", "olmis_education_service_id"]
         sub_domains = get_mapped(field_name=field_names)
         print sub_domains
-        domain = 'Uknown'
+        dmns = {}
+        txt = ""
+        for dmn in sub_domains:
+            sdid = sub_domains[dmn]['id']
+            dmns[str(dmn)] = sdid
+            txt += "WHEN '%s' THEN '%s' " % (str(dmn), domains[sdid])
         end_date = params['end_date']
         start_date = params['start_date']
         cbo = params['org_unit']
         cbo_id = int(cbo) if cbo else 0
-        print cbo_id
-        services = OVCCareServices.objects.filter(
-            is_void=False, event__event_type_id='FSAM',
-            event__date_of_event__range=(start_date, end_date))
-        for service in services:
-            age = service.event.person.years
-            sex = service.event.person.sex_id
-            serv = service.service_provided
-            count = 1
-            cbo = 1
-            county = 1
-            ward = 1
-            # User
-            if serv in sub_domains:
-                sd = sub_domains[serv]['id']
-                domain = domains[sd]
-            gender = 'Female' if sex == 'SFEM' else 'Male'
-            data = {'OVC Count': count, 'Age': age,
-                    'Gender': gender, 'CBO': cbo, 'Domain': domain,
-                    'County': county, 'Ward': ward}
+        rpt_id = params['report_region']
+        cluster = params['cluster'] if 'cluster' in params else 0
+        report_id = int(rpt_id) if rpt_id else 0
+        if report_id == 5:
+            cbo_id = get_cbo_cluster(cluster)
+        print cbo_id, end_date
+        sql = QUERIES['pepfar']
+        sql = sql % (txt, start_date, end_date, cbo_id)
+        rows, desc = run_sql_data(None, sql)
+        # return row, desc
+        for row in rows:
+            data = {'OVC Count': row[1], 'Age': int(row[6]),
+                    'Gender': str(row[8]), 'CBO': str(row[3]),
+                    'Domain': str(row[9]), 'Age Set': str(row[7]),
+                    'County': 'county', 'Ward': str(row[5])}
             datas.append(data)
-
     except Exception, e:
         print 'error getting domain data - %s' % str(e)
     else:
@@ -2356,17 +2359,56 @@ def get_registration_data(kpis, params):
         return datas
 
 
+def format_data(rows, datas):
+    """Get the data."""
+    for row in rows:
+        data = {'OVC Count': row[0], 'Age': int(row[5]),
+                'Age Set': str(row[6]),
+                'Gender': str(row[7]), 'CBO': row[2],
+                'County': 'county', 'Ward': str(row[4]),
+                'Services': str(row[8])}
+        datas.append(data)
+
+
 def get_services_data(servs, params):
     """Get OVC registration data."""
     try:
         datas = []
-        events = {}
         start = time.clock()
         print 0, start
         end_date = params['end_date']
         start_date = params['start_date']
         cbo = params['org_unit']
         cbo_id = int(cbo) if cbo else 0
+        rpt_id = params['report_region']
+        cluster = params['cluster'] if 'cluster' in params else 0
+        report_id = int(rpt_id) if rpt_id else 0
+        cbos = [cbo_id]
+        if report_id == 5:
+            cbo_id = get_cbo_cluster(cluster)
+            cbos = cbo_id.split(',')
+        print cbo_id, end_date
+        # pids
+        regs = OVCRegistration.objects.filter(
+            is_void=False, registration_date__lt=end_date)
+        if cbo_id:
+            regs = regs.filter(child_cbo_id__in=cbos)
+        pids = regs.values_list('person_id', flat=True)
+        print pids
+        sql = QUERIES['datim']
+        sql = sql % (cbo_id)
+        sql1 = QUERIES['datim_1']
+        sql1 = sql1 % (start_date, end_date, cbo_id)
+        rows, desc = run_sql_data(None, sql)
+        rows1, desc1 = run_sql_data(None, sql1)
+        # ART
+        sql2 = QUERIES['datim_2']
+        sql2 = sql2 % (cbo_id)
+        rows2, desc2 = run_sql_data(None, sql2)
+        format_data(rows, datas)
+        format_data(rows1, datas)
+        format_data(rows2, datas)
+        '''
         services = OVCCareServices.objects.filter(
             is_void=False, event__event_type_id='FSAM',
             event__date_of_event__range=(start_date, end_date))
@@ -2420,8 +2462,10 @@ def get_services_data(servs, params):
                         'County': county, 'Ward': str(ward),
                         'Services': servs[1]}
                 datas.append(data)
+        '''
         print 2, time.clock() - start
     except Exception, e:
+        print 'datim error - %s' % (str(e))
         raise e
     else:
         return datas
@@ -2507,13 +2551,43 @@ def write_xls(response, data, titles=None):
 def get_sql_data(request):
     """Method to write data."""
     cbo = request.GET.get('org_unit')
+    rpt_id = request.GET.get('report_region')
+    report_id = int(rpt_id) if rpt_id else 0
+    cluster = request.GET.get('cluster')
     cbo_id = int(cbo) if cbo else 0
+    if report_id == 5:
+        cbo_id = get_cbo_cluster(cluster)
     sql = QUERIES['registration']
+    print cbo_id
+    sql = sql % (cbo_id)
+    row, desc = run_sql_data(request, sql)
+    return row, desc
+
+
+def run_sql_data(request, sql):
     with connection.cursor() as cursor:
-        cursor.execute(sql % (cbo_id))
+        cursor.execute(sql)
         row = cursor.fetchall()
     desc = cursor.description
     return row, desc
+
+
+def get_cbo_cluster(cluster_id):
+    """Method to return cbo ids from clusters."""
+    try:
+        cbo_list = []
+        my_list = OVCClusterCBO.objects.filter(
+            is_void=False,
+            cluster_id=cluster_id).values_list('cbo_id', flat=True)
+        for a_list in my_list:
+            cbo_list.append(str(a_list))
+        cbos = ', '.join(cbo_list)
+    except Exception, e:
+        error = 'Error getting cluster cbo - %s' % (str(e))
+        print error
+        return 0
+    else:
+        return cbos
 
 
 def get_clusters(user, default_txt=False):

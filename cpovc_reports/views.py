@@ -842,7 +842,9 @@ def reports_rawdata(request):
 def reports_ovc_rawdata(request):
     """Method to do adhoc pivot reports."""
     try:
+        print '-1'
         report_variables = get_variables(request)
+        print '0'
         start_date = report_variables['start_date']
         today = datetime.now()
         if start_date > today:

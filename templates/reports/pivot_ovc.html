@@ -157,7 +157,13 @@ jQuery(document).ready(function() {
         $("#report_html").empty();
         var oname = $("#id_org_unit option:selected").text();
         var ovc = $("#id_report_ovc").val();
+        var region = $('input[name=report_region]:checked').val();
+        console.log(region);
         $('#case_load_report').parsley().validate();
+           if (region == '1'){
+                $('#report_results').html('Report not allowed.');
+                return false;
+            }
 
            if ($('#case_load_report').parsley().isValid()){
                 var iframe = document.createElement('iframe');
@@ -170,7 +176,8 @@ jQuery(document).ready(function() {
                      console.log("FILE loaded. Start download.");
                 });
             }else{
-                $('#ainfo').html('Please provide missing details.');
+                $('#report_results').html('Please provide missing details.');
+                return false;
             }
         $('#report_results').empty();
         });

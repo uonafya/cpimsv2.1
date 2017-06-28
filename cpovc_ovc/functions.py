@@ -3,6 +3,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.db import connection
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth, OVCEligibility,
     OVCFacility, OVCSchool)
@@ -26,12 +27,27 @@ def search_ovc(name, criteria):
         q_filter = Q()
         # 1: Names, 2: HH, 3: CHV, 4: CBO
         names = name.split()
-        if cid == 1:
+        if cid == 0:
             for nm in names:
                 for field in field_names:
                     q_filter |= Q(**{"%s__icontains" % field: name})
                 pids = queryset.filter(q_filter).values_list(
                     'id', flat=True)
+        elif cid == 1:
+            pids = []
+            query = ("SELECT id FROM reg_person WHERE to_tsvector"
+                     "(first_name || ' ' || surname || ' ' || other_names)"
+                     " @@ to_tsquery('%s') ORDER BY date_of_birth DESC")
+            # " OFFSET 10 LIMIT 10")
+            vals = ' & '.join(names)
+            sql = query % (vals)
+            print sql
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                row = cursor.fetchall()
+                print row
+                pids = [r[0] for r in row]
+                print 'pppp', pids
         elif cid == 2:
             pids = OVCHHMembers.objects.filter(
                 is_void=False,
@@ -60,12 +76,13 @@ def search_ovc(name, criteria):
                     'id', flat=True)
         # Query ovc table
         qs = OVCRegistration.objects.filter(is_void=False)
+        pst, plen = 0, 100
         if cbos:
-            ovcs = qs.filter(child_cbo_id__in=cbos)
+            ovcs = qs.filter(child_cbo_id__in=cbos)[pst:plen]
         elif chvs:
-            ovcs = qs.filter(child_chv_id__in=chvs)
+            ovcs = qs.filter(child_chv_id__in=chvs)[pst:plen]
         else:
-            ovcs = qs.filter(person_id__in=pids)
+            ovcs = qs.filter(person_id__in=pids)[pst:plen]
     except Exception, e:
         print 'Error searching for OVC - %s' % (str(e))
         return {}
