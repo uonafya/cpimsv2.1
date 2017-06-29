@@ -57,7 +57,7 @@ LEFT OUTER JOIN reg_persons_geo ON reg_persons_geo.person_id=ovc_registration.pe
 LEFT OUTER JOIN list_geo ON list_geo.area_id=reg_persons_geo.area_id
 WHERE ovc_care_services.is_void = False and ovc_care_events.event_type_id='FSAM'
 and ovc_care_events.date_of_event between '%s' and '%s'
-and child_cbo_id in (%s)
+%s
 GROUP BY ovc_care_services.service_provided, reg_person.date_of_birth,
 reg_person.sex_id, ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name, reg_persons_geo.area_id,
@@ -92,7 +92,7 @@ LEFT OUTER JOIN reg_org_unit ON reg_org_unit.id=ovc_registration.child_cbo_id
 LEFT OUTER JOIN reg_persons_geo ON reg_persons_geo.person_id=ovc_registration.person_id
 LEFT OUTER JOIN list_geo ON list_geo.area_id=reg_persons_geo.area_id
 WHERE ovc_registration.is_active = True
-AND ovc_registration.child_cbo_id in (%s)
+%s
 GROUP BY ovc_registration.person_id, reg_person.date_of_birth,
 reg_person.sex_id, ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name, reg_persons_geo.area_id,
@@ -127,7 +127,7 @@ LEFT OUTER JOIN reg_persons_geo ON reg_persons_geo.person_id=ovc_registration.pe
 LEFT OUTER JOIN list_geo ON list_geo.area_id=reg_persons_geo.area_id
 WHERE ovc_care_services.is_void = False and ovc_care_events.event_type_id='FSAM'
 and ovc_care_events.date_of_event between '%s' and '%s'
-and child_cbo_id in (%s)
+%s
 GROUP BY reg_person.date_of_birth,
 reg_person.sex_id, ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name, reg_persons_geo.area_id,
@@ -153,6 +153,7 @@ ELSE 'g.[25+yrs]' END AS AgeRange,
 CASE reg_person.sex_id WHEN 'SMAL' THEN 'Female' ELSE 'Male' END AS Gender,
 CASE ovc_care_health.art_status
 WHEN 'ARAR' THEN '2a. (ii) OVC_HIVSTAT: HIV+ on ARV Treatment'
+WHEN 'ARPR' THEN '2a. (ii) OVC_HIVSTAT: HIV+ on ARV Treatment'
 ELSE '2a. (iii) OVC_HIVSTAT: HIV+ NOT on ARV Treatment'
 END AS Domain
 from ovc_registration
@@ -162,16 +163,8 @@ LEFT OUTER JOIN reg_persons_geo ON reg_persons_geo.person_id=ovc_registration.pe
 LEFT OUTER JOIN list_geo ON list_geo.area_id=reg_persons_geo.area_id
 LEFT OUTER JOIN ovc_care_health ON ovc_care_health.person_id=ovc_registration.person_id
 WHERE ovc_registration.is_active = True AND ovc_registration.hiv_status = 'HSTP'
-AND ovc_registration.child_cbo_id in (%s)
+%s
 GROUP BY ovc_registration.person_id, reg_person.date_of_birth,
 reg_person.sex_id, ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name, reg_persons_geo.area_id,
 ovc_registration.hiv_status, list_geo.area_name, ovc_care_health.art_status;'''
-
-'''
-
-CASE ovc_care_health.art_status
-WHEN ovc_care_health.art_status IS NULL THEN '2a. (iii) OVC_HIVSTAT: HIV+ NOT on ARV Treatment'
-ELSE '2a. (ii) OVC_HIVSTAT: HIV+ on ARV Treatment'
-END AS Domain
-'''

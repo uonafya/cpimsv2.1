@@ -2276,7 +2276,10 @@ def get_domain_data(params):
             cbo_id = get_cbo_cluster(cluster)
         print cbo_id, end_date
         sql = QUERIES['pepfar']
-        sql = sql % (txt, start_date, end_date, cbo_id)
+        cbos = 'and child_cbo_id in (%s)' % (cbo_id)
+        if report_id == 1:
+            cbos = ''
+        sql = sql % (txt, start_date, end_date, cbos)
         rows, desc = run_sql_data(None, sql)
         # return row, desc
         for row in rows:
@@ -2387,82 +2390,29 @@ def get_services_data(servs, params):
         if report_id == 5:
             cbo_id = get_cbo_cluster(cluster)
             cbos = cbo_id.split(',')
-        print cbo_id, end_date
         # pids
         regs = OVCRegistration.objects.filter(
             is_void=False, registration_date__lt=end_date)
         if cbo_id:
             regs = regs.filter(child_cbo_id__in=cbos)
         pids = regs.values_list('person_id', flat=True)
+        # Results
+        cbos = 'and ovc_registration.child_cbo_id in (%s)' % (cbo_id)
+        if report_id == 1:
+            cbos = ''
         print pids
-        sql = QUERIES['datim']
-        sql = sql % (cbo_id)
-        sql1 = QUERIES['datim_1']
-        sql1 = sql1 % (start_date, end_date, cbo_id)
+        # HIVSTAT
+        sql = QUERIES['datim'] % (cbos)
         rows, desc = run_sql_data(None, sql)
+        # Served
+        sql1 = QUERIES['datim_1'] % (start_date, end_date, cbos)
         rows1, desc1 = run_sql_data(None, sql1)
         # ART
-        sql2 = QUERIES['datim_2']
-        sql2 = sql2 % (cbo_id)
+        sql2 = QUERIES['datim_2'] % (cbos)
         rows2, desc2 = run_sql_data(None, sql2)
         format_data(rows, datas)
         format_data(rows1, datas)
         format_data(rows2, datas)
-        '''
-        services = OVCCareServices.objects.filter(
-            is_void=False, event__event_type_id='FSAM',
-            event__date_of_event__range=(start_date, end_date))
-        # date_of_encounter_event
-        for service in services:
-            event_id = service.event.pk
-            person_id = service.event.person_id
-            # User
-            if person_id not in events:
-                events[person_id] = [event_id]
-            else:
-                events[person_id].append(event_id)
-        print 1, time.clock() - start
-        regs = OVCRegistration.objects.filter(
-            is_void=False, registration_date__lt=end_date)
-        if cbo_id > 0:
-            regs = regs.filter(child_cbo_id=cbo_id)
-        # Ge all the cbo data
-        person_ids = []
-        for rg in regs:
-            person_id = rg.person_id
-            person_ids.append(person_id)
-        pers = get_person_geodata(person_ids)
-        for reg in regs:
-            count = 1
-            age = reg.person.years
-            sex = reg.person.sex_id
-            child_id = reg.person_id
-            child_id = reg.person_id
-            cbo = reg.child_cbo.org_unit_name
-            hiv_status = reg.hiv_status
-            county, ward = 1, 1
-            if child_id in pers:
-                cbo_obj = pers[child_id]
-                county = cbo_obj['county'] if 'county' in cbo_obj else 1
-                ward = cbo_obj['ward'] if 'ward' in cbo_obj else 1
-            serv_count = len(events[child_id]) if child_id in events else 0
-            serv_id = 3
-            if serv_count > 0:
-                serv_id = 2
-            serv = servs[serv_id]
-            gender = 'Female' if sex == 'SFEM' else 'Male'
-            data = {'OVC Count': count, 'Age': age,
-                    'Gender': gender, 'CBO': cbo,
-                    'County': county, 'Ward': str(ward),
-                    'Services': serv}
-            datas.append(data)
-            if hiv_status == 'HSTP':
-                data = {'OVC Count': 1, 'Age': age,
-                        'Gender': gender, 'CBO': cbo,
-                        'County': county, 'Ward': str(ward),
-                        'Services': servs[1]}
-                datas.append(data)
-        '''
         print 2, time.clock() - start
     except Exception, e:
         print 'datim error - %s' % (str(e))
