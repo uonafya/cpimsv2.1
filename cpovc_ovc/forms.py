@@ -9,7 +9,7 @@ search_criteria_list = (('', 'Select Criteria'), ('1', 'Names'),
 immunization_list = get_list('immunization_status_id', 'Please Select')
 
 person_type_list = get_list('person_type_id', 'Please Select Type')
-school_level_list = get_list('admission_class_id', 'Please Select Level')
+school_level_list = get_list('school_level_id', 'Please Select Level')
 hiv_status_list = get_list('hiv_status_id', 'Please Select HIV Status')
 alive_status_list = get_list('yesno_id', '')
 art_status_list = get_list('art_status_id', 'Please Select Status')

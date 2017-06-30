@@ -109,13 +109,28 @@ def ovc_register(request, id):
             messages.error(request, msg)
             url = reverse('ovc_view', kwargs={'id': ovc_id})
             return HttpResponseRedirect(url)
+        # Class levels
+        levels = {}
+        levels["SLNS"] = []
+        levels["SLEC"] = ["BABY,Baby Class", "MIDC,Middle Class",
+                          "PREU,Pre-Unit"]
+        levels["SLPR"] = ["CLS1,Class 1", "CLS2,Class 2", "CLS3,Class 3",
+                          "CLS4,Class 4", "CLS5,Class 5", "CLS6,Class 6",
+                          "CLS7,Class 7", "CLS8,Class 8"]
+        levels["SLSE"] = ["FOM1,Form 1", "FOM2,Form 2", "FOM3,Form 3",
+                          "FOM4,Form 4", "FOM5,Form 5", "FOM6,Form 6"]
+        levels["SLUN"] = ["YER1,Year 1", "YER2,Year 2", "YER3,Year 3",
+                          "YER4,Year 4", "YER5,Year 5", "YER6,Year 6"]
+        levels["SLTV"] = ["TVC1,Year 1", "TVC2,Year 2", "TVC3,Year 3",
+                          "TVC4,Year 4", "TVC5,Year 5"]
         # Re-usable values
         check_fields = ['relationship_type_id']
         vals = get_dict(field_name=check_fields)
         return render(request, 'ovc/register_child.html',
                       {'form': form, 'status': 200, 'child': child,
                        'guardians': guardians, 'siblings': siblings,
-                       'vals': vals, 'extids': gparams, 'ovc': ovc})
+                       'vals': vals, 'extids': gparams, 'ovc': ovc,
+                       'levels': levels})
     except Exception, e:
         print "error with OVC registration - %s" % (str(e))
         raise e
@@ -207,18 +222,19 @@ def ovc_edit(request, id):
         # Class levels
         levels = {}
         levels["SLNS"] = []
-        levels["AECD"] = ["BABY,Baby Class", "MIDC,Middle Class",
+        levels["SLEC"] = ["BABY,Baby Class", "MIDC,Middle Class",
                           "PREU,Pre-Unit"]
-        levels["ACPR"] = ["CLS1,Class 1", "CLS2,Class 2", "CLS3,Class 3",
+        levels["SLPR"] = ["CLS1,Class 1", "CLS2,Class 2", "CLS3,Class 3",
                           "CLS4,Class 4", "CLS5,Class 5", "CLS6,Class 6",
                           "CLS7,Class 7", "CLS8,Class 8"]
-        levels["ACSC"] = ["FOM1,Form 1", "FOM2,Form 2", "FOM3,Form 3",
+        levels["SLSE"] = ["FOM1,Form 1", "FOM2,Form 2", "FOM3,Form 3",
                           "FOM4,Form 4", "FOM5,Form 5", "FOM6,Form 6"]
-        levels["ACVT"] = ["YER1,Year 1", "YER2,Year 2", "YER3,Year 3",
+        levels["SLUN"] = ["YER1,Year 1", "YER2,Year 2", "YER3,Year 3",
                           "YER4,Year 4", "YER5,Year 5", "YER6,Year 6"]
-        levels["AUNV"] = ["TVC1,Year 1", "TVC2,Year 2", "TVC3,Year 3",
+        levels["SLTV"] = ["TVC1,Year 1", "TVC2,Year 2", "TVC3,Year 3",
                           "TVC4,Year 4", "TVC5,Year 5"]
         # Re-usable values
+
         check_fields = ['relationship_type_id']
         vals = get_dict(field_name=check_fields)
         return render(request, 'ovc/edit_child.html',
