@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.db import connection
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth, OVCEligibility,
-    OVCFacility, OVCSchool)
+    OVCFacility, OVCSchool, OVCEducation)
 from cpovc_registry.models import RegPerson, RegOrgUnit, RegPersonsTypes
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
@@ -41,7 +41,6 @@ def search_ovc(name, criteria):
             # " OFFSET 10 LIMIT 10")
             vals = ' & '.join(names)
             sql = query % (vals)
-            print sql
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 row = cursor.fetchall()
@@ -216,6 +215,18 @@ def ovc_registration(request, ovc_id, edit=0):
                 defaults={'person_id': ovc_id,
                           'facility_id': facility, 'art_status': art_status,
                           'date_linked': date_linked, 'ccc_number': ccc_no,
+                          'is_void': False},)
+        # Update School details
+        if school_level != 'SLNS':
+            school_class = request.POST.get('school_class')
+            school_id = request.POST.get('school_id')
+            school_adm = request.POST.get('admission_type')
+            health, created = OVCEducation.objects.update_or_create(
+                person_id=ovc_id, school_class=school_class,
+                defaults={'person_id': ovc_id,
+                          'school_id': school_id, 'school_level': school_level,
+                          'school_class': school_class,
+                          'admission_type': school_adm,
                           'is_void': False},)
         cgs = extract_post_params(request, naming='cg_')
         hhrs = extract_post_params(request, naming='hhr_')

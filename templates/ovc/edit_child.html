@@ -277,8 +277,8 @@
                     <!-- end col-2 -->
                 </div>
                 <div class="row">
-                      <button type="button" class="btn btn-primary"><i class="fa fa-plus"></i> Facility</button>
-                      <button type="button" class="btn btn-primary"><i class="fa fa-plus"></i> School</button>
+                      <a href="#modal-facility" data-toggle="modal"><button type="button" class="btn btn-primary"><i class="fa fa-plus"></i> Facility</button></a>
+                      <a href="#modal-school" data-toggle="modal"><button type="button" class="btn btn-primary"><i class="fa fa-plus"></i> School</button></a>
                 </div>
                 </fieldset>
             </div>
@@ -440,6 +440,44 @@
         <!-- end panel -->  
     </div>
     <!-- end col-12 -->
+    <!-- # start modal-dialog -->
+    <div class="modal fade" id="modal-facility">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">New Health Facility</h4>
+                </div>
+                <div class="modal-body">
+                    <p>To create a new Health Facility request for the addition.</p>
+                    <p>This will be added to the Master Health List.</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- # end modal-dialog -->
+    <!-- # start modal-dialog -->
+    <div class="modal fade" id="modal-school">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">New School</h4>
+                </div>
+                <div class="modal-body">
+                    <p>To create a new School request for the addition.</p>
+                    <p>This will be added to the Master Schools List.</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- # end modal-dialog -->
 </div>
 </div>
 <!-- end row -->
@@ -527,6 +565,9 @@
     var hlevel = $('#school_level').val();
     handle_hstatus(hstatus);
     handle_education(hlevel);
+    handle_levels(hlevel);
+
+    $('#school_class').val('{{ sch_class }}');
 
     $('#hiv_status').change(function(){
         handle_hstatus(this.value);
