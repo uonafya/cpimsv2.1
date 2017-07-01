@@ -245,7 +245,7 @@ def get_general_list(field_names=[], item_category=False):
     '''
     try:
         queryset = SetupList.objects.filter(is_void=False).order_by(
-            'id', 'the_order')
+            'the_order', 'id')
         if len(field_names) > 1:
             q_filter = Q()
             for field_name in field_names:
