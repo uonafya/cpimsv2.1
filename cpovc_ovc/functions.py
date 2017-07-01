@@ -12,6 +12,28 @@ from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
 
 
+def get_school(ovc_id):
+    """Method to get school details."""
+    try:
+        school = OVCEducation.objects.get(person_id=ovc_id)
+    except Exception as e:
+        print 'No school details - %s' % (str(e))
+        return None
+    else:
+        return school
+
+
+def get_health(ovc_id):
+    """Method to get health details."""
+    try:
+        health = OVCHealth.objects.get(person_id=ovc_id)
+    except Exception as e:
+        print 'No health details - %s' % (str(e))
+        return None
+    else:
+        return health
+
+
 def search_ovc(name, criteria):
     """Method to search OVC as per USG."""
     try:

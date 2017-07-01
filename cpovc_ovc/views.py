@@ -9,10 +9,10 @@ from cpovc_registry.models import (
     RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds)
 from cpovc_main.functions import get_dict
 from .models import (
-    OVCRegistration, OVCHHMembers, OVCHealth, OVCEligibility, OVCEducation)
+    OVCRegistration, OVCHHMembers, OVCEligibility)
 from .functions import (
     ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc,
-    search_master)
+    search_master, get_school, get_health)
 
 
 @login_required(login_url='/')
@@ -187,7 +187,7 @@ def ovc_edit(request, id):
         ccc_no, date_linked, art_status = '', '', ''
         facility_id, facility = '', ''
         if creg.hiv_status == 'HSTP':
-            health = OVCHealth.objects.get(person_id=ovc_id)
+            health = get_health(ovc_id)
             ccc_no = health.ccc_number
             date_linked = health.date_linked.strftime('%d-%b-%Y')
             art_status = health.art_status
@@ -197,11 +197,12 @@ def ovc_edit(request, id):
         sch_class, sch_adm_type = '', ''
         school_id, school = '', ''
         if creg.school_level != 'SLNS':
-            school = OVCEducation.objects.get(person_id=ovc_id)
-            sch_class = school.school_class
-            sch_adm_type = school.admission_type
-            school_id = school.school_id
-            school = school.school.school_name
+            school = get_school(ovc_id)
+            if school:
+                sch_class = school.school_class
+                sch_adm_type = school.admission_type
+                school_id = school.school_id
+                school = school.school.school_name
         bcert_no = params['ISOV'] if 'ISOV' in params else ''
         ncpwd_no = params['IPWD'] if 'IPWD' in params else ''
         # Eligibility
@@ -290,7 +291,11 @@ def ovc_view(request, id):
         # Health details
         health = {}
         if creg.hiv_status == 'HSTP':
-            health = OVCHealth.objects.get(person_id=ovc_id)
+            health = get_health(ovc_id)
+        # School details
+        school = {}
+        if creg.school_level != 'SLNS':
+            school = get_school(ovc_id)
         # Get siblings
         siblings = RegPersonsSiblings.objects.filter(
             is_void=False, child_person_id=child.id)
@@ -312,7 +317,7 @@ def ovc_view(request, id):
                        'guardians': guardians, 'siblings': siblings,
                        'vals': vals, 'hhold': hhold, 'creg': creg,
                        'extids': gparams, 'health': health,
-                       'hhmembers': hhmembers})
+                       'hhmembers': hhmembers, 'school': school})
     except Exception, e:
         print "error with OVC viewing - %s" % (str(e))
         raise e
