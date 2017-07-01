@@ -2652,14 +2652,17 @@ def new_alternative_family_care(request, id):
 
             now = timezone.now()
             type_of_care = request.POST.get('type_of_care')
-            residential_institution_name = request.POST.get('residential_institution_name') if request.POST.get('residential_institution_name') else None
-            fostered_from = request.POST.get('fostered_from') if request.POST.get('fostered_from') else None
+            residential_institution_name = request.POST.get(
+                'residential_institution_name') if request.POST.get('residential_institution_name') else None
+            fostered_from = request.POST.get(
+                'fostered_from') if request.POST.get('fostered_from') else None
             certificate_number = request.POST.get(
                 'certificate_number') if request.POST.get('certificate_number') else None
             date_of_certificate_expiry = request.POST.get(
                 'date_of_certificate_expiry') if request.POST.get('date_of_certificate_expiry') else None
             if date_of_certificate_expiry:
-                date_of_certificate_expiry = convert_date(date_of_certificate_expiry)
+                date_of_certificate_expiry = convert_date(
+                    date_of_certificate_expiry)
             type_of_adoption = request.POST.get(
                 'type_of_adoption') if request.POST.get('type_of_adoption') else None
             adoption_subcounty = request.POST.get(
@@ -2721,7 +2724,7 @@ def new_alternative_family_care(request, id):
                 children_office = RegOrgUnit.objects.get(
                     pk=int(children_office))
 
-            # Save OVCFamilyCare
+            # OVCFamilyCare
             ovc_familycare = OVCFamilyCare(
                 type_of_care=type_of_care,
                 certificate_number=certificate_number,
@@ -2757,7 +2760,7 @@ def new_alternative_family_care(request, id):
             ovc_familycare.save()
             familycare_pk = ovc_familycare.pk
 
-            # Save FormsLog
+            # FormsLog
             FormsLog(
                 form_id=str(familycare_pk).replace('-', ''),
                 form_type_id='FTFC',
@@ -2772,6 +2775,8 @@ def new_alternative_family_care(request, id):
             messages.add_message(request, messages.INFO, msg)
             return HttpResponseRedirect(reverse(alternative_family_care))
         else:
+            print 'Not a POST'
+            """
             # Init data
             check_fields = ['sex_id']
             vals = get_dict(field_name=check_fields)
@@ -2783,6 +2788,7 @@ def new_alternative_family_care(request, id):
                            'init_data': init_data,
                            'vals': vals,
                            'person_id': id})
+            """
     except Exception, e:
         msg = 'Alternative Family Care Save Error - %s' % str(e)
         messages.add_message(request, messages.ERROR, msg)
@@ -6356,7 +6362,8 @@ def new_csi(request, id):
             social_behaviour = request.POST.get('social_behaviour')  # PSS2
             perfomance = request.POST.get('perfomance')  # EDU1
             education_work = request.POST.get('education_work')  # EDU2
-            # household_strengthening = request.POST.get('household_strengthening')  # HES1
+            household_strengthening = request.POST.get(
+                'household_strengthening')  # HES1
 
             my_kvals = []
             my_kvals.append({ "entity": "HNU1", "value": food_security })
@@ -6371,7 +6378,7 @@ def new_csi(request, id):
             my_kvals.append({ "entity": "PSS2", "value": social_behaviour })
             my_kvals.append({ "entity": "EDU1", "value": perfomance })
             my_kvals.append({ "entity": "EDU2", "value": education_work })
-            # my_kvals.append({ "entity": "HES1", "value": household_strengthening })
+            my_kvals.append({ "entity": "HES1", "value": household_strengthening })
             for kvals in my_kvals:
                 key = kvals["entity"]
                 value = kvals["value"]
@@ -6470,7 +6477,8 @@ def edit_csi(request, id):
             social_behaviour = request.POST.get('social_behaviour')  # PSS2
             perfomance = request.POST.get('perfomance')  # EDU1
             education_work = request.POST.get('education_work')  # EDU2
-            # household_strengthening = request.POST.get('household_strengthening')  # HES1
+            household_strengthening = request.POST.get(
+                'household_strengthening')  # HES1
             my_kvals = []
             my_kvals.append({ "entity": "HNU1", "value": food_security })
             my_kvals.append({ "entity": "HNU2", "value": nutrition_growth })
@@ -6484,7 +6492,7 @@ def edit_csi(request, id):
             my_kvals.append({ "entity": "PSS2", "value": social_behaviour })
             my_kvals.append({ "entity": "EDU1", "value": perfomance })
             my_kvals.append({ "entity": "EDU2", "value": education_work })
-            # my_kvals.append({ "entity": "HES1", "value": household_strengthening })
+            my_kvals.append({ "entity": "HES1", "value": household_strengthening })
             for kvals in my_kvals:
                 key = kvals["entity"]
                 value = kvals["value"]
@@ -6595,6 +6603,7 @@ def edit_csi(request, id):
         eavdata.append(str(d['value']))
 
     # get priority data
+    print 'EDTs', eavdata
     csi_priority_data = OVCCarePriority.objects.filter(event=id, is_void=False)
     jsonPrData = []
     resultsetspr = []
@@ -6650,6 +6659,7 @@ def edit_csi(request, id):
                 })
     resultsetssvc.append(jsonSvcData)
 
+    print 'nnnn', eavdata
     date_of_csi = (csi_events_data.date_of_event).strftime('%d-%b-%Y')
     form = OVCCsiForm({
         # Domain Evaluation
@@ -6695,12 +6705,28 @@ def view_csi(request, id):
         # get main data
         csi_events_data = OVCCareEvents.objects.get(event=id, is_void=False) 
 
+        csis = {}
+        csis['HNU1'] = 'Food Security'
+        csis['HNU2'] = 'Nutrition and Growth'
+        csis['HNU3'] = 'Wellness'
+        csis['HNU4'] = 'Healthcare Services'
+        csis['SHC1'] = 'Shelter'
+        csis['SHC2'] = 'Care'
+        csis['PRO1'] = 'Abuse and Exploitation'
+        csis['PRO2'] = 'Legal Protection'
+        csis['PSS1'] = 'Emotional Health'
+        csis['PSS2'] = 'Social Behavior'
+        csis['EDU1'] = 'Performance'
+        csis['EDU2'] = 'Education and Work'
+
         # get domain evaluation data
         csi_eav_data = OVCCareEAV.objects.filter(event=id, is_void=False).values('entity', 'value').order_by('entity')
-        eavdata = []
+        eavs, eavdata = {}, {}
         for d in csi_eav_data:
-            eavdata.append(str(d['value']))
-
+            print d
+            eavs[str(d['entity'])] = str(d['value'])
+        for csi in csis:
+            eavdata[csi] = eavs[csi] if csi in eavs else None
         # get priority data
         csi_priority_data = OVCCarePriority.objects.filter(event=id, is_void=False)
         jsonPrData = []
@@ -6758,26 +6784,26 @@ def view_csi(request, id):
 
         date_of_csi = (csi_events_data.date_of_event).strftime('%d-%b-%Y')
         form = OVCCsiForm()
-        
+        print 'uat', eavdata
         return render(request,
                     'forms/view_csi.html',
                     {
                         'form': form,
                         'init_data': init_data,
                         'vals': vals,
-                        'perfomance': eavdata[0],
-                        'education_work': eavdata[1],
-                        'household_strengthening': eavdata[2],
-                        'food_security': eavdata[3],
-                        'nutrition_growth': eavdata[4],
-                        'wellness': eavdata[5],
-                        'healthcare_services': eavdata[6],
-                        'abuse_exploitation': eavdata[7],
-                        'legal_protection': eavdata[8],
-                        'emotional_health': eavdata[9],
-                        'social_behaviour': eavdata[10],
-                        'shelter': eavdata[11],
-                        'care': eavdata[12],
+                        'perfomance': eavdata['EDU1'],
+                        'education_work': eavdata['EDU2'],
+                        'household_strengthening': False,
+                        'food_security': eavdata['HNU1'],
+                        'nutrition_growth': eavdata['HNU2'],
+                        'wellness': eavdata['HNU3'],
+                        'healthcare_services': eavdata['HNU4'],
+                        'abuse_exploitation': eavdata['PRO1'],
+                        'legal_protection': eavdata['PRO2'],
+                        'emotional_health': eavdata['PSS1'],
+                        'social_behaviour': eavdata['PSS2'],
+                        'shelter': eavdata['SHC1'],
+                        'care': eavdata['SHC2'],
                         'date_of_csi': date_of_csi, 
                         'resultsetspr': resultsetspr,
                         'resultsetssvc': resultsetssvc
@@ -6976,6 +7002,7 @@ def save_form1a(request):
                         olmis_service_date = service_data['olmis_service_date']
                         olmis_service_date = convert_date(olmis_service_date) if olmis_service_date != 'None' else None   
                         olmis_service = service_data['olmis_service']
+                        print 'olmis_service: %s' %olmis_service
                         services = olmis_service.split(',')
                         for service in services:
                             OVCCareServices(                    
@@ -7120,7 +7147,7 @@ def new_hhva(request, id):
             if date_of_hhva:
                 date_of_hhva = convert_date(date_of_hhva)
 
-            """ Save HHVAEvent """
+            """ Save CSIEvent """
             event_counter = OVCCareEvents.objects.filter(
                 event_type_id=event_type_id, person=id, is_void=False).count()
             ovccareevent = OVCCareEvents(
