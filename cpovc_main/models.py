@@ -15,9 +15,11 @@ class SchoolList(models.Model):
     school_name = models.CharField(max_length=255)
     # level_of_education = models.CharField(max_length=255, null=True)
     school_subcounty = models.ForeignKey(
-        'cpovc_main.SetupGeography', related_name='school_subcounty_fk', on_delete=models.CASCADE)
+        'cpovc_main.SetupGeography', related_name='school_subcounty_fk',
+        on_delete=models.CASCADE)
     school_ward = models.ForeignKey(
-        'cpovc_main.SetupGeography', related_name='school_ward_fk', on_delete=models.CASCADE)
+        'cpovc_main.SetupGeography', related_name='school_ward_fk',
+        on_delete=models.CASCADE)
     type_of_school = models.CharField(max_length=26, null=True)
     timestamp_created = models.DateTimeField(default=timezone.now)
     is_void = models.BooleanField(default=False)
@@ -27,6 +29,25 @@ class SchoolList(models.Model):
         """Override some params."""
 
         db_table = 'school_list'
+
+
+class FacilityList(models.Model):
+    """Master Facility list model."""
+
+    facility_code = models.IntegerField()
+    facility_name = models.CharField(max_length=255)
+    county_id = models.IntegerField()
+    county_name = models.CharField(max_length=255)
+    subcounty_id = models.IntegerField()
+    subcounty_name = models.CharField(max_length=255)
+    latitude = models.DecimalField(decimal_places=5, max_digits=10)
+    longitude = models.DecimalField(decimal_places=5, max_digits=10)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override some params."""
+
+        db_table = 'facility_list'
 
 
 class SetupGeography(models.Model):
@@ -48,6 +69,10 @@ class SetupGeography(models.Model):
         db_table = 'list_geo'
         verbose_name = 'Setup Geography'
         verbose_name_plural = 'Setup Geographies'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return '%s - %s' % (self.area_type_id, self.area_name)
 
 
 class SetupList(models.Model):

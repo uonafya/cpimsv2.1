@@ -34,9 +34,17 @@ def get_health(ovc_id):
         return health
 
 
-def search_ovc(name, criteria):
+def search_ovc(request):
     """Method to search OVC as per USG."""
     try:
+        ous = []
+        name = request.POST.get('search_name')
+        criteria = request.POST.get('search_criteria')
+        # Limit permissions
+        if 'ou_attached' in request.session:
+            attached_ous = request.session['ou_attached']
+            if attached_ous:
+                ous = [int(ou) for ou in attached_ous.split(',')]
         cid = int(criteria)
         cbos, pids, chvs = [], [], []
         designs = ['COVC', 'CGOC']
@@ -66,9 +74,7 @@ def search_ovc(name, criteria):
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 row = cursor.fetchall()
-                print row
                 pids = [r[0] for r in row]
-                print 'pppp', pids
         elif cid == 2:
             pids = OVCHHMembers.objects.filter(
                 is_void=False,
@@ -97,6 +103,8 @@ def search_ovc(name, criteria):
                     'id', flat=True)
         # Query ovc table
         qs = OVCRegistration.objects.filter(is_void=False)
+        if not request.user.is_superuser:
+            qs = qs.filter(child_cbo_id__in=ous)
         pst, plen = 0, 100
         if cbos:
             ovcs = qs.filter(child_cbo_id__in=cbos)[pst:plen]
@@ -117,6 +125,7 @@ def search_master(request):
         results = []
         query_id = int(request.GET.get('id'))
         query = request.GET.get('q')
+        school_level = request.GET.get('level')
         # Filters for external ids
         if query_id == 1:
             agents = OVCFacility.objects.filter(
@@ -129,7 +138,8 @@ def search_master(request):
                 results.append(val)
         elif query_id == 2:
             agents = OVCSchool.objects.filter(
-                school_name__icontains=query)
+                school_name__icontains=query,
+                school_level=school_level)
             for agent in agents:
                 name = agent.school_name
                 agent_id = agent.id
@@ -208,7 +218,7 @@ def ovc_registration(request, ovc_id, edit=0):
         ovc_detail.registration_date = reg_date
         ovc_detail.has_bcert = has_bcert
         ovc_detail.is_disabled = is_disabled
-        ovc_detail.hiv_status = str(hiv_status)
+        # ovc_detail.hiv_status = str(hiv_status)
         ovc_detail.immunization_status = str(immmune)
         ovc_detail.org_unique_id = org_cid
         ovc_detail.caretaker_id = caretaker
@@ -217,8 +227,8 @@ def ovc_registration(request, ovc_id, edit=0):
         ovc_detail.exit_reason = exit_reason
         ovc_detail.save(
             update_fields=["registration_date", "has_bcert", "is_disabled",
-                           "hiv_status", "immunization_status",
-                           "org_unique_id", "caretaker_id", "school_level",
+                           "immunization_status", "org_unique_id",
+                           "caretaker_id", "school_level",
                            "is_active", "exit_reason"])
         # Update eligibility
         for criteria_id in criterias:
@@ -275,7 +285,6 @@ def ovc_registration(request, ovc_id, edit=0):
                 hh_death = cst[hh_member][0] if hh_member in cst else None
                 m_type = hhrs[hh_member][0] if hh_member in hhrs else 'TBVC'
                 member_type = 'TOVC' if oid == int(hh_member) else m_type
-                print 'hh_death', hh_death
                 OVCHHMembers(
                     house_hold_id=hh_id, person_id=hh_member,
                     hh_head=hh_head, member_type=member_type,

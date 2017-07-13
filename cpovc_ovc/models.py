@@ -215,7 +215,11 @@ class OVCSchool(models.Model):
     """Model for OVC Care health details."""
 
     sub_county = models.ForeignKey(SetupGeography)
-    school_level = models.CharField(max_length=5)
+    school_level = models.CharField(
+        max_length=5, default='1',
+        choices=[('SLEC', 'ECD'), ('SLPR', 'Primary'),
+                 ('SLSE', 'Secondary'), ('SLUN', 'University'),
+                 ('SLTV', 'Tertiary / Vocational')])
     school_name = models.CharField(max_length=200)
     is_void = models.BooleanField(default=False)
 

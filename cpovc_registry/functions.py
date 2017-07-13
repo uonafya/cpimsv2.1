@@ -13,6 +13,8 @@ from .models import (
     RegPersonsTypes, RegPersonsSiblings, RegPersonsAuditTrail, AppUser,
     RegOrgUnitsAuditTrail)
 
+from cpovc_ovc.models import OVCRegistration
+
 from cpovc_auth.models import CPOVCUserRoleGeoOrg
 from cpovc_forms.models import OVCCaseRecord, OVCCaseCategory, OVCCaseGeo
 
@@ -58,11 +60,23 @@ def dashboard():
             date_ended=None).values_list('person_id', flat=True)
         cregs = RegPerson.objects.filter(id__in=ptypes).values(
             'created_at').annotate(unit_count=Count('created_at'))
-        child_regs, case_regs = {}, {}
+        '''
+        cregs = RegPerson.objects.filter(designation='COVC').values(
+            'created_at').annotate(unit_count=Count('created_at'))
+        '''
+        # OVC
+        oregs = OVCRegistration.objects.values(
+            'registration_date').annotate(
+            unit_count=Count('registration_date'))
+        child_regs, case_regs, ovc_regs = {}, {}, {}
         for creg in cregs:
             the_date = creg['created_at']
             cdate = the_date.strftime('%d-%b-%y')
             child_regs[str(cdate)] = creg['unit_count']
+        for oreg in oregs:
+            the_date = oreg['registration_date']
+            cdate = the_date.strftime('%d-%b-%y')
+            ovc_regs[str(cdate)] = oreg['unit_count']
         # Case Records
         ovc_regs = case_records.values(
             'date_case_opened').annotate(unit_count=Count('date_case_opened'))
@@ -75,6 +89,7 @@ def dashboard():
             'case_category').annotate(unit_count=Count(
                 'case_category')).order_by('-unit_count')
         dash['child_regs'] = child_regs
+        dash['ovc_regs'] = ovc_regs
         dash['case_regs'] = case_regs
         dash['case_cats'] = case_categories
     except Exception:

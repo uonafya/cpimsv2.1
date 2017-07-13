@@ -123,6 +123,7 @@ class RegistrationForm(forms.Form):
         self.fields['org_unit_id'] = org_unit_id
         self.fields['cbo_unit_id'] = cbo_unit_id
         self.fields['chv_unit_id'] = chv_unit_id
+        self.chvs = chv_list
 
         # All working in selections need to be tied to currently logged in user
         user_geos = get_user_geos(self.user)

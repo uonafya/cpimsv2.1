@@ -26,6 +26,13 @@
     <span id="invalid-form-message"></span>
     <span class="validation-errors"></span>
 </div>
+{% if request.session.reg_ovc and chvs < 2 %}
+<div class="alert alert-danger fade in" tabindex="1">
+    <span class="close" data-dismiss="alert">×</span>
+    <i class="fa fa-info fa-2x pull-left"></i>
+    <p>You have no CHV defined within your CBO or LIP</p>
+</div>
+{% endif %}
 <!-- begin row -->
 <div class="row">
     <!-- begin col-12 -->

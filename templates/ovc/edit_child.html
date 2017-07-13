@@ -620,12 +620,13 @@
     });
 
     //School query
+    var s_level = $('#school_level').val();
     $( "#school_name" ).autocomplete({
         source: function( request, response ) {
         $.ajax({
           url: "{% url 'ovc_search' %}",
           dataType: "json",
-          data: {q: request.term, id: 2},
+          data: {q: request.term, id: 2, level: $('#school_level').val()},
           success: function( data ) {
             response( data );
           }

@@ -128,7 +128,7 @@ class GeoModelAdmin(admin.ModelAdmin):
     list_display = ['area_id', 'area_name', 'area_type_id', 'area_code',
                     'parent_area_id']
     readonly_fields = ['area_id']
-    list_filter = ['area_type_id']
+    list_filter = ['area_type_id', 'parent_area_id']
     actions = [dump_to_csv, export_xls, export_xlsx]
 
 admin.site.register(SetupGeography, GeoModelAdmin)
@@ -137,7 +137,7 @@ admin.site.register(SetupGeography, GeoModelAdmin)
 class GeneralModelAdmin(admin.ModelAdmin):
     """Admin back end for Lookup lists management."""
 
-    search_fields = ['item_id', 'item_description']
+    search_fields = ['item_id', 'item_description', 'field_name']
     list_display = ['item_id', 'item_description', 'field_name',
                     'item_category', 'item_sub_category', 'the_order',
                     'is_void']

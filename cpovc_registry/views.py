@@ -644,9 +644,12 @@ def new_person(request):
                 '%s?id=%d' % (reverse(persons_search), reg_person_pk))
         else:
             # Not request.POST
+            chv_obj = RegistrationForm(request.user)
+            chvs = len(chv_obj.chvs)
             form = RegistrationForm(request.user, data=my_params)
             return render(request, 'registry/person_new.html',
-                          {'form': form, 'titles': titles, 'todate': todate},)
+                          {'form': form, 'titles': titles, 'todate': todate,
+                           'chvs': chvs},)
 
     except Exception, e:
         operation_msg = 'Error occured when saving person -  %s' % (str(e))

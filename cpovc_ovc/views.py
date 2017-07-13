@@ -13,6 +13,7 @@ from .models import (
 from .functions import (
     ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc,
     search_master, get_school, get_health)
+from cpovc_auth.decorators import is_allowed_ous
 
 
 @login_required(login_url='/')
@@ -21,10 +22,7 @@ def ovc_home(request):
     try:
         if request.method == 'POST':
             form = OVCSearchForm(data=request.POST)
-            query = request.POST.get('search_name')
-            criteria = request.POST.get('search_criteria')
-
-            ovcs = search_ovc(query, criteria)
+            ovcs = search_ovc(request)
 
             check_fields = ['sex_id']
             vals = get_dict(field_name=check_fields)
@@ -52,6 +50,7 @@ def ovc_search(request):
 
 
 @login_required(login_url='/')
+@is_allowed_ous(['RGM', 'RGU', 'DSU', 'STD'])
 def ovc_register(request, id):
     """Some default page for Server Errors."""
     try:
@@ -138,6 +137,7 @@ def ovc_register(request, id):
 
 
 @login_required(login_url='/')
+@is_allowed_ous(['RGM', 'RGU', 'DSU', 'STD'])
 def ovc_edit(request, id):
     """Some default page for Server Errors."""
     try:
@@ -265,6 +265,7 @@ def ovc_edit(request, id):
 
 
 @login_required(login_url='/')
+@is_allowed_ous(['RGM', 'RGU', 'DSU', 'STD'])
 def ovc_view(request, id):
     """Some default page for Server Errors."""
     try:
