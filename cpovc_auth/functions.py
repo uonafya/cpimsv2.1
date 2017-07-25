@@ -144,7 +144,7 @@ def get_attached_units(user):
             all_roles, all_ous = [], []
             for p_org in person_orgs:
                 p_roles = []
-                org_id = p_org.id
+                org_id = p_org.org_unit_id
                 reg_assist = p_org.reg_assistant
                 if reg_assist:
                     p_roles.append('REGA')
