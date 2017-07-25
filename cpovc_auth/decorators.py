@@ -3,6 +3,7 @@ import re
 from functools import wraps
 from django.shortcuts import render, get_object_or_404
 from django.utils.decorators import available_attrs
+from django.core.urlresolvers import resolve
 from cpovc_registry.models import (
     RegPersonsAuditTrail, RegOrgUnitsAuditTrail, RegPersonsGeo,
     RegPersonsOrgUnits, RegOrgUnit, RegPerson)
@@ -22,6 +23,33 @@ ORGS_TEXT = {'registry/new/': 'Create new Organisational unit.',
 COUNTY_TEXT = {}
 ALLOWED_PAGES = ['registry/new', 'registry/new_person', 'registry/new_user']
 ALLOWED_OWN = ['registry/edit', 'registry/edit_person']
+
+
+def is_allowed_ous(allowed_groups):
+    """Method for checking roles and permissions."""
+    def decorator(check_func):
+        @wraps(check_func, assigned=available_attrs(check_func))
+        def _wrapped_view(request, *args, **kwargs):
+            # If active super user lets just proceed
+            print 'url', request.path_info
+            if request.user.is_active and request.user.is_superuser:
+                return check_func(request, *args, **kwargs)
+            else:
+                from .functions import get_groups
+                grps = request.user.groups.values_list('id', flat=True)
+                cpgrp = get_groups('')
+                cpims_grps = [cpgrp[grp] for grp in grps if grp in cpgrp]
+                gen_groups = [x for x in cpims_grps if x not in ORG_GROUPS]
+                response = any(value in gen_groups for value in allowed_groups)
+                if response:
+                    return check_func(request, *args, **kwargs)
+                current_url = resolve(request.path_info).url_name
+                pg_exists = current_url in ORGS_TEXT
+                page_info = ORGS_TEXT[current_url] if pg_exists else 'details'
+                return render(request, 'registry/roles_none.html',
+                              {'page': page_info})
+        return _wrapped_view
+    return decorator
 
 
 def is_allowed_groups(allowed_groups):
