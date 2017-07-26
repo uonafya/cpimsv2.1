@@ -40,6 +40,7 @@ from django.views.decorators.cache import cache_control
 from cpovc_main.country import COUNTRIES
 from cpovc_ovc.models import OVCRegistration
 from cpovc_ovc.functions import get_ovcdetails
+from cpovc_ovc.views import ovc_register
 
 
 now = timezone.now()
@@ -640,12 +641,15 @@ def new_person(request):
                 save_audit_trail(request, params)
             operation_msg = 'Person (%s) save success.' % first_name.upper()
             messages.add_message(request, messages.INFO, operation_msg)
+            if child_ovc == 'AYES':
+                ovc_url = reverse(ovc_register, kwargs={'id': reg_person_pk})
+                return HttpResponseRedirect(ovc_url)
             return HttpResponseRedirect(
                 '%s?id=%d' % (reverse(persons_search), reg_person_pk))
         else:
             # Not request.POST
-            chv_obj = RegistrationForm(request.user)
-            chvs = len(chv_obj.chvs)
+            chvs = RegistrationForm(request.user)
+            chvs = len(chvs.chvs)
             form = RegistrationForm(request.user, data=my_params)
             return render(request, 'registry/person_new.html',
                           {'form': form, 'titles': titles, 'todate': todate,

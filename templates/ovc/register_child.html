@@ -471,12 +471,15 @@
 
     }});
 
+    var is_exit = $('#is_exited').is(":checked");
+    disable_fields(is_exit, 'exit_reason');
+
     //Class levels
     {% for key, values in levels.items %}
         var {{ key }} = {{ values|safe }};
     {% endfor %}
 
-    $('#eligibility').multiselect({
+    $('#eligibility, #exit_reason').multiselect({
         enableCaseInsensitiveFiltering: true,
         numberDisplayed: 1,
         maxHeight: 300,
@@ -490,34 +493,44 @@
         dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
         endDate: '+0d', enddate: '+0d', autoclose: true
     });
+    var ccond = $('#has_bcert').is(":checked");
+    disable_fields(ccond, 'bcert_no');
 
-    $('input[type=checkbox][id=bcert]').change(
-    function(){
-        if (this.checked) {
-            $('#bcert_no').attr("data-parsley-required", "true");
-        }else{
-            $('#bcert_no').attr("data-parsley-required", "false");
-        }
+    var dcond = $('#disb').is(":checked");
+    disable_fields(dcond, 'ncpwd_no');
+
+    $('#is_exited').live('change', function() {
+        var is_exit = $('#is_exited').is(":checked");
+        disable_fields(is_exit, 'exit_reason');
+        $('#exit_reason').multiselect('rebuild');
     });
 
-   $('input[type=checkbox][id=is_exited]').change(
-    function(){
-        if (this.checked) {
-            $("#exit_reason").prop("disabled", false);
-        }else{
-           $("#exit_reason").prop("disabled", true);
-        }
+    $('#has_bcert').live('change', function() {
+        var cond = $('#has_bcert').is(":checked");
+        disable_fields(cond, 'bcert_no');
     });
+    $('#disb').live('change', function() {
+        var cond = $('#disb').is(":checked");
+        disable_fields(cond, 'ncpwd_no');
+    });
+
     $('#caretaker').val('{{ child.caretaker }}');
-    $('#cbo_id').val('{{ ovc.child_cbo_id }}');
 
     var hstatus = $('#hiv_status').val();
     var hlevel = $('#school_level').val();
     handle_hstatus(hstatus);
     handle_education(hlevel);
+    handle_levels(hlevel);
+
+    $('#school_class').val('{{ sch_class }}');
 
     $('#hiv_status').change(function(){
         handle_hstatus(this.value);
+    });
+
+    $('#school_level').change(function(){
+        handle_education(this.value);
+        handle_levels(this.value);
     });
 
     $('.alive').change(function(){
@@ -534,11 +547,6 @@
            $('#div_' + id).attr("data-parsley-required", "true");
            $('#ndiv_' + id).attr("data-parsley-required", "false");
         }
-    });
-
-    $('#school_level').change(function(){
-        handle_education(this.value);
-        handle_levels(this.value);
     });
 
     //Facility query
@@ -591,8 +599,7 @@
         $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
       }
     });
-
-     function handle_levels(person_type){
+    function handle_levels(person_type){
         var default_txt = "<option value=''>Select title</option>";
         if (person_type != ''){
             var person_txt = ((eval(person_type)).length == 1) ? '' : default_txt;
@@ -612,7 +619,6 @@
              $('#school_class').append('<option></option>'); 
         }
     }
-
 
     function handle_hstatus(hstatus){
         if (hstatus == 'HSTP') {
@@ -661,6 +667,19 @@
             $('#admission_type').attr("data-parsley-required", "true");
         }
 
+    }
+
+    function disable_fields(cond, field_id){
+        if (cond){
+            console.log(field_id + ' 1');
+            $('#'+ field_id).prop('disabled', false);
+            $('#'+ field_id).attr("data-parsley-required", "true");  
+        }else{
+            console.log(field_id + ' 2');
+            $('#'+ field_id).prop('disabled', true);
+            $('#'+ field_id).attr("data-parsley-required", "false");
+        }
+        
     }
 
 </script>
