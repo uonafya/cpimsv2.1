@@ -6,13 +6,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import OVCSearchForm, OVCRegistrationForm
 from cpovc_registry.models import (
-    RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds)
+    RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds,
+    OVCCheckin)
 from cpovc_main.functions import get_dict
 from .models import (
     OVCRegistration, OVCHHMembers, OVCEligibility)
 from .functions import (
     ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc,
-    search_master, get_school, get_health)
+    search_master, get_school, get_health, get_checkins)
 from cpovc_auth.decorators import is_allowed_ous
 
 
@@ -269,6 +270,28 @@ def ovc_edit(request, id):
 def ovc_view(request, id):
     """Some default page for Server Errors."""
     try:
+        if request.method == 'POST':
+            chs = ''
+            org_unit_id = None
+            ovc_id = request.POST.get('ovc_id')
+            aid = request.POST.get('id')
+            action_id = int(aid) if aid else 0
+            user_id = request.user.id
+            if action_id == 1:
+                msg = 'OVC checked in successfully.'
+                if 'ou_primary' in request.session:
+                    ou_id = request.session['ou_primary']
+                    org_unit_id = int(ou_id) if ou_id else None
+                checkin, created = OVCCheckin.objects.update_or_create(
+                    person_id=ovc_id, user_id=user_id,
+                    defaults={'person_id': ovc_id, 'user_id': user_id,
+                              'org_unit_id': org_unit_id},)
+            elif action_id == 2:
+                chs, cnt = get_checkins(user_id)
+                msg = 'OVC checked in returned %s results.' % (cnt)
+            results = {'status': 0, 'message': msg, 'checkins': chs}
+            return JsonResponse(results, content_type='application/json',
+                                safe=False)
         ovc_id = int(id)
         child = RegPerson.objects.get(is_void=False, id=ovc_id)
         creg = OVCRegistration.objects.get(is_void=False, person_id=ovc_id)

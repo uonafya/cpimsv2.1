@@ -41,6 +41,7 @@ from cpovc_main.country import COUNTRIES
 from cpovc_ovc.models import OVCRegistration
 from cpovc_ovc.functions import get_ovcdetails
 from cpovc_ovc.views import ovc_register
+from cpovc_forms.views import new_case_record_sheet
 
 
 now = timezone.now()
@@ -644,6 +645,10 @@ def new_person(request):
             if child_ovc == 'AYES':
                 ovc_url = reverse(ovc_register, kwargs={'id': reg_person_pk})
                 return HttpResponseRedirect(ovc_url)
+            elif 'TBVC' in person_types and child_ovc != 'AYES':
+                csr_url = reverse(new_case_record_sheet,
+                                  kwargs={'id': reg_person_pk})
+                return HttpResponseRedirect(csr_url)
             return HttpResponseRedirect(
                 '%s?id=%d' % (reverse(persons_search), reg_person_pk))
         else:
@@ -1193,6 +1198,9 @@ def edit_person(request, id):
                 working_in_county = counties_from_aids(working_in_subcounty)
                 print 'CNT', working_in_county, working_in_subcounty
                 work_region = '2'
+            # Living in county
+            living_county = counties_from_aids([living_in_subcounty])
+            living_in_county = living_county[0]
             initial_vals = {
                 'person_type': person_type_id,
                 'person_id': person.pk,
@@ -1206,6 +1214,7 @@ def edit_person(request, id):
                 'email': person.email, 'working_in_county': working_in_county,
                 'working_in_subcounty': working_in_subcounty,
                 'working_in_ward': working_in_ward,
+                'living_in_county': living_in_county,
                 'living_in_subcounty': living_in_subcounty,
                 'living_in_ward': living_in_ward,
                 'org_unit_primary': pri_unit_id,

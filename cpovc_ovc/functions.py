@@ -7,9 +7,32 @@ from django.db import connection
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth, OVCEligibility,
     OVCFacility, OVCSchool, OVCEducation)
-from cpovc_registry.models import RegPerson, RegOrgUnit, RegPersonsTypes
+from cpovc_registry.models import (
+    RegPerson, RegOrgUnit, RegPersonsTypes, OVCCheckin)
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import extract_post_params, save_person_extids
+
+
+def get_checkins(user_id):
+    """Method to get all checkins."""
+    try:
+        chs, cnt = '', 0
+        checkins = OVCCheckin.objects.filter(user_id=user_id)
+        for checkin in checkins:
+            cnt += 1
+            time_diff = get_timediff(checkin.timestamp_created)
+            chs += '<tr><td>%s</td>' % (cnt)
+            chs += '<td>%s</td>' % (checkin.person.full_name)
+            chs += '<td>%s ago</td>' % (time_diff)
+            chs += '<td><a href="/ovc/view/%s/">' % (checkin.person_id)
+            chs += '<button type="button" class="btn btn-primary">'
+            chs += ' View OVC</button></a></td>'
+            chs += '<td></td></tr>'
+    except Exception as e:
+        print 'error getting checkins - %s' % (str(e))
+        return "", 0
+    else:
+        return chs, cnt
 
 
 def get_school(ovc_id):
@@ -71,10 +94,12 @@ def search_ovc(request):
             # " OFFSET 10 LIMIT 10")
             vals = ' & '.join(names)
             sql = query % (vals)
+            print sql
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 row = cursor.fetchall()
                 pids = [r[0] for r in row]
+            print 'cids', pids
         elif cid == 2:
             pids = OVCHHMembers.objects.filter(
                 is_void=False,
@@ -102,6 +127,7 @@ def search_ovc(request):
                 pids = queryset.filter(q_filter).values_list(
                     'id', flat=True)
         # Query ovc table
+        print ous
         qs = OVCRegistration.objects.filter(is_void=False)
         if not request.user.is_superuser:
             qs = qs.filter(child_cbo_id__in=ous)
@@ -285,6 +311,7 @@ def ovc_registration(request, ovc_id, edit=0):
                 hh_death = cst[hh_member][0] if hh_member in cst else None
                 m_type = hhrs[hh_member][0] if hh_member in hhrs else 'TBVC'
                 member_type = 'TOVC' if oid == int(hh_member) else m_type
+                print 'hh_death', hh_death
                 OVCHHMembers(
                     house_hold_id=hh_id, person_id=hh_member,
                     hh_head=hh_head, member_type=member_type,
@@ -316,6 +343,22 @@ def ovc_registration(request, ovc_id, edit=0):
         raise e
     else:
         pass
+
+
+def get_timediff(create_time):
+    """Get time differences."""
+    tnow = timezone.now()
+
+    td = tnow - create_time
+    days = td.days
+    hours = td.seconds // 3600
+    minutes = (td.seconds // 60) % 60
+    if days > 0:
+        return '%s days' % (days)
+    elif hours > 0:
+        return '%s hours' % (hours)
+    else:
+        return '%s minutes' % (minutes)
 
 
 def gen_cbo_id(cbo_id, ovc_id):

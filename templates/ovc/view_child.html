@@ -33,6 +33,12 @@
     </div>
    {% endfor %}
 {% endif %}
+    <div id="message" class="alert alert-success fade in" style="display: none">
+        <span class="close" data-dismiss="alert">×</span>
+        <i class="fa fa-check fa-2x pull-left"></i>
+  
+        <span id="response"></span>
+    </div>
 <!-- begin row -->
 <div class="row">
   <!-- begin col-12 -->
@@ -50,10 +56,10 @@
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href="#">Check in</a></li>
+                                    <li><a href="#" id="checkin">Check in</a></li>
                                     <li><a href="#">Edit OVC</a></li>
                                     <li class="divider"></li>
-                                    <li><a href="#">My Check ins</a></li>
+                                    <li><a href="#" id="checkins">My Check ins</a></li>
                                 </ul>
                             </div>                    
                 <h4 class="panel-title">Registration details &nbsp;</h4>
@@ -62,6 +68,7 @@
             <div class="panel-body">
                 <form action="." method="post" name="ovcreg_form" id="ovcreg_form" data-parsley-validate="true">
                 {% csrf_token %}
+                <input type="hidden" name="ovc_id" id="ovc_id" value="{{ creg.person_id }}">
                 <table width="100%" class="table table-profile">
                     <tbody>
                         <tr>
@@ -270,8 +277,96 @@
 </div>
 </div>
 <!-- end row -->
+<!-- #modal-dialog -->
+      <div class="modal fade" id="modal-checkins">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+              <h4 class="modal-title">My Check ins</h4>
+            </div>
+            <div class="modal-body">
+                <div id="msg"></div>
+                <div class="form-horizontal row">
+                  <div class="form-group">
+                      <label class="col-md-2 control-label"></label>
+                      <div class="col-md-10">
+                          <table width="100%" id="mycheckins" class="table table-profile">
+                              <thead>
+                                  <tr>
+                                      <th>#</th>
+                                      <th>Names</th>
+                                      <th></th>
+                                      <th></th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+                </div>  
+            </div>
+            <div class="modal-footer">
+              <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- #modal-dialog -->
 {% endblock %}
 
 {% block lazy_javascript_code %}
+<script type="text/javascript">
+    $('#checkin').click(function() {
+        $('#message').show();
+        $.ajax({
+               type: "POST",
+               url: "{{ request.get_full_path }}",
+               dataType: "json",
+               data: $("#ovcreg_form").serialize() + "&id=1",
+               success: function(data)
+               {
+                   var status = data.status;
+                   if (status == 0){
+                       $("#message").addClass( "alert alert-success fade in" );
+                       $('#response').html(data.message);
+                    }else{
+                       $("#message").addClass( "alert alert-danger fade in" );
+                       $('#response').html(data.message);
+                    }
+               },
+                error: function(){
+                    $("#message").addClass( "alert alert-danger fade in" );
+                    $('#response').html("Error checking in. Please try again.");
+                }
+             });
+    });
+    $('#checkins').click(function() {
+        $('#modal-checkins').modal('toggle');
+        $.ajax({
+               type: "POST",
+               url: "{{ request.get_full_path }}",
+               dataType: "json",
+               data: $("#ovcreg_form").serialize() + "&id=2",
+               success: function(data)
+               {
+                   var status = data.status;
+                   if (status == 0){
+                       $("#msg").addClass( "alert alert-success fade in" );
+                       $('#msg').html(data.message);
+                       $('#mycheckins > tbody').html(data.checkins);
+                    }else{
+                       $("#msg").addClass( "alert alert-danger fade in" );
+                       $('#msg').html(data.message);
+                    }
+               },
+                error: function(){
+                    $("#msg").addClass( "alert alert-danger fade in" );
+                    $('#msg').html("Error getting check ins. Please try again.");
+                }
+             });
+    });
+</script>
 
 {% endblock %}

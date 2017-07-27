@@ -1,4 +1,5 @@
 """CPIMS Registry models."""
+import uuid
 from datetime import datetime, date
 from difflib import SequenceMatcher
 from django.db import models
@@ -177,6 +178,26 @@ class RegPerson(models.Model):
     def __unicode__(self):
         """To be returned by admin actions."""
         return '%s %s %s' % (self.first_name, self.other_names, self.surname)
+
+
+class RegBiometric(models.Model):
+    """Model for Persons biometric details."""
+
+    account = models.OneToOneField(AppUser, on_delete=models.CASCADE)
+    left_iris = models.BinaryField()
+    right_iris = models.BinaryField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'reg_biometric'
+        verbose_name = 'Persons Biometric'
+        verbose_name_plural = 'Persons Biometrics'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return '%s %s %s' % (self.account)
 
 
 class RegPersonsGuardians(models.Model):
@@ -424,6 +445,40 @@ class OVCSibling(models.Model):
         db_table = 'ovc_sibling'
 
 
+class OVCCheckin(models.Model):
+    """Model for Siblings details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    person = models.ForeignKey(RegPerson)
+    user = models.ForeignKey(AppUser)
+    org_unit = models.ForeignKey(RegOrgUnit, null=True)
+    is_ovc = models.BooleanField(default=True)
+    is_void = models.BooleanField(default=False)
+    timestamp_created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_checkin'
+
+
+class OVCHouseHold(models.Model):
+    """Model for Siblings details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    index_child = models.ForeignKey(RegPerson, related_name='index_child')
+    members = models.CharField(max_length=200)
+    is_void = models.BooleanField(default=False)
+    timestamp_created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'reg_household'
+
+
 @receiver(pre_save, sender=RegOrgUnit)
 def check_malice(sender, instance, **kwargs):
     """Method to check malicious edits."""
@@ -432,8 +487,9 @@ def check_malice(sender, instance, **kwargs):
     except sender.DoesNotExist:
         pass
     else:
-        # if not obj.surname == instance.surname:
-        sm = SequenceMatcher(None, obj.org_unit_name, instance.org_unit_name)
+        oname = obj.org_unit_name.upper()
+        aname = instance.org_unit_name.upper()
+        sm = SequenceMatcher(None, oname, aname)
         sm_ratio = round(sm.ratio(), 2) * 100
-        if sm_ratio < 60:
-            raise Exception('Complete change of names is NOT allowed.')
+        if sm_ratio < 70:
+            raise Exception('Complete change of Org Unit name is NOT allowed.')
