@@ -201,6 +201,11 @@
                $("#session_status").html(msg);
           });
 
+          $(document).bind("contextmenu",function(e){
+		       return false;
+		 });
+          
+
           $.idleTimer(warning);
           //$( "#modal-session" ).idleTimer();
 
