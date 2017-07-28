@@ -97,6 +97,7 @@ def ovc_register(request, id):
             cbo_id = ovc.child_cbo_id
             cbo_uid = gen_cbo_id(cbo_id, ovc_id)
             initial['cbo_uid'] = cbo_uid
+            initial['cbo_id'] = cbo_id
             initial['cbo_uid_check'] = cbo_uid
             if 'ISOV' in params:
                 initial['bcert_no'] = params['ISOV']
