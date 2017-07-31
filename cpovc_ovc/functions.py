@@ -244,7 +244,8 @@ def ovc_registration(request, ovc_id, edit=0):
         ovc_detail.registration_date = reg_date
         ovc_detail.has_bcert = has_bcert
         ovc_detail.is_disabled = is_disabled
-        # ovc_detail.hiv_status = str(hiv_status)
+        if edit == 0:
+            ovc_detail.hiv_status = str(hiv_status)
         ovc_detail.immunization_status = str(immmune)
         ovc_detail.org_unique_id = org_cid
         ovc_detail.caretaker_id = caretaker

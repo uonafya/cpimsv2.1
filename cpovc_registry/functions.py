@@ -11,7 +11,7 @@ from .models import (
     RegOrgUnitContact, RegOrgUnit, RegOrgUnitExternalID, RegOrgUnitGeography,
     RegPersonsOrgUnits, RegPersonsExternalIds, RegPerson, RegPersonsGeo,
     RegPersonsTypes, RegPersonsSiblings, RegPersonsAuditTrail, AppUser,
-    RegOrgUnitsAuditTrail)
+    RegOrgUnitsAuditTrail, OVCHouseHold)
 
 from cpovc_ovc.models import OVCRegistration
 
@@ -96,6 +96,39 @@ def dashboard():
         pass
     else:
         return dash
+
+
+def save_household(index_child, members):
+    """Method to create households."""
+    try:
+        hh_m = [str(m) for m in members]
+        hh_ms = ','.join(hh_m)
+        hh_members = '%s,%s,' % (index_child, hh_ms)
+        OVCHouseHold(index_child_id=index_child,
+                     members=hh_members).save()
+    except Exception as e:
+        print 'error creating household - %s ' % (str(e))
+        pass
+
+
+def get_household(chid):
+    """Method to create households."""
+    try:
+        child_id = ',%s,' % (chid)
+        child_ids = []
+        members = OVCHouseHold.objects.filter(
+            index_child_id=chid)
+        if not members:
+            members = OVCHouseHold.objects.filter(
+                members__icontains=child_id)
+        for member in members:
+            child_ids = member.members.split(',')
+            child_index = member.index_child_id
+    except Exception as e:
+        print 'error getting household - %s ' % (str(e))
+        return 0, []
+    else:
+        return child_index, child_ids
 
 
 def get_chvs(person_id):
@@ -367,6 +400,7 @@ def save_sibling(request, attached_sb, person_id):
     """Method to save siblings in some weird manner."""
     try:
         new_sib_ids = []
+        designation = 'CGSI'
         for sib_id in attached_sb:
             if len(attached_sb[sib_id]) > 4:
                 sibling_fdob = attached_sb[sib_id]['dob']
@@ -404,6 +438,17 @@ def save_sibling(request, attached_sb, person_id):
                     person_types = ['TBVC']
                     save_person_type(person_types, sibling_id)
                 todate = timezone.now()
+                # Save child as OVC
+                if designation == 'COSI':
+                    reg_date = '1900-01-01'
+                    cbo_id = request.POST.get('cbo_unit_id')
+                    chv_id = request.POST.get('chv_unit_id')
+                    ovc = OVCRegistration(
+                        person_id=sibling_id, registration_date=reg_date,
+                        has_bcert=False, is_disabled=False, is_void=False,
+                        child_cbo_id=cbo_id, child_chv_id=chv_id,
+                        exit_date=None, created_at=todate)
+                    ovc.save()
 
                 nsib, created = RegPersonsSiblings.objects.update_or_create(
                     child_person_id=person_id, is_void=False,
