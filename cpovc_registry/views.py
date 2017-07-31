@@ -20,7 +20,7 @@ from .functions import (
     save_person_extids, save_person_type, remove_person_type, save_sibling,
     save_audit_trail, create_geo_list, counties_from_aids, get_user_details,
     get_list_types, geos_from_aids, person_duplicate, copy_locations,
-    unit_duplicate, get_temp)
+    unit_duplicate, get_temp, save_household)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
@@ -575,10 +575,12 @@ def new_person(request):
                 create_geo_list(area_ids, working_in_ward)
 
             save_locations(area_ids, int(reg_person_pk))
-
+            # Households data
+            sib_ids, hh_members = [], []
             # Capture Siblings
             if attached_sb:
-                save_sibling(request, attached_sb, int(reg_person_pk))
+                pers_id = int(reg_person_pk)
+                sib_ids = save_sibling(request, attached_sb, pers_id)
 
             # Capture RegPersonsGuardians Model
             if attached_cg:
@@ -595,7 +597,11 @@ def new_person(request):
                         date_delinked=None,
                         child_headed=child_headed,
                         is_void=False).save()
-
+                    hh_members.append(caregiver_id)
+            # Create house hold
+            for sib_id in sib_ids:
+                hh_members.append(sib_id)
+            save_household(reg_person_pk, hh_members)
             # Capture RegPersonsExternalIds Model
             workforce_id, beneficiary_id = None, None
             identifier_types = {}
