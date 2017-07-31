@@ -115,15 +115,22 @@ def get_household(chid):
     """Method to create households."""
     try:
         child_id = ',%s,' % (chid)
+        child_index, cids = 0, []
         child_ids = []
+        print 'CHID', child_id
         members = OVCHouseHold.objects.filter(
             index_child_id=chid)
         if not members:
+            print 'no mm'
             members = OVCHouseHold.objects.filter(
-                members__icontains=child_id)
+                members__contains=child_id)
         for member in members:
-            child_ids = member.members.split(',')
+            cids = member.members.split(',')
             child_index = member.index_child_id
+        print 'NN', cids, child_index
+        for cid in cids:
+            if cid:
+                child_ids.append(int(cid))
     except Exception as e:
         print 'error getting household - %s ' % (str(e))
         return 0, []

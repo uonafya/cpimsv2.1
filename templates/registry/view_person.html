@@ -304,6 +304,29 @@
                         <!-- end col-4 -->
                         <!-- begin col-4 -->
                         <div class="col-md-4">
+                            {% if person_details.person_type_name == 'Caregiver' %}
+                            <h4 class="title">Household members <small></small></h4>
+                            <div data-scrollbar="true" data-height="280px" class="bg-silver">
+                                <!-- begin todolist -->
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Relation</th>
+                                            <th>Age</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for hh in hhs %}
+                                        <tr>
+                                            <td><a href="{% url 'view_person' id=hh.id %}">{{ hh.full_name }}</a></td>
+                                            <td>-</td>
+                                            <td>{{ hh.age }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
                             <h4 class="title">Related <small> {{ siblings.count|add:guardians.count|add:osiblings.count|add:oguardians.count }} provided</small></h4>
                             <!-- begin scrollbar -->
                             <div data-scrollbar="true" data-height="280px" class="bg-silver">
@@ -318,6 +341,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {% if guardians %}
                                         {% for guardian in guardians %}
                                         <tr>
                                             <td><a href="{% url 'view_person' id=guardian.guardian_person.id %}">{{ guardian.guardian_person.full_name }}</a></td>
@@ -325,19 +349,16 @@
                                             <td>{{ guardian.guardian_person.age }}</td>
                                         </tr>
                                         {% endfor %}
+                                        {% else %}
                                         {% for oguardian in oguardians %}
                                         <tr>
-                                            <td><a href="{% url 'view_person' id=oguardian.child_person.id %}">{{ oguardian.child_person.full_name }}</a></td>
-                                            <td>
-                                            {% if oguardian.child_person.sex_id == 'SFEM' %}
-                                            Daughter
-                                            {% else %}
-                                            Son
-                                            {% endif %}
-                                            </td>
-                                            <td>{{ oguardian.child_person.age }}</td>
+                                            <td><a href="{% url 'view_person' id=oguardian.guardian_person.id %}">{{ oguardian.guardian_person.full_name }}</a></td>
+                                            <td>{{ oguardian.relationship|gen_value:vals }}</td>
+                                            <td>{{ oguardian.guardian_person.age }}</td>
                                         </tr>
                                         {% endfor %}
+                                        {% endif %}
+                                        {% if siblings %}
                                         {% for sibling in siblings %}
                                         <tr>
                                             <td><a href="{% url 'view_person' id=sibling.sibling_person.id %}">{{ sibling.sibling_person.full_name }}</a></td>
@@ -351,6 +372,7 @@
                                             <td>{{ sibling.sibling_person.age }}</td>
                                         </tr>
                                         {% endfor %}
+                                        {% else %}
                                         {% for osibling in osiblings %}
                                         <tr>
                                             <td><a href="{% url 'view_person' id=osibling.child_person.id %}">{{ osibling.child_person.full_name }}</a></td>
@@ -364,6 +386,7 @@
                                             <td>{{ osibling.child_person.age }}</td>
                                         </tr>
                                         {% endfor %}
+                                        {% endif %}
                                     </tbody>
                                 </table>
                                 {% else %}
@@ -371,6 +394,7 @@
                                     <p>&nbsp;No relative details provided for this person.</p>  
                                 {% endif %}
                                 <!-- end todolist -->
+                                {% endif %}
                             </div>
                             <!-- end scrollbar -->
                         </div>

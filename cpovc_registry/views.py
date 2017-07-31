@@ -20,7 +20,7 @@ from .functions import (
     save_person_extids, save_person_type, remove_person_type, save_sibling,
     save_audit_trail, create_geo_list, counties_from_aids, get_user_details,
     get_list_types, geos_from_aids, person_duplicate, copy_locations,
-    unit_duplicate, get_temp, save_household)
+    unit_duplicate, get_temp, save_household, get_household)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
@@ -788,13 +788,23 @@ def view_person(request, id):
         # This will be used for children and Guardians ONLY
         guardians = RegPersonsGuardians.objects.select_related().filter(
             child_person=person, is_void=False, date_delinked=None)
+        # Household - Introduced in V2
+        child_index, members = get_household(person.id)
+        print 'HH', child_index, members
+        child_id = child_index if child_index else person.id
         siblings = RegPersonsSiblings.objects.select_related().filter(
-            child_person=person, is_void=False, date_delinked=None)
+            child_person_id=child_id, is_void=False,
+            date_delinked=None).exclude(sibling_person_id=id)
         # Reverse relationship
         osiblings = RegPersonsSiblings.objects.select_related().filter(
-            sibling_person=person, is_void=False, date_delinked=None)
+            sibling_person_id=id, is_void=False,
+            date_delinked=None)
+        # .exclude(sibling_person_id=id)
         oguardians = RegPersonsGuardians.objects.select_related().filter(
-            guardian_person=person, is_void=False, date_delinked=None)
+            child_person_id=child_id, is_void=False, date_delinked=None)
+        # HH members
+        hhs = RegPerson.objects.filter(
+            id__in=members, is_void=False).exclude(id=id)
 
         # Check if has an account
         workforce_id = None
@@ -867,7 +877,7 @@ def view_person(request, id):
                       {'person_details': person, 'vals': vals,
                        'appuser': person_appuser, 'guardians': guardians,
                        'siblings': siblings, 'osiblings': osiblings,
-                       'oguardians': oguardians})
+                       'oguardians': oguardians, 'hhs': hhs})
     except Exception, e:
         # raise e
         msg = 'Persons error - %s' % (str(e))
