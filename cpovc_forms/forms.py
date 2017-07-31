@@ -1,8 +1,5 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from django.forms.widgets import RadioFieldRenderer
-from django.utils.encoding import force_unicode
-from django.utils.safestring import mark_safe
 from cpovc_main.functions import get_list, get_org_units_list
 from cpovc_registry.functions import get_geo_list, get_all_geo_list
 from cpovc_registry.models import RegOrgUnit
@@ -123,15 +120,6 @@ olmis_ha28_list = get_list('olmis_ha28_id', 'Please Select')
 olmis_ha29_list = get_list('olmis_ha29_id', 'Please Select')
 olmis_ha30_list = get_list('olmis_ha30_id', 'Please Select')
 olmis_ha31_list = get_list('olmis_ha31_id', 'Please Select')
-
-YESNO_CHOICES = get_list('yesno_id')
-class RadioCustomRenderer(RadioFieldRenderer):
-    """Custom radio button renderer class."""
-
-    def render(self):
-        """Renderer override method."""
-        return mark_safe(u'%s' % u'\n'.join(
-            [u'%s' % force_unicode(w) for w in self]))
 
 class OVCSchoolForm(forms.Form):
     school_name = forms.CharField(widget=forms.TextInput(
@@ -2206,7 +2194,6 @@ class OVCCsiForm(forms.Form):
                                                   'data-parsley-required': 'true',
                                                   'data-parsley-group': 'group0'})
                                        )
-    """
     household_strengthening = forms.ChoiceField(choices=csi_grade_list,
                                                 initial='0',
                                                 required=True,
@@ -2216,15 +2203,7 @@ class OVCCsiForm(forms.Form):
                                                            'data-parsley-required': 'true',
                                                            'data-parsley-group': 'group0'})
                                                 )
-    """
     ## OLMIS SERVICES ##
-    olmis_svc_rcvd = forms.ChoiceField(
-        choices=YESNO_CHOICES,
-        widget=forms.RadioSelect(
-            renderer=RadioCustomRenderer,
-            attrs={'id': 'svc_rcvd',
-                   'data-parsley-required': 'true',
-                   'data-parsley-errors-container': "#svc_rcvd_error"}))
     olmis_domain = forms.ChoiceField(choices=olmis_domain_list,
                                      initial='0',
                                      required=True,
@@ -2438,7 +2417,7 @@ class OVCF1AForm(forms.Form):
                                              )
 
     date_of_assessment = forms.DateField(widget=forms.TextInput(
-        attrs={'placeholder': _('Date Recorded'),
+        attrs={'placeholder': _('Date of Event'),
                'class': 'form-control',
                'name': 'date_of_assessment',
                'id': 'date_of_assessment'
@@ -2446,7 +2425,7 @@ class OVCF1AForm(forms.Form):
                #'data-parsley-group': 'group3'
                }))
     date_of_service = forms.DateField(widget=forms.TextInput(
-        attrs={'placeholder': _('Date Recorded'),
+        attrs={'placeholder': _('Date of Event'),
                'class': 'form-control',
                'name': 'date_of_service',
                'id': 'date_of_service'
@@ -2454,7 +2433,7 @@ class OVCF1AForm(forms.Form):
                #'data-parsley-group': 'group3'
                }))
     date_of_cevent = forms.DateField(widget=forms.TextInput(
-        attrs={'placeholder': _('Date Recorded'),
+        attrs={'placeholder': _('Date of Event'),
                'class': 'form-control',
                'name': 'date_of_cevent',
                'id': 'date_of_cevent'
@@ -2462,7 +2441,7 @@ class OVCF1AForm(forms.Form):
                #'data-parsley-group': 'group3'
                }))
     date_of_priority = forms.DateField(widget=forms.TextInput(
-        attrs={'placeholder': _('Date Recorded'),
+        attrs={'placeholder': _('Date of Event'),
                'class': 'form-control',
                'name': 'date_of_priority',
                'id': 'date_of_priority'
