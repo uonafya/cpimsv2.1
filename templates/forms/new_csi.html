@@ -834,9 +834,8 @@ function AddRow(x)
 
                 // get total selected
 		        var total = arr_DSHC.length + arr_DPSS.length + arr_DPRO.length + arr_DHES.length + arr_DHNU.length + arr_DEDU.length;
-
 		        console.log('total : ' + total);   		        
-		        if(total == 3)
+		        if(total >= 3)
 		        {
 		        	$('#csi-warning-dialog').modal('show');
             		$('#span_csi_alert').html("You are violating CSI Priority assessment Rules which demands 3 a maximum of priorities from either domain.");
@@ -849,6 +848,7 @@ function AddRow(x)
 	                ----------------------------------
 	                Get total domain-specific selected 
 	                */
+				console.log('current priority domain: '+olmis_priority_domain)
 			        if(olmis_priority_domain == 'DEDU')
 			        {
 			        	items = olmis_priority_service;
@@ -856,7 +856,7 @@ function AddRow(x)
 			        	{
 			        		if($.inArray(items[i], arr_DEDU) == -1)
 			        		{
-			        			if(arr_DEDU.length < 2)
+			        			if(arr_DEDU.length < 3)
 			        			{
 			        				arr_DEDU.push(items[i]);
 			        			}
@@ -878,7 +878,7 @@ function AddRow(x)
 			        	{
 			        		if($.inArray(items[i], arr_DHNU) == -1)
 			        		{
-			        			if(arr_DHNU.length < 2)
+			        			if(arr_DHNU.length < 3)
 			        			{
 			        				arr_DHNU.push(items[i]);
 			        			}
@@ -900,7 +900,7 @@ function AddRow(x)
 			        	{
 			        		if($.inArray(items[i], arr_DHES) == -1)
 			        		{
-			        			if(arr_DHES.length < 2)
+			        			if(arr_DHES.length < 3)
 			        			{
 			        				arr_DHES.push(items[i]);
 			        			}
@@ -922,7 +922,7 @@ function AddRow(x)
 			        	{
 			        		if($.inArray(items[i], arr_DPRO) == -1)
 			        		{
-			        			if(arr_DPRO.length < 2)
+			        			if(arr_DPRO.length < 3)
 			        			{
 			        				arr_DPRO.push(items[i]);
 			        			}
@@ -944,7 +944,7 @@ function AddRow(x)
 			        	{
 			        		if($.inArray(items[i], arr_DPSS) == -1)
 			        		{
-			        			if(arr_DPSS.length < 2)
+			        			if(arr_DPSS.length < 3)
 			        			{
 			        				arr_DPSS.push(items[i]);
 			        			}
@@ -966,7 +966,7 @@ function AddRow(x)
 			        	{
 			        		if($.inArray(items[i], arr_DSHC) == -1)
 			        		{
-			        			if(arr_DSHC.length < 2)
+			        			if(arr_DSHC.length < 3)
 			        			{
 			        				arr_DSHC.push(items[i]);
 			        			}
@@ -982,6 +982,7 @@ function AddRow(x)
 			        }
 
 		        	// Insert new cells (<td> elements) of the "new" <tr> element:
+		        console.log( 'DSHC: '+arr_DSHC.length+', DPSS:'+arr_DPSS.length+ ', DPRO:'+arr_DPRO.length+', DHES:'+arr_DHES.length+', DHNU: '+arr_DHNU.length+', DEDU:'+arr_DEDU.length);
 	                var cell0 = row.insertCell(0);
 	                var cell1 = row.insertCell(1);
 	                var cell2 = row.insertCell(2);
