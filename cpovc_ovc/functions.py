@@ -10,7 +10,8 @@ from .models import (
 from cpovc_registry.models import (
     RegPerson, RegOrgUnit, RegPersonsTypes, OVCCheckin)
 from cpovc_main.functions import convert_date
-from cpovc_registry.functions import extract_post_params, save_person_extids
+from cpovc_registry.functions import (
+    extract_post_params, save_person_extids, get_attached_ous)
 
 
 def get_checkins(user_id):
@@ -64,10 +65,7 @@ def search_ovc(request):
         name = request.POST.get('search_name')
         criteria = request.POST.get('search_criteria')
         # Limit permissions
-        if 'ou_attached' in request.session:
-            attached_ous = request.session['ou_attached']
-            if attached_ous:
-                ous = [int(ou) for ou in attached_ous.split(',')]
+        ous = get_attached_ous(request)
         cid = int(criteria)
         cbos, pids, chvs = [], [], []
         designs = ['COVC', 'CGOC']

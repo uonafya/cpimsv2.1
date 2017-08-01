@@ -660,6 +660,21 @@ def merge_two_dicts(dict_x, dict_y):
     return new_dict
 
 
+def get_attached_ous(request):
+    """method to get attached ous"""
+    try:
+        ous = []
+        if 'ou_attached' in request.session:
+            attached_ous = request.session['ou_attached']
+            if attached_ous:
+                ous = [int(ou) for ou in attached_ous.split(',')]
+    except Exception as e:
+        print 'error getting attached ous - %s' % (str(e))
+        return []
+    else:
+        return ous
+
+
 def auto_suggest_person(request, query, qid=0):
     """
     Auto suggest method using jquery auto-suggest.
@@ -676,15 +691,21 @@ def auto_suggest_person(request, query, qid=0):
         detail_list = [0, 1]
         if query_id in query_ids:
             person_type = query_ids[query_id]
+        # Filter by same org units
+        ous = get_attached_ous(request)
+        porgs = RegPersonsOrgUnits.objects.filter(
+            org_unit_id__in=ous).values_list('person_id', flat=True)
         # Filters for external ids
         if query_id in [0, 1]:
             person_ids = RegPersonsTypes.objects.filter(
-                person_type_id=person_type, is_void=False).values_list(
+                person_type_id=person_type, person_id__in=porgs,
+                is_void=False).values_list(
                     'person_id', flat=True)
         else:
             wf_ids = ['TWNE', 'TWGE', 'TWVL']
             person_ids = RegPersonsTypes.objects.filter(
-                person_type_id__in=wf_ids, is_void=False).values_list(
+                person_type_id__in=wf_ids, person_id__in=porgs,
+                is_void=False).values_list(
                     'person_id', flat=True)
         queryset = RegPerson.objects.filter(
             id__in=person_ids, is_void=False)
@@ -695,8 +716,10 @@ def auto_suggest_person(request, query, qid=0):
         persons = queryset.filter(q_filter)
         for person in persons:
             person_id = person.pk
-            name = '%s %s %s' % (person.first_name, person.surname,
-                                 person.other_names)
+            onames = person.other_names if person.other_names else ''
+            names = '%s %s %s' % (person.first_name, person.surname,
+                                  onames)
+            name = names.strip()
             val = {'id': person.pk, 'label': name, 'value': name}
             if query_id in detail_list:
                 person_dob = person.date_of_birth
