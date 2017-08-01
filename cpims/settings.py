@@ -14,6 +14,12 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
+cpims_db_host = os.environ.get('CPIMS_HOST') if os.environ.get('CPIMS_HOST') else 'localhost'
+cpims_db_pass = os.environ.get('CPIMS_PASSWORD') if os.environ.get('CPIMS_PASSWORD') else 'CP1$2016$ss'
+cpims_db_instance = os.environ.get('CPIMS_DB') if os.environ.get('CPIMS_DB') else 'cpims_main'
+cpims_db_port = os.environ.get('CPIMS_PORT') if os.environ.get('CPIMS_PORT') else '5432'
+cpims_db_user = os.environ.get('CPIMS_DBUSER') if os.environ.get('CPIMS_DBUSER') else 'cpduser'
+
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -26,9 +32,9 @@ INSTALLED_APPS = (
     'cpovc_main',
     'cpovc_forms',
     'cpovc_gis',
-    'cpovc_ovc',
     'cpovc_access',
     'crispy_forms',
+    'cpovc_ovc',
     'rest_framework',
 )
 
@@ -70,11 +76,11 @@ WSGI_APPLICATION = 'cpims.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'cpims',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
-        'PORT': '5432', }
+        'NAME': cpims_db_instance,
+        'USER': cpims_db_user,
+        'PASSWORD': cpims_db_pass,
+        'HOST': cpims_db_host,
+        'PORT': cpims_db_port, }
 }
 
 LANGUAGE_CODE = 'en-us'
