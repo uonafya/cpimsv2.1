@@ -20,7 +20,7 @@ from .functions import (
     save_person_extids, save_person_type, remove_person_type, save_sibling,
     save_audit_trail, create_geo_list, counties_from_aids, get_user_details,
     get_list_types, geos_from_aids, person_duplicate, copy_locations,
-    unit_duplicate, get_temp, save_household, get_household)
+    unit_duplicate, get_temp, save_household, get_household, get_index_child)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
@@ -718,6 +718,8 @@ def persons_search(request):
                 org_names = names_from_ids(ids, registry='person_orgs')
                 p_types = names_from_ids(ids, registry='person_types')
 
+                print 'orgs', org_names
+
                 # Person accounts
                 accounts = AppUser.objects.all().values('id', 'reg_person_id')
                 for account in accounts:
@@ -800,8 +802,9 @@ def view_person(request, id):
             sibling_person_id=id, is_void=False,
             date_delinked=None)
         # .exclude(sibling_person_id=id)
+        child_ids = [gd.child_person_id for gd in osiblings]
         oguardians = RegPersonsGuardians.objects.select_related().filter(
-            child_person_id=child_id, is_void=False, date_delinked=None)
+            child_person_id__in=child_ids, is_void=False, date_delinked=None)
         # HH members
         hhs = RegPerson.objects.filter(
             id__in=members, is_void=False).exclude(id=id)
@@ -972,6 +975,19 @@ def edit_person(request, id):
                     ovc.child_cbo_id = cbo_id
                     ovc.child_chv_id = chv_id
                     ovc.save(update_fields=['child_cbo_id', 'child_chv_id'])
+                else:
+                    if designation == 'COVC':
+                        reg_date = '1900-01-01'
+                        cbo_id = request.POST.get('cbo_unit_id')
+                        chv_id = request.POST.get('chv_unit_id')
+                        has_bcert = True if birth_reg_id else False
+                        ovc = OVCRegistration(
+                            person_id=eperson_id, registration_date=reg_date,
+                            has_bcert=has_bcert, is_disabled=False,
+                            is_void=False, child_cbo_id=cbo_id,
+                            child_chv_id=chv_id,
+                            exit_date=None, created_at=now)
+                        ovc.save()
                 # Update Persons Geography
                 person_geos_all = RegPersonsGeo.objects.filter(
                     person_id=eperson_id, is_void=False,
@@ -1067,6 +1083,24 @@ def edit_person(request, id):
                 save_person_extids(identifier_types, eperson_id)
 
                 msg = 'Update of Person (%s) was successful.' % first_name
+                # For households
+                attached_cg = extract_post_params(request, naming='cc_')
+                attached_sb = extract_post_params(request, naming='sb_')
+                print 'SB', attached_cg, attached_sb
+                members = [eperson_id]
+                for acg in attached_cg:
+                    members.append(acg)
+                for asb in attached_sb:
+                    members.append(asb)
+                # Check if household exits
+                index_child, hh_members = get_household(eperson_id)
+                if not index_child:
+                    index_id = get_index_child(eperson_id)
+                    if index_id:
+                        umembers = list(set(members))
+                        if index_id in members:
+                            members.remove(index_id)
+                        save_household(index_id, umembers)
             elif edit_type == 2:
                 date_of_death = request.POST.get('date_of_death')
                 if date_of_death:
@@ -1110,12 +1144,23 @@ def edit_person(request, id):
                 person=person, is_void=False, date_delinked=None)
             person_extids = RegPersonsExternalIds.objects.filter(
                 person=person, is_void=False)
-            # These are for children
+            # These are for children household - Introduced in V2
+            child_index, members = get_household(person.id)
+            child_id = child_index if child_index else person.id
+            print 'HH', child_index, members
             siblings = RegPersonsSiblings.objects.select_related().filter(
-                child_person=person, is_void=False, date_delinked=None)
+                child_person_id=child_id, is_void=False,
+                date_delinked=None).exclude(sibling_person_id=id)
+            # Reverse relationship
+            osiblings = RegPersonsSiblings.objects.select_related().filter(
+                sibling_person_id=person.id, is_void=False,
+                date_delinked=None)
             guardians = RegPersonsGuardians.objects.select_related().filter(
-                child_person=person, is_void=False, date_delinked=None)
-
+                child_person_id=person.id, is_void=False, date_delinked=None)
+            child_ids = [gd.child_person_id for gd in osiblings]
+            gds = RegPersonsGuardians.objects.select_related()
+            oguardians = gds.filter(child_person_id__in=child_ids,
+                                    is_void=False, date_delinked=None)
             audits = RegPersonsAuditTrail.objects.select_related().filter(
                 person=person)[:3]
 
@@ -1260,7 +1305,9 @@ def edit_person(request, id):
                            'siblings': siblings, 'person': person,
                            'guardians': guardians, 'audits': audits,
                            'cadre_type': designation, 'title_type': title_id,
-                           'todate': todate, 'region_id': work_region})
+                           'todate': todate, 'region_id': work_region,
+                           'child_ovc': child_ovc, 'osiblings': osiblings,
+                           'oguardians': oguardians})
     except RegPerson.DoesNotExist:
             form = RegistrationSearchForm()
             return render(request, 'registry/person_search.html',

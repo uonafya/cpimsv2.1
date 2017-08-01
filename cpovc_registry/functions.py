@@ -111,6 +111,38 @@ def save_household(index_child, members):
         pass
 
 
+def get_ovc_lists(ovc_ids):
+    """Method to get child chv details from ids."""
+    try:
+        ovc_details = OVCRegistration.objects.filter(
+            person_id__in=ovc_ids, is_void=False)
+    except Exception, e:
+        print 'error getting ovc lists - %s' % (str(e))
+        return {}
+    else:
+        return ovc_details
+
+
+def get_index_child(child_id):
+    """Method to get the index child."""
+    try:
+        index_id = 0
+        siblings = RegPersonsSiblings.objects.select_related().filter(
+            child_person_id=child_id, is_void=False, date_delinked=None)
+        # Reverse relationship
+        if not siblings:
+            siblings = RegPersonsSiblings.objects.select_related().filter(
+                sibling_person_id=child_id, is_void=False,
+                date_delinked=None)
+        for sibling in siblings:
+            index_id = sibling.child_person_id
+    except Exception as e:
+        print 'error getting index child - %s' % (str(e))
+        return 0
+    else:
+        return index_id
+
+
 def get_household(chid):
     """Method to create households."""
     try:
@@ -824,13 +856,24 @@ def get_specific_geos(list_ids, registry='orgs', reg_type=[]):
                     else:
                         orgs[person_id].append(area_name)
         elif registry == 'person_orgs':
+            print 'pps', list_ids
             geos = RegPersonsOrgUnits.objects.select_related().filter(
-                person_id__in=list_ids, primary_unit=True,
-                date_delinked=None, is_void=False)
+                person_id__in=list_ids, is_void=False)
             # For getting all geo ids for org units
             for geo in geos:
                 person_id = geo.person_id
                 org_name = geo.org_unit.org_unit_name
+
+                if person_id not in orgs:
+                    orgs[person_id] = [org_name]
+                else:
+                    orgs[person_id].append(org_name)
+            # This is for OVC
+            ovcs = get_ovc_lists(list_ids)
+            for ovc in ovcs:
+                person_id = ovc.person_id
+                org_name = ovc.child_cbo.org_unit_name
+
                 if person_id not in orgs:
                     orgs[person_id] = [org_name]
                 else:

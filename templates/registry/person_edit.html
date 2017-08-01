@@ -391,6 +391,7 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
+                                                           {% if guardians %}
                                                            {% for guardian in guardians %}
                                                             <tr id="gd_tr_{{ guardian.guardian_person_id }}">
                                                                 <td>
@@ -402,6 +403,19 @@
                                                                 <td><button id = "{{ guardian.guardian_person_id }}" type="button" class="btn btn-danger remove_cg"><i class="fa fa-trash-o"></i></button></td>
                                                             </tr>
                                                             {% endfor %}
+                                                            {% elif oguardians %}
+                                                            {% for guardian in oguardians %}
+                                                            <tr id="gd_tr_{{ guardian.guardian_person_id }}">
+                                                                <td>
+                                                                <input id="cc_{{ guardian.guardian_person_id }}_cpid" name="cc_{{ guardian.guardian_person_id }}_cpid" value="{{ guardian.guardian_person_id }}" type="hidden">
+                                                                {{ guardian.guardian_person_id }}</td>
+                                                                <td>{{ guardian.guardian_person.full_name }}</td>
+                                                                <td>{{ guardian.relationship|gen_value:vals }}</td>
+                                                                <td>{{ guardian.child_headed|yesno:"No,Yes" }}</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                            {% endif %}
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -429,6 +443,7 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
+                                                            {% if siblings %}
                                                             {% for sibling in siblings %}
                                                             <tr id="sb_tr_{{ sibling.sibling_person_id }}">
                                                                 <td>
@@ -440,6 +455,19 @@
                                                                 <td><button id = "{{ sibling.sibling_person_id }}" type="button" class="btn btn-danger remove_sib"><i class="fa fa-trash-o"></i></button></td>
                                                             </tr>
                                                             {% endfor %}
+                                                            {% elif osiblings %}
+                                                            {% for sibling in osiblings %}
+                                                            <tr id="sb_tr_{{ sibling.child_person_id }}">
+                                                                <td>
+                                                                <input id="sb_{{ sibling.child_person_id }}_cpid" name="sb_{{ sibling.child_person_id }}_cpid" value="{{ sibling.child_person_id }}" type="hidden">
+                                                                {{ sibling.child_person_id }}</td>
+                                                                <td>{{ sibling.child_person.full_name }}</td>
+                                                                <td>{{ sibling.child_person.sex_id|gen_value:vals }}</td>
+                                                                <td>{{ sibling.child_person.date_of_birth }}</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                            {% endif %}
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -852,11 +880,27 @@ jQuery(document).ready(function() {
         var title_type = $("#title_type").val();
         handle_cadres(title_type);
     });
+    $(':input[name="child_ovc"]').click(function(){
+        var child_ovc = $('input[name=child_ovc]:checked').val();
+        if (child_ovc == 'AYES'){
+            $('#other_names').attr('data-parsley-required', 'true');   
+        }
+    });
     // autofill with today
     $('#audit_date').val('{{ todate }}');
 
     //This is for regions
     check_region('{{ region_id }}');
+
+    //
+    {% if child_ovc == 'AYES' %}
+    $(':input[name="child_ovc"]').click(function(){
+        $('#messages').show();
+        $('#messages').html("Child OVC status can not be changed.");
+        return false;
+    });
+    $('#other_names').attr('data-parsley-required', 'true');
+    {% endif %}
 
     FormWizardValidation.init();
 
@@ -1778,6 +1822,10 @@ function handle_child(){
     $('#tribe_id_div').show();
     $('#religion_id_div').show();
     $('#nation_id_div').show();
+    var child_ovc = $('#child_ovc').val();
+    if (child_ovc == 'AYES'){
+        $('#other_names').attr('data-parsley-required', 'true');   
+    }
 }
 
 function handle_caregiver(person_text){
