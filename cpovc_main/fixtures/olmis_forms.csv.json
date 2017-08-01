@@ -11,7 +11,7 @@
             "item_id": "VBAD", 
             "item_description_short": "Very Bad", 
             "sms_keyword": "False", 
-            "item_description": "Very Bad", 
+            "item_description": "4-Very Bad", 
             "the_order": 1
         }
     },
@@ -27,7 +27,7 @@
             "item_id": "GBAD", 
             "item_description_short": "Bad", 
             "sms_keyword": "False", 
-            "item_description": "Bad", 
+            "item_description": "3-Bad", 
             "the_order": 2
         }
     },
@@ -43,7 +43,7 @@
             "item_id": "GOOD", 
             "item_description_short": "Good", 
             "sms_keyword": "False", 
-            "item_description": "Good", 
+            "item_description": "2-Good", 
             "the_order": 3
         }
     },
@@ -59,7 +59,7 @@
             "item_id": "FAIR", 
             "item_description_short": "Fair", 
             "sms_keyword": "False", 
-            "item_description": "Fair", 
+            "item_description": "1-Fair", 
             "the_order": 4
         }
     },
@@ -128,7 +128,7 @@
         }
     },
     {
-        "pk": 19011, 
+        "pk": 19012, 
         "model": "cpovc_main.SetupList", 
         "fields": {
             "item_category": "OLMIS Service Provider", 
