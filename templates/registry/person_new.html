@@ -26,7 +26,7 @@
     <span id="invalid-form-message"></span>
     <span class="validation-errors"></span>
 </div>
-{% if request.session.reg_ovc and chvs < 2 %}
+{% if request.session.reg_ovc and chvs == 0 %}
 <div class="alert alert-danger fade in" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
     <i class="fa fa-info fa-2x pull-left"></i>
@@ -785,6 +785,13 @@ jQuery(document).ready(function() {
     $("#title_type").change(function(e) {
         var title_type = $("#title_type").val();
         handle_cadres(title_type);
+    });
+
+    $(':input[name="child_ovc"]').click(function(){
+        var child_ovc = $('input[name=child_ovc]:checked').val();
+        if (child_ovc == 'AYES'){
+            $('#other_names').attr('data-parsley-required', 'true');   
+        }
     });
 
     FormWizardValidation.init();
@@ -1624,6 +1631,11 @@ function handle_child(){
             $("#date_warning").removeClass( "alert alert-danger fade in" );
          }
     });
+
+    var child_ovc = $('#child_ovc').val();
+    if (child_ovc == 'AYES'){
+        $('#other_names').attr('data-parsley-required', 'true');   
+    }
 }
 
 function handle_caregiver(person_text){
