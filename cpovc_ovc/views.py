@@ -163,19 +163,29 @@ def ovc_edit(request, id):
         child.chv_name = creg.child_chv.full_name
         params = {}
         gparams = {}
-        # Get guardians
-        guardians = RegPersonsGuardians.objects.filter(
-            is_void=False, child_person_id=child.id)
-        # Get siblings
-        siblings = RegPersonsSiblings.objects.filter(
-            is_void=False, child_person_id=child.id)
-        print 'p', params, 'gp', gparams
+        siblings = 0
+        # Get house hold
+        hhold = OVCHHMembers.objects.get(
+            is_void=False, person_id=child.id)
+        hhid = hhold.house_hold_id
+        hhmqs = OVCHHMembers.objects.filter(
+            is_void=False, house_hold_id=hhid).order_by("-hh_head")
+        # add caregivers hiv status
+        hhmembers = hhmqs.exclude(person_id=child.id)
+        # Get guardians and siblings ids
         guids, chids = [], []
-        for guardian in guardians:
-            guids.append(guardian.guardian_person_id)
+        ctaker = 0
+        for hh_member in hhmembers:
+            member_type = hh_member.member_type
+            member_head = hh_member.hh_head
+            if member_head:
+                ctaker = hh_member.person_id
+            if member_type == 'TBVC' or member_type == 'TOVC':
+                chids.append(hh_member.person_id)
+                siblings += 1
+            else:
+                guids.append(hh_member.person_id)
         guids.append(child.id)
-        for sibling in siblings:
-            chids.append(sibling.sibling_person_id)
         pids = {'guids': guids, 'chids': chids}
         extids = RegPersonsExternalIds.objects.filter(
             person_id__in=guids)
@@ -221,22 +231,17 @@ def ovc_edit(request, id):
                       'school_level': creg.school_level, 'facility': facility,
                       'facility_id': facility_id, 'school_class': sch_class,
                       'school_name': school, 'school_id': school_id,
-                      'school_admission_type': sch_adm_type,
+                      'admission_type': sch_adm_type,
                       'hiv_status': creg.hiv_status, 'link_date': date_linked,
                       'ccc_number': ccc_no, 'art_status': art_status,
                       'eligibility': criterias, 'is_exited': exited,
                       'exit_reason': creg.exit_reason}
         form = OVCRegistrationForm(guids=pids, data=all_values)
-        # Get house hold
-        hhold = OVCHHMembers.objects.get(
-            is_void=False, person_id=child.id)
-        hhid = hhold.house_hold_id
-        hhmembers = OVCHHMembers.objects.filter(
-            is_void=False, house_hold_id=hhid).order_by("-hh_head")
-        # add caregivers hiv status
         for hhm in hhmembers:
-            status_id = 'gstatus_%s' % (hhm.person_id)
-            all_values[status_id] = hhm.hiv_status
+            status_id = 'status_%s' % (hhm.person_id)
+            all_values['a%s' % (status_id)] = hhm.member_alive
+            all_values['g%s' % (status_id)] = hhm.hiv_status
+            all_values['sg%s' % (status_id)] = hhm.hiv_status
         # Class levels
         levels = {}
         levels["SLNS"] = []
@@ -257,10 +262,10 @@ def ovc_edit(request, id):
         vals = get_dict(field_name=check_fields)
         return render(request, 'ovc/edit_child.html',
                       {'form': form, 'status': 200, 'child': child,
-                       'guardians': guardians, 'siblings': siblings,
                        'vals': vals, 'hhold': hhold, 'extids': gparams,
                        'hhmembers': hhmembers, 'levels': levels,
-                       'sch_class': sch_class})
+                       'sch_class': sch_class, 'siblings': siblings,
+                       'ctaker': ctaker})
     except Exception, e:
         print "error with OVC editing - %s" % (str(e))
         raise e
@@ -335,7 +340,8 @@ def ovc_view(request, id):
         # Re-usable values
         check_fields = ['relationship_type_id', 'school_level_id',
                         'hiv_status_id', 'immunization_status_id',
-                        'art_status_id']
+                        'art_status_id', 'school_type_id',
+                        'class_level_id']
         vals = get_dict(field_name=check_fields)
         return render(request, 'ovc/view_child.html',
                       {'status': 200, 'child': child, 'params': params,

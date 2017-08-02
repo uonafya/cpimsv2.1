@@ -65,7 +65,7 @@
                                 {% if hhmember.member_type == 'TBVC' %}
                                    Sibling
                                 {% elif hhmember.member_type == 'TOVC' %}
-                                   Enrolled OVC
+                                   Index OVC
                                 {% else %}
                                    Parent/Guardian
                                 {% endif %}
@@ -94,7 +94,11 @@
                                 </td>
                                 <td>
                                 {% if hhmember.member_type == 'TBVC' %}
-                                <a href="#"><button type="button" class="btn btn-danger m-r-5"> <i class="fa fa-pencil"></i> Enroll</button></a>
+                                {% if hhmember.hiv_status %}
+                                <a href="{% url 'ovc_view' id=hhmember.person_id %}"><button type="button" class="btn btn-primary"> <i class="fa fa-file"></i> View</button></a>
+                                {% else %}
+                                <a href="{% url 'ovc_register' id=hhmember.person_id %}"><button type="button" class="btn btn-danger m-r-5"> <i class="fa fa-pencil"></i> Finish Registration</button></a>
+                                {% endif %}
                                 {% elif hhmember.member_type == 'TOVC' %}
                                 <a href="{% url 'ovc_view' id=hhmember.person_id %}"><button type="button" class="btn btn-primary"> <i class="fa fa-file"></i> View</button></a>
                                 {% endif %}

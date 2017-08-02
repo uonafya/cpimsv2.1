@@ -164,9 +164,9 @@
                             <td class="field">School Name</td>
                             <td>{{ school.school.school_name }}</td>
                             <td class="field">Class</td>
-                            <td>{{ school.school_class }}</td>
+                            <td>{{ school.school_class|gen_value:vals }}</td>
                             <td class="field">Boarding / Day</td>
-                            <td>{{ school.admission|gen_value:vals }}</td>
+                            <td>{{ school.admission_type|gen_value:vals }}</td>
                             <td></td>
                             <td></td>
                         </tr>

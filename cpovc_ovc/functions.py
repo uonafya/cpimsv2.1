@@ -242,7 +242,7 @@ def ovc_registration(request, ovc_id, edit=0):
         ovc_detail.registration_date = reg_date
         ovc_detail.has_bcert = has_bcert
         ovc_detail.is_disabled = is_disabled
-        if edit == 0:
+        if edit == 0 or not ovc_detail.hiv_status:
             ovc_detail.hiv_status = str(hiv_status)
         ovc_detail.immunization_status = str(immmune)
         ovc_detail.org_unique_id = org_cid
@@ -253,7 +253,7 @@ def ovc_registration(request, ovc_id, edit=0):
         ovc_detail.save(
             update_fields=["registration_date", "has_bcert", "is_disabled",
                            "immunization_status", "org_unique_id",
-                           "caretaker_id", "school_level",
+                           "caretaker_id", "school_level", "hiv_status",
                            "is_active", "exit_reason"])
         # Update eligibility
         for criteria_id in criterias:
@@ -287,10 +287,13 @@ def ovc_registration(request, ovc_id, edit=0):
                           'is_void': False},)
         cgs = extract_post_params(request, naming='cg_')
         hhrs = extract_post_params(request, naming='hhr_')
-        # Alive status, HIV status and Death cause
+        # Alive status, HIV status and Death cause for Guardian
         ast = extract_post_params(request, naming='astatus_')
         hst = extract_post_params(request, naming='gstatus_')
         cst = extract_post_params(request, naming='cstatus_')
+        # Alive status, HIV status and Death cause for Sibling
+        sast = extract_post_params(request, naming='sastatus_')
+        shst = extract_post_params(request, naming='sgstatus_')
         todate = timezone.now()
         if edit == 0:
             # Create House Hold and populate members
@@ -302,17 +305,24 @@ def ovc_registration(request, ovc_id, edit=0):
             hh_id = new_hh.pk
             # Add members to HH
             hh_members.append(ovc_id)
-            for hh_member in hh_members:
+            for hh_m in hh_members:
                 oid = int(ovc_id)
-                hh_head = True if int(hh_member) == caretaker_id else False
-                hh_hiv = hst[hh_member][0] if hh_member in hst else None
-                hh_alive = ast[hh_member][0] if hh_member in ast else 'AYES'
-                hh_death = cst[hh_member][0] if hh_member in cst else None
-                m_type = hhrs[hh_member][0] if hh_member in hhrs else 'TBVC'
-                member_type = 'TOVC' if oid == int(hh_member) else m_type
-                print 'hh_death', hh_death
+                hh_head = True if int(hh_m) == caretaker_id else False
+                m_type = hhrs[hh_m][0] if hh_m in hhrs else 'TBVC'
+                member_type = 'TOVC' if oid == int(hh_m) else m_type
+                if member_type == 'TBVC' or member_type == 'TOVC':
+                    hh_hiv = shst[hh_m][0] if hh_m in shst else None
+                    hh_alive = sast[hh_m][0] if hh_m in sast else 'AYES'
+                    hh_death = None
+                else:
+                    hh_hiv = hst[hh_m][0] if hh_m in hst else None
+                    hh_alive = ast[hh_m][0] if hh_m in ast else 'AYES'
+                    hh_death = cst[hh_m][0] if hh_m in cst else None
+                if oid == hh_m:
+                    hh_hiv, hh_alive, hh_death = hiv_status, 'AYES', None
+
                 OVCHHMembers(
-                    house_hold_id=hh_id, person_id=hh_member,
+                    house_hold_id=hh_id, person_id=hh_m,
                     hh_head=hh_head, member_type=member_type,
                     death_cause=hh_death, member_alive=hh_alive,
                     hiv_status=hh_hiv, date_linked=todate).save()
@@ -325,15 +335,23 @@ def ovc_registration(request, ovc_id, edit=0):
             hh_detail.head_identifier = caretaker_id
             hh_detail.save(update_fields=["head_identifier", "head_person"])
             # Update HH Members
-            for hh_member in hhrs:
-                hh_hiv = hst[hh_member][0] if hh_member in hst else None
-                hh_head = True if hh_member == caretaker else False
-                hh_alive = ast[hh_member][0] if hh_member in ast else 'AYES'
-                hh_death = cst[hh_member][0] if hh_member in cst else None
-                member_type = hhrs[hh_member][0]
+            for hh_m in hhrs:
+                oid = int(ovc_id)
+                hh_head = True if hh_m == caretaker else False
+                member_type = hhrs[hh_m][0]
+                if member_type == 'TBVC' or member_type == 'TOVC':
+                    hh_hiv = shst[hh_m][0] if hh_m in shst else None
+                    hh_alive = sast[hh_m][0] if hh_m in sast else 'AYES'
+                    hh_death = None
+                else:
+                    hh_hiv = hst[hh_m][0] if hh_m in hst else None
+                    hh_alive = ast[hh_m][0] if hh_m in ast else 'AYES'
+                    hh_death = cst[hh_m][0] if hh_m in cst else None
+                if oid == hh_m:
+                    hh_hiv, hh_alive, hh_death = hiv_status, 'AYES', None
                 hhm, created = OVCHHMembers.objects.update_or_create(
-                    person_id=hh_member, house_hold_id=hhid,
-                    defaults={'person_id': hh_member, 'hh_head': hh_head,
+                    person_id=hh_m, house_hold_id=hhid,
+                    defaults={'person_id': hh_m, 'hh_head': hh_head,
                               'member_type': member_type, 'is_void': False,
                               'death_cause': hh_death,
                               'member_alive': hh_alive,

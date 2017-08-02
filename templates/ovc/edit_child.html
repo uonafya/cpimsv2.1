@@ -304,7 +304,7 @@
                     <tbody>
 
                     {% for guardian in hhmembers %}
-                        {% if 'OVC' not in guardian.member_type and 'TBVC' not in guardian.member_type%}
+                        {% if 'OVC' not in guardian.member_type and 'TBVC' not in guardian.member_type %}
                         {% with y=guardian.person.id|stringformat:"s" %}
                         <tr>
                             <td><input type="hidden" name="hh_member" value="{{ guardian.person.id }}">
@@ -349,11 +349,13 @@
                     <!-- begin col-2 -->
                     <div class="col-md-3">
                     <div class="form-group">
-                        <label>Primary Caretaker</label>
+                        <label>Primary Caretaker {{ ctaker }}</label>
                         <select class="form-control" name="caretaker" id="caretaker"  data-parsley-required="true" >
                             <option value="">Please Select Caretaker</option>
-                            {% for guardian in guardians %}
-                               <option value="{{ guardian.guardian_person.id}}">{{ guardian.relationship|gen_value:vals }}</option>
+                            {% for guardian in hhmembers %}
+                               {% if 'OVC' not in guardian.member_type and 'TBVC' not in guardian.member_type %}
+                               <option value="{{ guardian.person_id }}" {% if ctaker == guardian.person_id %}selected="selected"{% endif %}>{{ guardian.member_type|gen_value:vals }}</option>
+                            {% endif %}
                             {% endfor %}
                         </select>
                       </div>
@@ -384,22 +386,26 @@
                             </tr>
                         </thead>
                         <tbody>
-                       {% for sibling in siblings %}
-                       {% with y=sibling.sibling_person.id|stringformat:"s" %}
+                        {% for hh in hhmembers %}
+                        {% if 'OVC' in hh.member_type or 'TBVC' in hh.member_type %}
+                        {% with y=hh.person_id|stringformat:"s" %}
                         <tr>
-                            <td>{{ sibling.sibling_person.id }}<input type="hidden" name="hh_member" value="{{ sibling.sibling_person.id }}"></td>
-                            <td>{{ sibling.sibling_person.first_name }}</td>
-                            <td>{{ sibling.sibling_person.surname }}</td>
-                            <td>{{ sibling.sibling_person.years }}</td>
+                            <td>{{ hh.person_id }}
+                            <input type="hidden" name="hh_member" value="{{ hh.person_id }}">
+                            <input type="hidden" name="hhr_{{ hh.person_id }}" value="{{ hh.member_type }}">
+                            </td>
+                            <td>{{ hh.person.first_name }}</td>
+                            <td>{{ hh.person.surname }}</td>
+                            <td>{{ hh.person.years }}</td>
                             <td>
-                            {% if sibling.sibling_person.sex_id == 'SFEM' %}
+                            {% if hh.person.sex_id == 'SFEM' %}
                                 Sister
                             {% else %}
                                 Brother
                             {% endif %}
                             </td>
                             <td>
-                            {% if sibling.sibling_person.date_of_death %}
+                            {% if hh.person.date_of_death %}
                                 No
                             {% else %}
                                 Yes
@@ -412,6 +418,7 @@
                             </td>
                         </tr>
                         {% endwith %}
+                        {% endif %}
                         {% endfor %}
                         </tbody>
                     </table>
