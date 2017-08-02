@@ -6431,7 +6431,9 @@ def new_csi(request, id):
 
             msg = 'CSI Needs Assessment Save Successful'
             messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect(reverse(forms_registry))
+            url = reverse('ovc_view', kwargs={'id': id})
+            # return HttpResponseRedirect(reverse(forms_registry))
+            return HttpResponseRedirect(url)
     except Exception, e:
         msg = 'CSI Needs Assessment save error: (%s)' % (str(e))
         messages.add_message(request, messages.ERROR, msg)
@@ -6587,7 +6589,9 @@ def edit_csi(request, id):
             """
             msg = 'CSI Needs Assessment Update Successful'
             messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect(reverse(forms_registry))
+            url = reverse('ovc_view', kwargs={'id': id})
+            # return HttpResponseRedirect(reverse(forms_registry))
+            return HttpResponseRedirect(url)
     except Exception, e:
         msg = 'CSI Needs Assessment edit error: (%s)' % (str(e))
         messages.add_message(request, messages.ERROR, msg)
@@ -7311,7 +7315,9 @@ def new_hhva(request, id):
 
             msg = 'Household Vulnerability Assessment save successful'
             messages.add_message(request, messages.INFO, msg)
-            return HttpResponseRedirect(reverse(forms_registry))
+            url = reverse('ovc_view', kwargs={'id': id})
+            # return HttpResponseRedirect(reverse(forms_registry))
+            return HttpResponseRedirect(url)
     except Exception, e:
         msg = 'Household Vulnerability Assessment save error: (%s)' % (str(e))
         messages.add_message(request, messages.ERROR, msg)
