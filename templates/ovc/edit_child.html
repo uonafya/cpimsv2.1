@@ -324,19 +324,16 @@
                             {{ form|get_form:ns }}
                             {% endwith %}
                             <td>
-                            {% if guardian.member_alive == 'AYES' %}
-                            <div id="div_astatus_{{ y }}">
+                            <div id="div_astatus_{{ y }}" {% if guardian.member_alive == 'ANNO' %} style="display: none" {% endif %}>
                             {% with n="gstatus_"|add:y %}
                             {{ form|get_form:n }}
                             {% endwith %}
                             </div>
-                            {% else %}
-                            <div id="ndiv_astatus_{{ y }}">
+                            <div id="ndiv_astatus_{{ y }}" {% if guardian.member_alive == 'AYES' %} style="display: none" {% endif %}>
                             {% with n="cstatus_"|add:y %}
                             {{ form|get_form:n }}
                             {% endwith %}
                             </div>
-                            {% endif %}
                             </td>                           
                             {% endwith %}
                         </tr>
@@ -588,6 +585,8 @@
     $('.alive').change(function(){
         var id = $(this).attr('id');
         var alive = this.value;
+        console.log(id);
+        console.log(alive);
         if (alive == 'ANNO'){
            $('#div_' + id).hide();
            $('#ndiv_' + id).show();
