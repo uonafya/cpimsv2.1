@@ -1497,6 +1497,7 @@ def person_actions(request):
                         other_names = attached_cg[ncg]['oname']
                         surname = attached_cg[ncg]['sname']
                         idno = cgobj['idno'] if 'idno' in cgobj else None
+                        tel = cgobj['tel'] if 'tel' in cgobj else None
                         if caregiver_id == 0:
                             if date_of_birth:
                                 dob = convert_date(date_of_birth)
@@ -1506,7 +1507,7 @@ def person_actions(request):
                                 other_names=other_names.upper(),
                                 surname=surname.upper(),
                                 sex_id=sex_id, date_of_birth=dob,
-                                des_phone_number=None, email=None,
+                                des_phone_number=tel, email=None,
                                 created_by_id=request.user.id,
                                 is_void=False)
                             person.save()

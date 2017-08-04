@@ -929,6 +929,7 @@ jQuery(document).ready(function() {
         }
         {% if request.session.reg_ovc %}
         c_idno = $("#caregiver_idno").val();
+        c_tel = $("#caregiver_tel").val();
         if (c_idno == ''){
            $('#log').html('Please enter National ID for Caregiver.');
            return false;
@@ -957,6 +958,7 @@ jQuery(document).ready(function() {
        chtml += '<input id="cc_'+ccpims+'_sname" name="cc_'+ccpims+'_sname" value="'+ c_sname +'" type="hidden">';
        chtml += '<input id="cc_'+ccpims+'_oname" name="cc_'+ccpims+'_oname" value="'+ c_oname +'" type="hidden">';
        chtml += '<input id="cc_'+ccpims+'_idno" name="cc_'+ccpims+'_idno" value="'+ c_idno +'" type="hidden">';
+       chtml += '<input id="cc_'+ccpims+'_tel" name="cc_'+ccpims+'_tel" value="'+ c_tel +'" type="hidden">';
        $('#caregiver_new').html(chtml);
        
        $.ajax({

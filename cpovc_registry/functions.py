@@ -696,7 +696,7 @@ def auto_suggest_person(request, query, qid=0):
         porgs = RegPersonsOrgUnits.objects.filter(
             org_unit_id__in=ous).values_list('person_id', flat=True)
         # Filters for external ids
-        if query_id in [0, 1]:
+        if query_id in detail_list:
             person_ids = RegPersonsTypes.objects.filter(
                 person_type_id=person_type, person_id__in=porgs,
                 is_void=False).values_list(
@@ -714,12 +714,20 @@ def auto_suggest_person(request, query, qid=0):
         for field in field_names:
             q_filter |= Q(**{"%s__icontains" % field: query})
         persons = queryset.filter(q_filter)
+        # Get IDS
+        ext_ids = {}
+        pids = RegPersonsExternalIds.objects.filter(
+            person_id__in=person_ids, identifier_type_id='INTL')
+        for pid in pids:
+            ext_ids[pid.person_id] = pid.identifier
         for person in persons:
             person_id = person.pk
             onames = person.other_names if person.other_names else ''
             names = '%s %s %s' % (person.first_name, person.surname,
                                   onames)
-            name = names.strip()
+            idno = ext_ids[person_id] if person_id in ext_ids else None
+            id_ext = ' - %s' % (idno) if idno else ''
+            name = '%s%s' % (names.strip(), id_ext)
             val = {'id': person.pk, 'label': name, 'value': name}
             if query_id in detail_list:
                 person_dob = person.date_of_birth
