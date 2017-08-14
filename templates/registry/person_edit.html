@@ -1037,6 +1037,7 @@ jQuery(document).ready(function() {
         }
         {% if request.session.reg_ovc %}
         var c_idno = $("#caregiver_idno").val();
+        c_tel = $("#caregiver_tel").val();
         if (c_idno == ''){
            $('#log').html('Please enter National ID for Caregiver.');
            return false;
@@ -1075,7 +1076,10 @@ jQuery(document).ready(function() {
        '_sname" value="'+ c_sname +'" type="hidden">';
        chtml += '<input id="cc_'+caregiver_cpims+'_oname" name="cc_'+
         caregiver_cpims+'_oname" value="'+ c_oname +'" type="hidden">';
-       chtml += '<input id="cc_'+caregiver_cpims+'_idno" name="cc_'+caregiver_cpims+'_idno" value="'+ c_idno +'" type="hidden">';
+       chtml += '<input id="cc_'+caregiver_cpims+'_idno" name="cc_'+caregiver_cpims+
+       '_idno" value="'+ c_idno +'" type="hidden">';
+       chtml += '<input id="cc_'+caregiver_cpims+'_tel" name="cc_'+caregiver_cpims
+       +'_tel" value="'+ c_tel +'" type="hidden">';
        chtml += is_adult +'</td><td>'+ cbtn +'</td></tr>';
        $('#caregivers tbody').append(chtml);
        $.ajax({
