@@ -1,5 +1,6 @@
 """Reports functions."""
 import re
+import csv
 import uuid
 import time
 import string
@@ -37,7 +38,7 @@ from cpovc_registry.models import (
 
 from cpovc_forms.models import (
     OVCCaseCategory, OVCCaseGeo, OVCCaseEventServices,
-    OVCPlacement, OVCAdverseEventsOtherFollowUp, OVCCareServices,
+    OVCPlacement, OVCAdverseEventsOtherFollowUp,
     OVCDischargeFollowUp, OVCCaseRecord, OVCAdverseEventsFollowUp)
 
 from django.conf import settings
@@ -2314,7 +2315,14 @@ def get_registration_data(kpis, params):
         ou = params['org_unit']
         cbo_id = int(ou) if ou else 0
         cbos = [cbo_id]
-        #
+        # Handle clusters
+        rpt_id = params['report_region']
+        cluster = params['cluster'] if 'cluster' in params else 0
+        report_id = int(rpt_id) if rpt_id else 0
+        if report_id == 5:
+            cbo_id = get_cbo_cluster(cluster)
+            cbos = cbo_id.split(',')
+        print 'kpi', cbos
         dt = date(start_date.year, start_date.month, start_date.day)
         regs = OVCRegistration.objects.filter(
             is_void=False, registration_date__lt=end_date,
@@ -2556,6 +2564,22 @@ def get_clusters(user, default_txt=False):
         return ()
     else:
         return all_list.items
+
+
+def csvxls_data(request, f):
+    """Method to convert csv to xlsx."""
+    try:
+        data = []
+        with open('%s/tmp-%s.csv' % (MEDIA_ROOT, f), 'rb') as csvfile:
+            rows = csv.reader(csvfile, delimiter=',', quotechar='"')
+            for row in rows:
+                print row
+                data.append(row)
+    except Exception as e:
+        print 'error - %s' % (str(e))
+        return [], []
+    else:
+        return data, []
 
 
 if __name__ == '__main__':

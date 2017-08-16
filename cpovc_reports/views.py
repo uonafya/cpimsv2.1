@@ -21,7 +21,8 @@ from .functions import (
     simple_document, draw_page, get_geo_locations, get_data, get_period,
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
     get_case_data, org_unit_tree, get_performance, get_performance_detail,
-    get_pivot_data, get_pivot_ovc, get_variables, get_sql_data, write_xls)
+    get_pivot_data, get_pivot_ovc, get_variables, get_sql_data, write_xls,
+    csvxls_data)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -831,7 +832,10 @@ def reports_rawdata(request):
     try:
         report_variables = get_variables(request)
         results = get_pivot_data(request, report_variables)
-        return JsonResponse(results, content_type='application/json',
+        file_name = 'results.csv'
+        write_csv(results, file_name, report_variables)
+        data = {'file_name': file_name, 'data': results}
+        return JsonResponse(data, content_type='application/json',
                             safe=False)
     except Exception, e:
         print 'error getting raw data - %s' % (str(e))
@@ -842,16 +846,52 @@ def reports_rawdata(request):
 def reports_ovc_rawdata(request):
     """Method to do adhoc pivot reports."""
     try:
-        print '-1'
+        ext = 'Pivot'
+        user_id = request.user.id
         report_variables = get_variables(request)
-        print '0'
+        if request.method == 'POST':
+            ext = request.POST.get('ext')
+        print ext
         start_date = report_variables['start_date']
         today = datetime.now()
         if start_date > today:
             results = []
         else:
             results = get_pivot_ovc(request, report_variables)
-        return JsonResponse(results, content_type='application/json',
+        fid = '%s_%s' % (today, user_id)
+        fid = fid.replace(':', '').replace(' ', '_')
+        fid = base64.urlsafe_b64encode(fid)
+        #
+        titles = []
+        for res in results[0]:
+            titles.append(res)
+        print titles
+        data = [titles]
+        for res in results:
+            vals = []
+            for n, i in enumerate(titles):
+                val = res[i]
+                vals.append(val)
+            data.append(vals)
+        print data
+        write_csv(data, 'tmp-%s' % (fid), {})
+        datas = {'file_name': fid, 'data': results}
+        '''
+        write_csv(results, 'tmp/%s' % (fid), {})
+        if ext == 'xlsx':
+            data = []
+            titles = ['Performance Indicator', 'Gender', 'OVC Count',
+                      'CBO', 'County', 'Ward', 'Age']
+            for res in results:
+                vals = [res['Performance Indicator'], res['Gender'],
+                        res['OVC Count'], res['CBO'],
+                        res['County'], res['Ward'], res['Age']]
+                data.append(vals)
+            write_csv(data, 'tmp/%s' % (fid), {})
+            my_excel = generate_xlsx(request, data, titles)
+            return my_excel
+        '''
+        return JsonResponse(datas, content_type='application/json',
                             safe=False)
     except Exception, e:
         print 'error getting raw data - %s' % (str(e))
@@ -863,23 +903,53 @@ def reports_ovc_rawdata(request):
 def reports_ovc(request, id):
     """Method to do pivot reports."""
     try:
+        rpts = {}
+        rpts[1] = 'Registration list'
+        rpts[2] = 'Registration by HH'
+        rpts[3] = 'CSI'
+        rpts[4] = 'CHV monthly RR'
+        rpts[5] = 'List of OVC not served'
+        rpts[6] = 'PEPFAR detailed summary'
+        rpts[7] = 'Registration by CHV'
+        rpts[8] = 'Beneficiary list'
+        rpts[9] = 'Form1a summary'
+        rpts[10] = 'Needs vs Served by domain'
+        rpt_id = int(id)
+        name = rpts[rpt_id] if rpt_id in rpts else rpts[1]
         form = CaseLoad(request.user)
-        return render(request, 'reports/pivot_ovc.html', {'form': form})
+        return render(request, 'reports/pivot_ovc.html',
+                      {'form': form, 'name': name})
     except Exception, e:
         raise e
     else:
         pass
 
 
-def reports_ovc_download(request):
-    """Get certificate."""
-    today = datetime.now()
-    dates = today.strftime('%d%m%Y')
-    mc_name = "%sREGISTRATION.xlsx" % (dates)
+def generate_xlsx(request, data, titles):
+    """Method to generate the excel file."""
+    mc_name = "KPI.xlsx"
     file_name = 'attachment; filename="%s"' % (mc_name)
     ctype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     response = HttpResponse(content_type=ctype)
     response['Content-Disposition'] = file_name
-    data, titles = get_sql_data(request)
+    write_xls(response, data, titles)
+    return response
+
+
+def reports_ovc_download(request):
+    """Get certificate."""
+    today = datetime.now()
+    dates = today.strftime('%d%m%Y')
+    f = request.GET.get('f')
+    mc_name = "%sREGISTRATION.xlsx" % (dates)
+    if f:
+        data, titles = csvxls_data(request, f)
+        mc_name = "%s_REPORT.xlsx" % (dates)
+    else:
+        data, titles = get_sql_data(request)
+    file_name = 'attachment; filename="%s"' % (mc_name)
+    ctype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response = HttpResponse(content_type=ctype)
+    response['Content-Disposition'] = file_name
     write_xls(response, data, titles)
     return response
