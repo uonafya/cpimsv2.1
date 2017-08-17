@@ -824,7 +824,8 @@ def reports_rawdata(request):
         results = get_pivot_data(request, report_variables)
         file_name = 'results.csv'
         write_csv(results, file_name, report_variables)
-        data = {'file_name': file_name, 'data': results}
+        data = {'file_name': file_name, 'data': results,
+                'Status': 0, 'message': 'Success'}
         return JsonResponse(data, content_type='application/json',
                             safe=False)
     except Exception, e:
@@ -864,7 +865,8 @@ def reports_ovc_rawdata(request):
                 vals.append(val)
             data.append(vals)
         write_csv(data, 'tmp-%s' % (fid), {})
-        datas = {'file_name': fid, 'data': results}
+        datas = {'file_name': fid, 'data': results,
+                 'status': 0, 'message': 'Success'}
         '''
         write_csv(results, 'tmp/%s' % (fid), {})
         if ext == 'xlsx':

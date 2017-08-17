@@ -192,7 +192,6 @@ jQuery(document).ready(function() {
         $("#report_html").empty();
         var oname = $("#id_org_unit option:selected").text();
         var ovc = $("#id_report_ovc").val();
-        console.log('start');
         $.ajax({
             url : "{% url 'pivot_ovc_rawdata' %}",
             type : "POST",
@@ -371,11 +370,13 @@ jQuery(document).ready(function() {
                 $('#id_report_period').append('<option>'+t+'</option>');
                 if (cat == 'O'){
                     $('#id_report_year').attr('readonly', 'readonly');
+                    $("#id_report_year").prop("disabled", true);
                     $('#calendars').show();
                     $('#from_date').attr('data-parsley-required', 'true');
                     $('#to_date').attr('data-parsley-required', 'true');
                 }else{
                     $('#id_report_year').removeAttr('readonly');
+                    $("#id_report_year").prop("disabled", false);
                     $('#calendars').hide();
                     $('#from_date').attr('data-parsley-required', 'false');
                     $('#to_date').attr('data-parsley-required', 'false');

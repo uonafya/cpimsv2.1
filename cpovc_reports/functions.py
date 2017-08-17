@@ -6,6 +6,7 @@ import time
 import string
 import calendar
 import collections
+import psycopg2.extras
 from django.db import connection
 from datetime import datetime, timedelta, date
 from calendar import monthrange, month_name
@@ -1989,14 +1990,13 @@ def get_variables(request):
         cluster = request.POST.get('cluster')
         categories = {}
         report_id = int(report) if report else 0
-
         if int(report_id) in [3, 4]:
             report_unit = report_inst
             rpt_years = rpt_iyears
         region_names = {1: 'National', 2: 'County',
                         3: 'Sub-county', 4: 'Organisation Unit',
                         5: 'Cluster'}
-        is_fin = '/' in rpt_years
+        is_fin = '/' in rpt_years if rpt_years else False
         report_year = rpt_years.split('/')[0] if is_fin else rpt_years
         for case_category in case_categories:
             case_id = case_category.item_id
@@ -2005,8 +2005,10 @@ def get_variables(request):
         my_county = county if report_region == 2 else False
         if report_region == 1 or report_region == 4:
             sub_county_ids = []
+        print 'n 1'
         sub_counties = get_sub_county_info(
             sub_county_ids, icounty=my_county)
+        print 'n 3'
         variables = {'sub_county_id': [], 'sub_county': []}
         for sub_county in sub_counties:
             rep_var = sub_counties[sub_county]
@@ -2461,10 +2463,12 @@ def get_pivot_ovc(request, params={}):
         services[3] = 'c.OVC Not Served'
         if report_id == 3:
             datas = get_registration_data(kpis, params)
-        if report_id == 2:
+        elif report_id == 2:
             datas = get_domain_data(params)
-        if report_id == 1:
+        elif report_id == 1:
             datas = get_services_data(services, params)
+        else:
+            datas, titles = get_sql_data(request)
     except Exception, e:
         print 'Error getting OVC pivot data - %s' % (str(e))
         return []
@@ -2493,10 +2497,10 @@ def write_xls(response, data, titles=None):
 
 def get_sql_data(request):
     """Method to write data."""
-    cbo = request.GET.get('org_unit')
-    rpt_id = request.GET.get('report_region')
+    cbo = request.POST.get('org_unit')
+    rpt_id = request.POST.get('report_region')
     report_id = int(rpt_id) if rpt_id else 0
-    cluster = request.GET.get('cluster')
+    cluster = request.POST.get('cluster')
     cbo_id = int(cbo) if cbo else 0
     if report_id == 5:
         cbo_id = get_cbo_cluster(cluster)
@@ -2506,12 +2510,21 @@ def get_sql_data(request):
     return row, desc
 
 
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+
 def run_sql_data(request, sql):
     with connection.cursor() as cursor:
         cursor.execute(sql)
-        row = cursor.fetchall()
-    desc = cursor.description
-    return row, desc
+        desc = cursor.description
+        rows = dictfetchall(cursor)
+    return rows, desc
 
 
 def get_cbo_cluster(cluster_id):

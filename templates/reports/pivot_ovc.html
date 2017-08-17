@@ -8,6 +8,7 @@
 
 {% block style_code%}
 <link rel="stylesheet" type="text/css" href="{% static 'plugins/pivot-table/dist/pivot.css' %}">
+<link href="{% static 'plugins/bootstrap-datepicker/css/datepicker3.css' %}" rel="stylesheet" />
 <style type="text/css">
     table.pvtUi {
         width: 100%;
@@ -118,7 +119,7 @@
                     <div class="form-group">
                         <label class="control-label col-md-4 col-sm-4">Reporting period :</label>
                         <div class="col-md-2 col-sm-2">
-                            {{ form.report_type_datim }}
+                            {{ form.report_type_other }}
                         </div>
                         <div class="col-md-2 col-sm-2">
                         {{ form.report_period }}
@@ -127,12 +128,27 @@
                         {{ form.report_year }}
                         </div>
                         <a href="#" data-toggle="tooltip" title="Select report type."><i class="fa fa-info-circle fa-lg"></i></a>
-                    </div>      
+                    </div>
+                    <div class="form-group" id="calendars" style="display: none">
+                        <label class="control-label col-md-4 col-sm-4">Dates From - To :</label>
+                        <div class="col-md-2 col-sm-2">
+                            {{ form.report_from_date }}
+                        </div>
+                        <div class="col-md-2 col-sm-2">
+                        {{ form.report_to_date }}
+                        </div>
+                        <div class="col-md-2 col-sm-2"> -
+                        </div>
+                        <a href="#" data-toggle="tooltip" title="Select report type."><i class="fa fa-info-circle fa-lg"></i></a>
+                    </div>       
                     <div class="panel-body panel-form">
                         <div class="form-group">
                             <label class="control-label col-md-4 col-sm-4"></label>
                             <div class="col-md-6 col-sm-6">
-                                <button type="submit" class="btn btn btn-primary m-r-5"><i class="fa fa-download"></i> Download </button>
+                                <button type="submit" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-check-square-o"></i> View </button>
+                                <button type="button" id="map-print" class="btn btn-sm btn-danger m-r-5" onclick="printChart()"><i class="fa fa-print"></i> Print Report</button>
+                                <button type="button" id="rpt-download" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-download"></i> Download</button>
+                                <input type="hidden" name="rpt_id" id="rpt_id">
                             </div>
                         </div>
                     </div>
@@ -156,6 +172,11 @@
 {% block lazy_javascript_code %}
 <script type="text/javascript" src="{% static 'js/bootstrap-multiselect.js' %}"></script>
 <!-- PivotTable.js libs from ../dist -->
+<script type="text/javascript" src="{% static 'plugins/pivot-table/dist/pivot.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/pivot-table/dist/export_renderers.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/pivot-table/dist/d3_renderers.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/pivot-table/dist/c3_renderers.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/touch-punch/jquery.ui.touch-punch.min.js' %}"></script>
 <script>
 jQuery(document).ready(function() {
     $('#sub_county, #county').multiselect({
@@ -170,8 +191,15 @@ jQuery(document).ready(function() {
         nonSelectedText: 'Please select sub-county',
         buttonClass: 'btn btn-white'
     });
+    $('#from_date, #to_date').datepicker({
+        dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
+        endDate: '+0d', enddate: '+0d', autoclose: true
+    });
     
-    $('#map-print').hide();
+    $('#map-print, #rpt-download').hide();
+    $('#from_date').attr('data-parsley-required', 'false');
+    $('#to_date').attr('data-parsley-required', 'false');
+
     $('#case_load_report').on('submit', function(event){
         event.preventDefault();
         $('#report_results').html("Processing Report...");
@@ -183,19 +211,58 @@ jQuery(document).ready(function() {
         console.log(region);
         $('#case_load_report').parsley().validate();
            if (region == '1'){
-                $('#report_results').html('Report not allowed.');
+                $('#report_results').html('Report is not available.');
                 return false;
             }
 
            if ($('#case_load_report').parsley().isValid()){
-                var iframe = document.createElement('iframe');
-                iframe.id = "IQUOTEID";
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                var data = $("#case_load_report").serialize() + "&org_unit_name="+oname;
-                iframe.src = "{% url 'ovc_download' %}?"+ data;
-                iframe.addEventListener("load", function () {
-                     console.log("FILE loaded. Start download.");
+                $('#report_results').html("Processing Report...");
+                $('#report_vhtml').empty();
+                $("#report_html").empty();
+                var oname = $("#id_org_unit option:selected").text();
+                var ovc = $("#id_report_ovc").val();
+                $.ajax({
+                    url : "{% url 'pivot_ovc_rawdata' %}",
+                    type : "POST",
+                    dataType: "json",
+                    data: $("#case_load_report").serialize() + "&org_unit_name="+oname,
+                    // handle a successful response
+                    success : function(response) {
+                        var data = response.data;
+                        var file_name = response.file_name;
+                        var status = response.status;
+                        var message = response.message;
+                        var tpl = $.pivotUtilities.aggregatorTemplates;
+                        var numberFormat = $.pivotUtilities.numberFormat;
+                        var intFormat = numberFormat({digitsAfterDecimal: 0});
+                        $("#rpt_id").val(file_name);
+
+                        var renderers = $.extend(
+                            $.pivotUtilities.renderers,
+                            $.pivotUtilities.d3_renderers
+                            );
+                        $("#report_html").pivotUI(data, {
+                            //renderers: renderers,
+                            cols: ["agerange"],
+                            rows: ["gender"],
+                            aggregators: {
+                                "Number of OVC":  function() { 
+                                    return tpl.count()()
+                                }
+                            },
+                            rendererName: "Table"
+                        }, true);
+                        //
+                        $('#report_results').html("");
+                        $('#map-print, #rpt-download').show();
+         
+                    },
+                    // handle a non-successful response
+                    error : function(xhr, errmsg, err) {
+                        msg = errmsg + '. Check if you are still logged in.'
+                        $('#report_results').html("Oops! We have encountered an error: " + errmsg);
+                        console.log(xhr.status + ": " + xhr.responseText);
+                    }
                 });
             }else{
                 $('#report_results').html('Please provide missing details.');
@@ -308,6 +375,7 @@ jQuery(document).ready(function() {
     Q = new Array('Qtr1','Qtr2','Qtr3','Qtr4');
     S = new Array('PEPFAR');
     Y = new Array('PEPFAR');
+    O = new Array('Other');
 
     populateSelect();
 
@@ -325,6 +393,19 @@ jQuery(document).ready(function() {
         if (cat != ''){
             eval(cat).forEach(function(t) { 
                 $('#id_report_period').append('<option>'+t+'</option>');
+                if (cat == 'O'){
+                    $('#id_report_year').attr('readonly', 'readonly');
+                    $("#id_report_year").prop("disabled", true);
+                    $('#calendars').show();
+                    $('#from_date').attr('data-parsley-required', 'true');
+                    $('#to_date').attr('data-parsley-required', 'true');
+                }else{
+                    $('#id_report_year').removeAttr('readonly');
+                    $("#id_report_year").prop("disabled", false);
+                    $('#calendars').hide();
+                    $('#from_date').attr('data-parsley-required', 'false');
+                    $('#to_date').attr('data-parsley-required', 'false');
+                }
             });
         }else{
              $('#id_report_period').append('<option></option>'); 
