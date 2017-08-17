@@ -24,7 +24,8 @@ from reportlab.graphics.barcode import qr
 from reportlab.graphics.shapes import Drawing
 from reportlab.graphics import renderPDF
 
-from cpovc_main.functions import get_general_list, get_dict, get_mapped
+from cpovc_main.functions import (
+    get_general_list, get_dict, get_mapped, convert_date)
 from cpovc_main.models import SetupGeography
 
 from cpovc_ovc.models import (
@@ -661,9 +662,9 @@ def get_period(report_type='M', month='', year='', period='F'):
         params['years'] = year_name
         params['sheet'] = sheet_name
         params['label'] = report_label
-        print params
         return params
     except Exception, e:
+        print 'error getting date - %s' % (str(e))
         raise e
 
 
@@ -1162,7 +1163,6 @@ def get_raw_data(params, data_type=1):
                 rdata = write_row(data)
                 rdatas = write_row(data, is_raw=True)
             rtotals = col_totals(data)
-            print 'ROWS', rdatas
             rtotal = write_row([rtotals])
             rtitle = 'KNBS REPORT %s %s' % (
                 params['month'], params['year'])
@@ -1396,7 +1396,6 @@ def get_ovc_values(params, data_type=1):
 def get_raw_values(params, data_type=1):
     """Method to query summaries."""
     data = []
-    print 'Ad hoc', params
     try:
         adhoc_type = int(params["adhoc_type"])
         check_fields = ['org_unit_type_id', 'committee_unit_type_id',
@@ -1499,7 +1498,6 @@ def get_population_data(params):
     """
     try:
         data = []
-        print 'Institution Pop params', params
         # Get institution filters - TNCI - charitable
         report_region = params['report_region']
         org_unit = params['org_unit']
@@ -1527,7 +1525,6 @@ def get_population_data(params):
             # This is a hack since Danet put this field as char and not int
             org_list = [str(o_list) for o_list in orgs_list]
         # Filter by date only first
-        print 'ORGS', org_list
         start_date = params['start_date']
         end_date = params['end_date']
         ip_queryset = OVCPlacement.objects.filter(
@@ -1545,7 +1542,6 @@ def get_population_data(params):
             place_ids.append(cl.placement_id)
             data.append(item)
         # Last period population data
-        print 1
         dis_lists = OVCDischargeFollowUp.objects.filter(
             is_void=False, date_of_discharge__lt=start_date,
             placement_id_id__in=place_ids)
@@ -1564,7 +1560,6 @@ def get_population_data(params):
             oitem['cid'] = ol.placement_id
             old_data.append(oitem)
         # All discharges
-        print 2
         dis_queryset = OVCDischargeFollowUp.objects.filter(
             is_void=False, date_of_discharge__range=(start_date, end_date),
             placement_id_id__in=place_ids)
@@ -1578,7 +1573,6 @@ def get_population_data(params):
             ditem['cid'] = dl.placement_id_id
             dis_data.append(ditem)
         # Get all deaths within this period
-        print 3
         death_qs = OVCAdverseEventsFollowUp.objects.filter(
             is_void=False, adverse_condition_description='AEDE',
             adverse_event_date__range=(start_date, end_date),
@@ -1612,7 +1606,6 @@ def get_health_data(params):
     """
     try:
         data = []
-        print 'Institution params', params
         # Get institution filters - TNCI - charitable
         report_region = params['report_region']
         org_unit = params['org_unit']
@@ -1891,16 +1884,13 @@ def org_unit_tree(org_unit_id):
     """Method to get all org units with all the children."""
     try:
         ou_ids = []
-        print len(org_unit_id)
         qou_id = int(org_unit_id) if len(org_unit_id) > 0 else 0
-        print 'here'
         if qou_id not in ou_ids and qou_id > 0:
             ou_ids.append(qou_id)
         org_units = RegOrgUnit.objects.filter(
             parent_org_unit_id=qou_id, is_void=False)
         for org_unit in org_units:
             ou_id = org_unit.pk
-            print 'ou append', ou_id
             ou_ids.append(ou_id)
             # org_unit_tree(ou_id, ou_ids)
     except Exception, e:
@@ -1964,8 +1954,6 @@ def get_performance_detail(request, user_id=0, params={}):
             is_void=False, created_by=user_id,
             date_case_opened__range=(start_date, end_date)).values(
             'date_case_opened').annotate(case_report=Count('date_case_opened'))
-
-        print cases
 
     except Exception, e:
         print 'error with performance - %s' % (str(e))
@@ -2050,7 +2038,6 @@ def get_variables(request):
         if report_type == 'Q':
             report_type = rperiod.replace('tr', '')
         # Pepfar us U for USG
-        print report_datim
         if rperiod == 'PEPFAR':
             report_type = 'U'
             if report_datim == 'S':
@@ -2058,8 +2045,17 @@ def get_variables(request):
             year = int(report_year) + 1
         # Month value
         month = dates[rpd] if rpd in dates else ''
-        period_params = get_period(
-            report_type=report_type, year=year, month=month, period=ryr)
+        # Handle calendars
+        rpt_dt = request.POST.get('report_period')
+        if rpt_dt == 'Other':
+            report_from_date = request.POST.get('report_from_date')
+            report_to_date = request.POST.get('report_to_date')
+            sdate = convert_date(report_from_date)
+            edate = convert_date(report_to_date)
+            period_params = {'start_date': sdate, 'end_date': edate}
+        else:
+            period_params = get_period(
+                report_type=report_type, year=year, month=month, period=ryr)
         report_variables = merge_two_dicts(variables, period_params)
         report_variables['org_unit_name'] = org_unit_name
         report_variables['institution_type'] = institution_type
@@ -2067,7 +2063,6 @@ def get_variables(request):
         report_variables['org_type'] = org_type_id
         adhoc_type = adhoc_id if adhoc_id else None
         report_variables['adhoc_type'] = adhoc_type
-
         report_variables['cci_si_title'] = region_names[report_region]
         sc = variables['sub_county']
         is_opt = report_region == 4
@@ -2087,19 +2082,19 @@ def get_variables(request):
             inst_id = itsi.item_id
             inst_name = itsi.item_description
             inst_cats[inst_id] = inst_name
-
+        '''
         inst_type = institution_type if org_type_id == 'ALL' else org_type
         iname = inst_cats[inst_type] if inst_type in inst_cats else None
 
         icheck = iname is None and inst_type
         inst_type_name = inst_cats[inst_type] if icheck else iname
-        print 'INST TYPE', inst_type_name
-
+        '''
         unit_id = org_type_id if org_type_id != 'ALL' else institution_type
         check_region = unit_id and report_region != 4
         unit_type = 'for %s' % (inst_cats[unit_id]) if check_region else ''
         report_variables['unit_type'] = unit_type
     except Exception, e:
+        print 'error creating variables - %s' % (str(e))
         raise e
     else:
         return report_variables
@@ -2128,11 +2123,9 @@ def get_pivot_data(request, params={}):
                                       'otype': otype, 'oname': oname}
         # Get the County names
         cids = list(set(cids))
-        print cids
         counties = SetupGeography.objects.filter(area_id__in=cids)
         for county in counties:
             cdatas[county.area_id] = county.area_name
-        print cdatas
         records = []
         for data in datas:
             case_id = data.case_id_id
@@ -2200,9 +2193,7 @@ def get_person_geodata(pers_ids):
             if sub_county_id:
                 pers_data[pers_id]['sub_county'] = sub_county_id
                 sub_ids.append(sub_county_id)
-        print 0
         geo_ids = get_geo_details(sub_ids)
-        print 1
         for pdata in pers_data:
             sub_id = 0
             if 'sub_county' in pers_data[pdata]:
@@ -2259,7 +2250,6 @@ def get_domain_data(params):
                        "olmis_protection_service_id", "olmis_hes_service_id",
                        "olmis_health_service_id", "olmis_education_service_id"]
         sub_domains = get_mapped(field_name=field_names)
-        print sub_domains
         dmns = {}
         txt = ""
         for dmn in sub_domains:
@@ -2275,7 +2265,6 @@ def get_domain_data(params):
         report_id = int(rpt_id) if rpt_id else 0
         if report_id == 5:
             cbo_id = get_cbo_cluster(cluster)
-        print cbo_id, end_date
         sql = QUERIES['pepfar']
         cbos = 'and child_cbo_id in (%s)' % (cbo_id)
         if report_id == 1:
@@ -2322,7 +2311,6 @@ def get_registration_data(kpis, params):
         if report_id == 5:
             cbo_id = get_cbo_cluster(cluster)
             cbos = cbo_id.split(',')
-        print 'kpi', cbos
         dt = date(start_date.year, start_date.month, start_date.day)
         regs = OVCRegistration.objects.filter(
             is_void=False, registration_date__lt=end_date,
@@ -2386,7 +2374,6 @@ def get_services_data(servs, params):
     try:
         datas = []
         start = time.clock()
-        print 0, start
         end_date = params['end_date']
         start_date = params['start_date']
         cbo = params['org_unit']
@@ -2432,10 +2419,8 @@ def get_services_data(servs, params):
 def get_pivot_ovc(request, params={}):
     """Method to get OVC Pivot Data."""
     try:
-        print params
         datas = []
         report_id = int(request.POST.get('report_ovc'))
-        print 'RPT', report_id
         kpis = {}
         kpis[1] = '1.a %s OVCs Ever Registered'
         kpis[2] = '1.b %s New OVC Registrations within period'
@@ -2516,7 +2501,6 @@ def get_sql_data(request):
     if report_id == 5:
         cbo_id = get_cbo_cluster(cluster)
     sql = QUERIES['registration']
-    print cbo_id
     sql = sql % (cbo_id)
     row, desc = run_sql_data(request, sql)
     return row, desc
@@ -2573,7 +2557,6 @@ def csvxls_data(request, f):
         with open('%s/tmp-%s.csv' % (MEDIA_ROOT, f), 'rb') as csvfile:
             rows = csv.reader(csvfile, delimiter=',', quotechar='"')
             for row in rows:
-                print row
                 data.append(row)
     except Exception as e:
         print 'error - %s' % (str(e))

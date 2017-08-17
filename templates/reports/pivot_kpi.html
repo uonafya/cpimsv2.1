@@ -372,9 +372,13 @@ jQuery(document).ready(function() {
                 if (cat == 'O'){
                     $('#id_report_year').attr('readonly', 'readonly');
                     $('#calendars').show();
+                    $('#from_date').attr('data-parsley-required', 'true');
+                    $('#to_date').attr('data-parsley-required', 'true');
                 }else{
                     $('#id_report_year').removeAttr('readonly');
                     $('#calendars').hide();
+                    $('#from_date').attr('data-parsley-required', 'false');
+                    $('#to_date').attr('data-parsley-required', 'false');
                 }
             });
         }else{
