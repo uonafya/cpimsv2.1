@@ -279,6 +279,11 @@ jQuery(document).ready(function() {
     $('#report_reg_unit').hide();
     $('#report_cluster').hide();
 
+    $("#rpt-download").click(function(e) {
+        var f = $('#rpt_id').val();
+        var url = "{% url 'ovc_download' %}?f="+f;
+        window.location.href = url;
+    });
     
     $(".report_region").click(function(e) {
         var res = $('input[name=report_region]:checked', '#case_load_report').val();
