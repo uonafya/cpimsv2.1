@@ -20,6 +20,9 @@ report_types = (('', 'Select type'), ('M', 'Monthly'),
 report_types_datim = (('', 'Select type'), ('S', 'Semi Annual'),
                       ('Y', 'Annual'))
 
+report_types_other = (('', 'Select type'), ('S', 'Semi Annual'),
+                      ('Y', 'Annual'), ('O', 'Other'))
+
 report_vars = (('', 'Select Variable'), (1, 'Organisation Unit'),
                (2, 'Institution Register'))
 # (3, 'Case category'))
@@ -118,6 +121,15 @@ class CaseLoad(forms.Form):
                    'data-parsley-required': 'true',
                    'autofocus': 'true'}))
 
+    report_type_other = forms.ChoiceField(
+        choices=report_types_other,
+        initial='',
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'id': 'id_report_type',
+                   'data-parsley-required': 'true',
+                   'autofocus': 'true'}))
+
     report_year = forms.ChoiceField(
         choices=YEAR_CHOICES,
         initial='',
@@ -146,6 +158,18 @@ class CaseLoad(forms.Form):
         attrs={'class': 'form-control',
                'data-parsley-required': 'true',
                'id': 'child_id'}))
+
+    report_from_date = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'class': 'form-control',
+                   'data-parsley-required': 'true',
+                   'id': 'from_date'}))
+
+    report_to_date = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'class': 'form-control',
+                   'data-parsley-required': 'true',
+                   'id': 'to_date'}))
 
     cpims_child = forms.CharField(widget=forms.HiddenInput(
         attrs={'id': 'cpims_child_id'}))

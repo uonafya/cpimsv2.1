@@ -118,6 +118,8 @@
                             <div class="col-md-6 col-sm-6">
                                 <button type="submit" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-check-square-o"></i> View </button>
                                 <button type="button" id="map-print" class="btn btn-sm btn-danger m-r-5" onclick="printChart()"><i class="fa fa-print"></i> Print Report</button>
+                                <button type="button" id="rpt-download" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-download"></i> Download</button>
+                                <input type="hidden" name="rpt_id" id="rpt_id">
                             </div>
                         </div>
                     </div>
@@ -161,7 +163,7 @@ jQuery(document).ready(function() {
         buttonClass: 'btn btn-white'
     });
     
-    $('#map-print').hide();
+    $('#map-print, #rpt-download').hide();
     $('#case_load_report').on('submit', function(event){
         event.preventDefault();
         $('#report_results').html("Processing Report...");
@@ -176,18 +178,20 @@ jQuery(document).ready(function() {
             data: $("#case_load_report").serialize() + "&org_unit_name="+oname,
             // handle a successful response
             success : function(response) {
+                var data = response.data;
                 var file_name = response.file_name;
                 var status = response.status;
                 var message = response.message;
                 var tpl = $.pivotUtilities.aggregatorTemplates;
                 var numberFormat = $.pivotUtilities.numberFormat;
                 var intFormat = numberFormat({digitsAfterDecimal: 0});
+                $("#rpt_id").val(file_name);
 
                 var renderers = $.extend(
                     $.pivotUtilities.renderers,
                     $.pivotUtilities.d3_renderers
                     );
-                $("#report_html").pivotUI(response, {
+                $("#report_html").pivotUI(data, {
                     //renderers: renderers,
                     cols: ["Age Set", "Gender"],
                     rows: ["Domain"],
@@ -203,7 +207,7 @@ jQuery(document).ready(function() {
                     }, true);
                 //
                 $('#report_results').html("");
-                $('#map-print').show();
+                $('#map-print, #rpt-download').show();
  
             },
             // handle a non-successful response
@@ -222,6 +226,12 @@ jQuery(document).ready(function() {
     $('#sub_county').attr('data-parsley-required', 'false');
     $('#report_reg_unit').hide();
     $('#report_cluster').hide();
+
+    $("#rpt-download").click(function(e) {
+        var f = $('#rpt_id').val();
+        var url = "{% url 'ovc_download' %}?f="+f;
+        window.location.href = url;
+    });
     
     $(".report_region").click(function(e) {
         var res = $('input[name=report_region]:checked', '#case_load_report').val();

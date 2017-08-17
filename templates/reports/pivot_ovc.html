@@ -1,8 +1,8 @@
 
 {% extends 'base.html' %}
 {% block page_title %}
-{{block.super}} OVC Care Reports
-{% endblock page_title%}
+{{block.super}} OVC Care Reports - {{ name }}
+{% endblock page_title %}
 
 {% load staticfiles %}
 
@@ -23,7 +23,7 @@
 {% endblock javascript_code%}
 
 {% block primary%}
-<h1 class="page-header">OVC Care Reports</h1>
+<h1 class="page-header">OVC Care Reports - <small>{{ name }}</small></h1>
 
 {% if messages %}
 <div id="messages" class="alert alert-danger fade in">
@@ -46,6 +46,28 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                     <a href="#" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+                <div class="btn-group pull-right">
+                    <button type="button" class="btn btn-success btn-xs">Jump to</button>
+                    <button type="button" class="btn btn-success btn-xs dropdown-toggle" data-toggle="dropdown">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="{% url 'pivot_ovc_reports' %}">DATIM</a></li>
+                        <li><a href="{% url 'pivot_ovc_pepfar' %}">Services by Domain (PEPFAR Summary)</a></li>
+                        <li class="divider"></li>
+                        <li><a href="{% url 'pivot_ovc_kpi' %}">Key Performance Indicator</a></li>
+                        <li><a href="{% url 'reports_ovc' id=1 %}">Registration List</a></li>
+                        <li><a href="{% url 'reports_ovc' id=2 %}">Registration by HH</a></li>
+                        <li><a href="{% url 'reports_ovc' id=3 %}">CSI</a></li>
+                        <li><a href="{% url 'reports_ovc' id=4 %}">CHV monthly RR</a></li>
+                        <li><a href="{% url 'reports_ovc' id=5 %}">List of OVC not served</a></li>
+                        <li><a href="{% url 'reports_ovc' id=6 %}">PEPFAR detailed summary</a></li>
+                        <li><a href="{% url 'reports_ovc' id=7 %}">Registration by CHV</a></li>
+                        <li><a href="{% url 'reports_ovc' id=8 %}">Beneficiary list</a></li>
+                        <li><a href="{% url 'reports_ovc' id=9 %}">Form1a summary</a></li>
+                        <li><a href="{% url 'reports_ovc' id=10 %}">Needs vs Served by domain</a></li>
+                    </ul>
                 </div>                        
                 <h4 class="panel-title">Report details and parameters</h4>
             </div>

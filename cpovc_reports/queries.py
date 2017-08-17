@@ -168,3 +168,39 @@ GROUP BY ovc_registration.person_id, reg_person.date_of_birth,
 reg_person.sex_id, ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name, reg_persons_geo.area_id,
 ovc_registration.hiv_status, list_geo.area_name, ovc_care_health.art_status;'''
+
+# KPI
+QUERIES['kpi'] = '''
+select
+cast(count(distinct ovc_registration.person_id) as integer) as OVCCount,
+ovc_registration.child_cbo_id,
+reg_org_unit.org_unit_name,
+reg_persons_geo.area_id,
+list_geo.area_name,
+date_part('year', age(reg_person.date_of_birth)) AS age,
+CASE
+WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 1 AND 4 THEN 'b.[1-4yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 5 AND 9 THEN 'c.[5-9yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 10 AND 14 THEN 'd.[10-14yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 15 AND 17 THEN 'e.[15-17yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 18 AND 24 THEN 'f.[18-24yrs]'
+ELSE 'g.[25+yrs]' END AS AgeRange,
+CASE reg_person.sex_id WHEN 'SMAL' THEN 'Female' ELSE 'Male' END AS Gender,
+CASE ovc_care_health.art_status
+WHEN 'ARAR' THEN '2a. (ii) OVC_HIVSTAT: HIV+ on ARV Treatment'
+WHEN 'ARPR' THEN '2a. (ii) OVC_HIVSTAT: HIV+ on ARV Treatment'
+ELSE '2a. (iii) OVC_HIVSTAT: HIV+ NOT on ARV Treatment'
+END AS Domain
+from ovc_registration
+INNER JOIN reg_person ON ovc_registration.person_id=reg_person.id
+LEFT OUTER JOIN reg_org_unit ON reg_org_unit.id=ovc_registration.child_cbo_id
+LEFT OUTER JOIN reg_persons_geo ON reg_persons_geo.person_id=ovc_registration.person_id
+LEFT OUTER JOIN list_geo ON list_geo.area_id=reg_persons_geo.area_id
+LEFT OUTER JOIN ovc_care_health ON ovc_care_health.person_id=ovc_registration.person_id
+WHERE ovc_registration.is_active = True AND ovc_registration.hiv_status = 'HSTP'
+%s
+GROUP BY ovc_registration.person_id, reg_person.date_of_birth,
+reg_person.sex_id, ovc_registration.child_cbo_id,
+reg_org_unit.org_unit_name, reg_persons_geo.area_id,
+ovc_registration.hiv_status, list_geo.area_name, ovc_care_health.art_status;'''
