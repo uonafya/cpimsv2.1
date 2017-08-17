@@ -867,21 +867,6 @@ def reports_ovc_rawdata(request):
         write_csv(data, 'tmp-%s' % (fid), {})
         datas = {'file_name': fid, 'data': results,
                  'status': 0, 'message': 'Success'}
-        '''
-        write_csv(results, 'tmp/%s' % (fid), {})
-        if ext == 'xlsx':
-            data = []
-            titles = ['Performance Indicator', 'Gender', 'OVC Count',
-                      'CBO', 'County', 'Ward', 'Age']
-            for res in results:
-                vals = [res['Performance Indicator'], res['Gender'],
-                        res['OVC Count'], res['CBO'],
-                        res['County'], res['Ward'], res['Age']]
-                data.append(vals)
-            write_csv(data, 'tmp/%s' % (fid), {})
-            my_excel = generate_xlsx(request, data, titles)
-            return my_excel
-        '''
         return JsonResponse(datas, content_type='application/json',
                             safe=False)
     except Exception, e:
@@ -909,22 +894,12 @@ def reports_ovc(request, id):
         name = rpts[rpt_id] if rpt_id in rpts else rpts[1]
         form = CaseLoad(request.user)
         return render(request, 'reports/pivot_ovc.html',
-                      {'form': form, 'name': name})
+                      {'form': form, 'name': name,
+                       'report_id': rpt_id})
     except Exception, e:
         raise e
     else:
         pass
-
-
-def generate_xlsx(request, data, titles):
-    """Method to generate the excel file."""
-    mc_name = "KPI.xlsx"
-    file_name = 'attachment; filename="%s"' % (mc_name)
-    ctype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    response = HttpResponse(content_type=ctype)
-    response['Content-Disposition'] = file_name
-    write_xls(response, data, titles)
-    return response
 
 
 def reports_ovc_download(request):
@@ -932,14 +907,15 @@ def reports_ovc_download(request):
     today = datetime.now()
     dates = today.strftime('%d%m%Y')
     f = request.GET.get('f')
-    mc_name = "%sREGISTRATION.xlsx" % (dates)
+    mc_name = "%s_REGISTRATION.xlsx" % (dates)
     if f:
         data, titles = csvxls_data(request, f)
         mc_name = "%s_REPORT.xlsx" % (dates)
     else:
         data, titles = get_sql_data(request)
     file_name = 'attachment; filename="%s"' % (mc_name)
-    ctype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ctype = 'application/vnd.openxmlformats-'
+    ctype += 'officedocument.spreadsheetml.sheet'
     response = HttpResponse(content_type=ctype)
     response['Content-Disposition'] = file_name
     write_xls(response, data, titles)

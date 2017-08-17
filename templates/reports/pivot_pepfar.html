@@ -193,14 +193,14 @@ jQuery(document).ready(function() {
                     );
                 $("#report_html").pivotUI(data, {
                     //renderers: renderers,
-                    cols: ["Age Set", "Gender"],
-                    rows: ["Domain"],
+                    cols: ["AGERANGE", "GENDER"],
+                    rows: ["DOMAIN"],
                     aggregators: {
                         "Number of OVC":  function() { 
                             return tpl.count()()
                         },
                         "Sum of OVC":  function() { 
-                            return tpl.sum(intFormat)(["OVC Count"]) 
+                            return tpl.sum(intFormat)(["OVCCOUNT"]) 
                         }
                     },
                     rendererName: "Table"

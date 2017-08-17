@@ -13,6 +13,12 @@
     table.pvtUi {
         width: 100%;
     }
+    .colTotal, .pvtTotals, .pvtGrandTotal {
+        display: none;
+    }
+    table.pvtTable tbody tr th.pvtTotalLabel {
+        display: none;
+    }
 </style>
 {% endblock style_code%}
 
@@ -149,6 +155,7 @@
                                 <button type="button" id="map-print" class="btn btn-sm btn-danger m-r-5" onclick="printChart()"><i class="fa fa-print"></i> Print Report</button>
                                 <button type="button" id="rpt-download" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-download"></i> Download</button>
                                 <input type="hidden" name="rpt_id" id="rpt_id">
+                                <input type="hidden" name="rpt_ovc_id" id="rpt_ovc_id" value="{{ report_id }}">
                             </div>
                         </div>
                     </div>
@@ -243,8 +250,8 @@ jQuery(document).ready(function() {
                             );
                         $("#report_html").pivotUI(data, {
                             //renderers: renderers,
-                            cols: ["agerange"],
-                            rows: ["gender"],
+                            cols: ["AGERANGE"],
+                            rows: ["GENDER"],
                             aggregators: {
                                 "Number of OVC":  function() { 
                                     return tpl.count()()

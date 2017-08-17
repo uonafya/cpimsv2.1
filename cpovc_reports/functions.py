@@ -6,7 +6,6 @@ import time
 import string
 import calendar
 import collections
-import psycopg2.extras
 from django.db import connection
 from datetime import datetime, timedelta, date
 from calendar import monthrange, month_name
@@ -45,7 +44,7 @@ from cpovc_forms.models import (
 
 from django.conf import settings
 from django.db.models import Count
-from queries import QUERIES
+from queries import QUERIES, REPORTS
 
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATICFILES_DIRS[0]
@@ -2272,14 +2271,7 @@ def get_domain_data(params):
         if report_id == 1:
             cbos = ''
         sql = sql % (txt, start_date, end_date, cbos)
-        rows, desc = run_sql_data(None, sql)
-        # return row, desc
-        for row in rows:
-            data = {'OVC Count': row[1], 'Age': int(row[6]),
-                    'Gender': str(row[8]), 'CBO': str(row[3]),
-                    'Domain': str(row[9]), 'Age Set': str(row[7]),
-                    'County': 'county', 'Ward': str(row[5])}
-            datas.append(data)
+        datas, desc = run_sql_data(None, sql)
     except Exception, e:
         print 'error getting domain data - %s' % str(e)
     else:
@@ -2397,7 +2389,6 @@ def get_services_data(servs, params):
         cbos = 'and ovc_registration.child_cbo_id in (%s)' % (cbo_id)
         if report_id == 1:
             cbos = ''
-        print pids
         # HIVSTAT
         sql = QUERIES['datim'] % (cbos)
         rows, desc = run_sql_data(None, sql)
@@ -2407,9 +2398,11 @@ def get_services_data(servs, params):
         # ART
         sql2 = QUERIES['datim_2'] % (cbos)
         rows2, desc2 = run_sql_data(None, sql2)
-        format_data(rows, datas)
-        format_data(rows1, datas)
-        format_data(rows2, datas)
+        #
+        # format_data(rows, datas)
+        # format_data(rows1, datas)
+        # format_data(rows2, datas)
+        datas = datas + rows + rows1 + rows2
         print 2, time.clock() - start
     except Exception, e:
         print 'datim error - %s' % (str(e))
@@ -2499,20 +2492,26 @@ def get_sql_data(request):
     """Method to write data."""
     cbo = request.POST.get('org_unit')
     rpt_id = request.POST.get('report_region')
+    report_ovc = request.POST.get('rpt_ovc_id')
     report_id = int(rpt_id) if rpt_id else 0
+    rpt_ovc = int(report_ovc) if report_ovc else 1
     cluster = request.POST.get('cluster')
     cbo_id = int(cbo) if cbo else 0
     if report_id == 5:
         cbo_id = get_cbo_cluster(cluster)
-    sql = QUERIES['registration']
+    df_rpt = REPORTS[1]
+    qname = REPORTS[rpt_ovc] if rpt_ovc in REPORTS else df_rpt
+    sql = QUERIES[qname]
     sql = sql % (cbo_id)
+    print 'nnnnn'
     row, desc = run_sql_data(request, sql)
     return row, desc
 
 
 def dictfetchall(cursor):
     "Return all rows from a cursor as a dict"
-    columns = [col[0] for col in cursor.description]
+    column = [col[0] for col in cursor.description]
+    columns = [col.upper() for col in column]
     return [
         dict(zip(columns, row))
         for row in cursor.fetchall()
