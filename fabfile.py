@@ -133,8 +133,32 @@ def create_super_user():
         run("python manage.py loaddata cpovc_main/fixtures/initial_persons_geo.csv.json")
         run("python manage.py loaddata cpovc_main/fixtures/initial_persons_org_units.csv.json")
 
-def install_nginx():
-    run("sudo yum install -y nginx")
+
+def configure_uwsgi():
+    handle = open('%s/configs/uwsgi/cpims.ini' %(os.environ.get('PWD')), 'w')
+    handle.write('[uwsgi]\n')
+    handle.write('project = cpims\n')
+    handle.write('username = %s\n' %(env.user,))
+    handle.write('base = /home/%(username)\n')
+    handle.write('chdir = %(base)/%(project)\n')
+    handle.write('home = %%(base)/.envs/%s\n' %(cpims_venv,))
+    handle.write('module = %(project).wsgi:application\n')
+    handle.write('master = true\n')
+    handle.write('processes = 5\n')
+    handle.write('uid = %(username)\n')
+    handle.write('socket = /run/uwsgi/%(project).sock\n')
+    handle.write('chown-socket = %(username):nginx\n')
+    handle.write('chmod-socket = 660\n')
+    handle.write('vacuum = true\n')
+    handle.write('env = CPIMS_HOST=%s\n' %(cpims_host,))
+    handle.write('env = CPIMS_DB=%s\n' %(cpims_db,))
+    handle.write('env = CPIMS_DEBUG=%s\n' %(cpims_debug,))
+    handle.write('env = CPIMS_PORT=%s\n' %(cpims_port,))
+    handle.write('env = CPIMS_DBUSER=%s\n' %(cpims_dbuser,))
+    handle.write('env = CPIMS_PASSWORD=%s\n' %(cpims_password,))
+    handle.close()
+
+def install_uwsgi():
     run("sudo mkdir /etc/uwsgi")
     run("sudo mkdir /etc/uwsgi/sites")
     source = "%s/configs/uwsgi/cpims.ini" %(os.environ.get('PWD'),)
@@ -145,22 +169,28 @@ def install_nginx():
     put(local_path = source, remote_path ='/tmp/')
     run("sudo cp /tmp/uwsgi.service /etc/systemd/system/")
     run("rm /tmp/uwsgi.service")
+    run("sudo systemctl restart uwsgi")
+    run("sudo systemctl enable uwsgi")
+
+def install_nginx():
+    run("sudo yum install -y nginx")
     source = "%s/configs/nginx/nginx.conf" %(os.environ.get('PWD'),)
     put(local_path = source, remote_path ='/tmp/')
     run("sudo cp /tmp/nginx.conf /etc/nginx/")
     run("rm /tmp/nginx.conf")
+   
+    run("sudo chmod 750 /home/%s" %(env.user,))
+    run("sudo groupmems -a nginx -g %s" %(env.user,))
     run("sudo systemctl restart nginx")
+    run("sudo systemctl enable nginx")
 
+def configure_se_linux():
+    run("sudo setenforce 0")
+    source = "%s/configs/selinux/config" %(os.environ.get('PWD'),)
+    put(local_path = source, remote_path ='/tmp/')
+    run("sudo cp /tmp/config /etc/selinux/config")
+    run("rm /tmp/config")
 
-
-def setup_cpims():
-    pass
-    
-def start_cpims():
-    pass
-
-def stop_cpims():
-    pass
 
 def deploy():
     install_pg_bdr()
@@ -169,4 +199,8 @@ def deploy():
     install_virtualenv()
     install_cpims()
     install_fixtures()
+    configure_uwsgi()
+    configure_se_linux()
     install_nginx()
+    install_uwsgi()
+    
