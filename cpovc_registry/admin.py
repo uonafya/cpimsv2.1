@@ -5,6 +5,14 @@ from .models import (RegPerson, RegOrgUnit, RegOrgUnitsAuditTrail,
                      RegPersonsAuditTrail)
 
 
+from cpovc_auth.models import AppUser
+
+
+class PersonInline(admin.StackedInline):
+    model = AppUser
+    exclude = ('password', )
+
+
 class RegPersonAdmin(admin.ModelAdmin):
     """Register persons admin."""
 
@@ -13,6 +21,9 @@ class RegPersonAdmin(admin.ModelAdmin):
                     'age', 'sex_id', 'is_void']
     # readonly_fields = ['id']
     list_filter = ['is_void', 'sex_id']
+
+    inlines = (PersonInline, )
+
 
 admin.site.register(RegPerson, RegPersonAdmin)
 
@@ -25,6 +36,7 @@ class RegOrgUnitAdmin(admin.ModelAdmin):
                     'parent_org_unit_id', 'is_void']
     # readonly_fields = ['id']
     list_filter = ['is_void', 'org_unit_type_id']
+
 
 admin.site.register(RegOrgUnit, RegOrgUnitAdmin)
 

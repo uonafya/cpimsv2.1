@@ -18,6 +18,7 @@ class MyUserAdmin(UserAdmin):
                     'is_active']
 
     search_fields = ['username']
+    readonly_fields = ['reg_person']
 
     fieldsets = (
         (_('Personal info'), {'fields': ('username', 'password',
@@ -35,5 +36,6 @@ class MyUserAdmin(UserAdmin):
             'fields': ('username', 'password1', 'password2', 'reg_person')}
          ),
     )
+
 
 admin.site.register(AppUser, MyUserAdmin)
