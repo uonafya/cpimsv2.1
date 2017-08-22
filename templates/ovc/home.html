@@ -98,7 +98,8 @@
                             <th>Surname</th>
                             <th>Other Name</th>
                             <th>Sex</th>
-                            <th>Date of Birth</th>                       
+                            <th>Date of Birth</th>
+                            <th>CHW</th>                       
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -114,6 +115,7 @@
                              {% endif %}
                              <td>{{ ovc.person.sex_id|gen_value:vals }}</td>
                              <td>{{ ovc.person.date_of_birth }}</td>
+                             <td>{{ ovc.child_chv.full_name }}</td>
                              <td>
                              {% if ovc.registration_date.year == 1900 %}
                              <a href="{% url 'ovc_register' id=ovc.person.id %}"><button type="button" class="btn btn-sm btn-danger m-r-5"><i class="fa fa-pencil"></i>&nbsp;Finish Registration</button></a>

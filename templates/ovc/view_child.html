@@ -72,7 +72,7 @@
                 <table width="100%" class="table table-profile">
                     <tbody>
                         <tr>
-                            <td class="field">First Name</td>
+                            <td class="field" style="width: 150px">First Name</td>
                             <td>{{ child.first_name }}</td>
                             <td class="field">Surname</td>
                             <td>{{ child.surname }}</td>
@@ -91,7 +91,7 @@
                             <td>{{ creg.child_chv.full_name }}</td>
                         </tr>
                         <tr>
-                            <td class="field">Registration-Date</td>
+                            <td class="field">Registration Date</td>
                             <td>{{ creg.registration_date }}</td>
                             <td class="field">Has BCert</td>
                             <td>{% if creg.has_bcert %}
@@ -128,6 +128,14 @@
                                N/A
                             {% endif %}
                             </td>
+                        </tr>
+                        <tr>
+                            <td class="field">CSI</td>
+                            <td>{{ services.f1a }}</td>
+                            <td class="field">HHVA</td>
+                            <td>{{ services.fcsi }}</td>
+                            <td class="field">Form1A</td>
+                            <td>{{ services.fhva }}</td>
                         </tr>
                     </tbody>
                 </table>
