@@ -1181,26 +1181,30 @@ def edit_person(request, id):
             working_in_county, living_in_county = [], None
             working_in_subcounty, working_in_ward = [], []
             living_in_subcounty, living_in_ward = '', ''
+            area_id = None
             for pgeo in person_geos:
                 area_id = pgeo.area_id
                 area_type = pgeo.area.area_type_id
                 geo_type = pgeo.area_type
+                print 'IN', area_id
                 if geo_type == 'GLTW':
-                    if area_type == 'GPRV':
+                    if area_type == 'GPRV' and area_id:
                         working_in_county.append(area_id)
-                    elif area_type == 'GDIS':
+                    elif area_type == 'GDIS' and area_id:
                         working_in_subcounty.append(area_id)
                     else:
-                        working_in_ward.append(area_id)
+                        if area_id:
+                            working_in_ward.append(area_id)
                 else:
-                    if area_type == 'GPRV':
+                    if area_type == 'GPRV' and area_id:
                         living_in_county = area_id
-                    elif area_type == 'GDIS':
+                    elif area_type == 'GDIS' and area_id:
                         living_in_subcounty = area_id
                     else:
-                        living_in_ward = area_id
+                        if area_id:
+                            living_in_ward = area_id
             # Hack to remove sub_county and ward ids
-            print 'LIVIN IN', living_in_county
+            print 'LIVIN IN', living_in_county, area_id
             # Get extid values
             id_map = {'INTL': 'national_id', 'IMAN': 'staff_id',
                       'IWKF': 'is_workforce', 'ISCG': 'caregiver_id',
@@ -1260,8 +1264,12 @@ def edit_person(request, id):
                 print 'CNT', working_in_county, working_in_subcounty
                 work_region = '2'
             # Living in county
-            living_county = counties_from_aids([living_in_subcounty])
-            living_in_county = living_county[0]
+            list_subcounties = []
+            if living_in_subcounty:
+                list_subcounties.append(living_in_subcounty)
+            living_in_county = counties_from_aids(list_subcounties)
+            if len(living_in_county) > 1:
+                living_in_county = living_in_county[0]
             initial_vals = {
                 'person_type': person_type_id,
                 'person_id': person.pk,

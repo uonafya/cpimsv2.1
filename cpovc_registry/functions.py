@@ -353,9 +353,11 @@ def get_user_details(person):
 def counties_from_aids(area_list, area_type='GDIS'):
     """Method to get counties for display from area ids."""
     try:
-        geos = SetupGeography.objects.filter(
-            area_id__in=area_list, area_type_id=area_type,
-            is_void=False).values_list('parent_area_id', flat=True)
+        geos = []
+        if area_list:
+            geos = SetupGeography.objects.filter(
+                area_id__in=area_list, area_type_id=area_type,
+                is_void=False).values_list('parent_area_id', flat=True)
     except Exception, e:
         print 'Error getting county list from area ids - %s' % (str(e))
         return []
@@ -370,7 +372,7 @@ def geos_from_aids(area_list, area_type='GWRD'):
             parent_area_id__in=area_list, area_type_id=area_type,
             is_void=False).values_list('area_id', flat=True)
     except Exception, e:
-        print 'Error getting county list from area ids - %s' % (str(e))
+        print 'Error getting geo list from area ids - %s' % (str(e))
         return []
     else:
         return geos

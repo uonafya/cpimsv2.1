@@ -1690,6 +1690,7 @@ function clear_guardian(){
 function handle_persons(person_type, person_text){
     var person_type = (typeof person_type === 'undefined') ? 'default' : person_type;
     handle_ovc(person_type);
+    $("#child_services_0").prop("checked", true);
     //Child
     if (person_type == 'TBVC')
     {

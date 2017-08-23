@@ -260,15 +260,17 @@ class RegistrationForm(forms.Form):
                    'id': 'sex_id',
                    'data-parsley-required': "true"}))
     des_phone_number = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': _('Phone Number'),
+        attrs={'placeholder': _('07XXXXXXXX'),
                'class': 'form-control',
                'id': 'des_phone_number',
-               'data-parsley-pattern': '/^[0-9\+]{1,}[0-9\-]{3,15}$/'}))
+               'data-parsley-maxlength': '10',
+               'data-parsley-pattern': '/^[0-9\+]{1,}[0-9\-]{3,12}$/'}))
     other_phone_number = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': _('Phone Number'),
+        attrs={'placeholder': _('07XXXXXXXX'),
                'class': 'form-control',
                'id': 'other_phone_number',
-               'data-parsley-pattern': '/^[0-9\+]{1,}[0-9\-]{3,15}$/'}))
+               'data-parsley-maxlength': '10',
+               'data-parsley-pattern': '/^[0-9\+]{1,}[0-9\-]{3,12}$/'}))
     email = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': _('Email Address'),
                'class': 'form-control',

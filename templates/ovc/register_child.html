@@ -548,20 +548,20 @@
         handle_education(this.value);
         handle_levels(this.value);
     });
-
     $('.alive').change(function(){
-        var id = $(this).attr('id');
+        var ids = $(this).attr('id');
         var alive = this.value;
+        var id = ids.split('_')[1];
         if (alive == 'ANNO'){
-           $('#div_' + id).hide();
-           $('#ndiv_' + id).show();
-           $('#div_' + id).attr("data-parsley-required", "false");
-           $('#ndiv_' + id).attr("data-parsley-required", "true");
+           $('#div_' + ids).hide();
+           $('#ndiv_' + ids).show();
+           $('#gstatus_' + id).attr("data-parsley-required", "false");
+           $('#cstatus_' + id).attr("data-parsley-required", "true");
         }else{
-           $('#div_' + id).show();
-           $('#ndiv_' + id).hide();
-           $('#div_' + id).attr("data-parsley-required", "true");
-           $('#ndiv_' + id).attr("data-parsley-required", "false");
+           $('#div_' + ids).show();
+           $('#ndiv_' + ids).hide();
+           $('#gstatus_' + id).attr("data-parsley-required", "true");
+           $('#cstatus_' + id).attr("data-parsley-required", "false");
         }
     });
 
@@ -687,11 +687,9 @@
 
     function disable_fields(cond, field_id){
         if (cond){
-            console.log(field_id + ' 1');
             $('#'+ field_id).prop('disabled', false);
             $('#'+ field_id).attr("data-parsley-required", "true");  
         }else{
-            console.log(field_id + ' 2');
             $('#'+ field_id).prop('disabled', true);
             $('#'+ field_id).attr("data-parsley-required", "false");
         }

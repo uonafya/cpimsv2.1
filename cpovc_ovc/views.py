@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from .forms import OVCSearchForm, OVCRegistrationForm
 from cpovc_registry.models import (
     RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds,
@@ -15,6 +16,7 @@ from .functions import (
     ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc,
     search_master, get_school, get_health, get_checkins)
 from cpovc_auth.decorators import is_allowed_ous
+from cpovc_forms.models import OVCCareEvents
 
 
 @login_required(login_url='/')
@@ -329,6 +331,19 @@ def ovc_view(request, id):
         # Get siblings
         siblings = RegPersonsSiblings.objects.filter(
             is_void=False, child_person_id=child.id)
+        # Get services
+        servs = {'FSAM': 'f1a', 'FCSI': 'fcsi', 'FHSA': 'fhva'}
+        services = {'f1a': 0, 'fcsi': 0, 'fhva': 0}
+        sqs = OVCCareEvents.objects.filter(
+            is_void=False, person_id=child.id).values(
+            'event_type_id').annotate(
+                total=Count('event_type_id')).order_by('total')
+        for serv in sqs:
+            item = serv['event_type_id']
+            item_count = serv['total']
+            if item in servs:
+                item_key = servs[item]
+                services[item_key] = item_count
         # Get house hold
         hhold = OVCHHMembers.objects.get(
             is_void=False, person_id=child.id)
@@ -348,7 +363,8 @@ def ovc_view(request, id):
                        'guardians': guardians, 'siblings': siblings,
                        'vals': vals, 'hhold': hhold, 'creg': creg,
                        'extids': gparams, 'health': health,
-                       'hhmembers': hhmembers, 'school': school})
+                       'hhmembers': hhmembers, 'school': school,
+                       'services': services})
     except Exception, e:
         print "error with OVC viewing - %s" % (str(e))
         raise e
