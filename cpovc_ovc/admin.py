@@ -46,6 +46,11 @@ class OVCSchoolAdmin(admin.ModelAdmin):
 admin.site.register(OVCSchool, OVCSchoolAdmin)
 
 
+class CBOsInline(admin.StackedInline):
+    model = OVCClusterCBO
+    # exclude = ('password', )
+
+
 class OVCClusterAdmin(admin.ModelAdmin):
     """Aggregate data admin."""
 
@@ -53,6 +58,7 @@ class OVCClusterAdmin(admin.ModelAdmin):
     list_display = ['id', 'cluster_name', 'created_by']
     # readonly_fields = ['id']
     list_filter = ['is_void']
+    inlines = (CBOsInline, )
 
 
 admin.site.register(OVCCluster, OVCClusterAdmin)
