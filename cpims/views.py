@@ -8,10 +8,11 @@ from cpovc_access.functions import access_request
 from django.contrib.auth.decorators import login_required
 
 
-@login_required
+@login_required(login_url='/login/')
 def home(request):
     """Some default page for the home page / Dashboard."""
-    my_dates, my_cvals, my_kvals = [], [], []
+    my_dates, my_cvals = [], []
+    my_ovals, my_kvals = [], []
     my_dvals = []
     try:
         dash = dashboard()
@@ -24,6 +25,7 @@ def home(request):
         summary['cases'] = '{:,}'.format(dash['case_records'])
         summary['pending'] = '{:08}'.format(dash['pending_cases'])
         child_regs = dash['child_regs']
+        ovc_regs = dash['ovc_regs']
         case_regs = dash['case_regs']
         case_cats = dash['case_cats']
         for date in range(0, 22, 2):
@@ -35,12 +37,15 @@ def home(request):
             t_date = start_date + timedelta(days=vl)
             s_date = datetime.strftime(t_date, "%d-%b-%y")
             k_count = child_regs[s_date] if s_date in child_regs else 0
+            o_count = ovc_regs[s_date] if s_date in ovc_regs else 0
             c_count = case_regs[s_date] if s_date in case_regs else 0
             my_cvals.append("[%s, %s]" % (vl, c_count))
             my_kvals.append("[%s, %s]" % (vl, k_count))
+            my_ovals.append("[%s, %s]" % (vl, o_count))
         dates = ', '.join(my_dates)
         kvals = ', '.join(my_kvals)
         cvals = ', '.join(my_cvals)
+        ovals = ', '.join(my_ovals)
         my_dvals, cnt = [], 0
         colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00',
                   '#ffff33']
@@ -67,7 +72,8 @@ def home(request):
         dvals = ', '.join(my_dvals)
         return render(request, 'dashboard.html',
                       {'status': 200, 'dates': dates, 'kvals': kvals,
-                       'dvals': dvals, 'cvals': cvals, 'data': summary})
+                       'dvals': dvals, 'cvals': cvals, 'data': summary,
+                       'ovals': ovals})
     except Exception, e:
         print 'dashboard error - %s' % (str(e))
         raise e

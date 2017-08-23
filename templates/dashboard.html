@@ -10,21 +10,23 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h1 class="page-header">Dashboard <small>Application data and usage summary</small></h1>
+<h1 class="page-header">{% if request.session.ou_primary_name %} {{ request.session.ou_primary_name }} - {% endif %}Dashboard <small>Application data and usage summary</small>
+ </h1>
 <!-- end page-header -->
 
 <!-- begin row -->
 <div class="row">
     <!-- Start content area -->
     <!-- begin row -->
-	<div class="row">
+    {% if request.session.reg_ovc %}
+    <div class="row">
 		<!-- begin col-3 -->
 		<div class="col-md-2 col-sm-3">
 			<div class="widget widget-stats bg-green">
 				<div class="stats-icon"><i class="fa fa-child"></i></div>
 				<div class="stats-info">
-					<h4>Children / OVC</h4>
-					<center><p>{{ data.children }}</p></center>
+					<h4>CHILDREN / OVC</h4>
+					<p>{{ data.children }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -37,8 +39,8 @@
 			<div class="widget widget-stats bg-blue">
 				<div class="stats-icon"><i class="fa fa-users"></i></div>
 				<div class="stats-info">
-					<h4>Caregiver / Guardian</h4>
-					<center><p>{{ data.guardians }}</p></center>
+					<h4>CAREGIVERS / GUARDIANS</h4>
+					<p>{{ data.guardians }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -51,8 +53,8 @@
 			<div class="widget widget-stats bg-purple">
 				<div class="stats-icon"><i class="fa fa-user"></i></div>
 				<div class="stats-info">
-					<h4>Workforce Members</h4>
-					<center><p>{{ data.workforce }}</p></center>	
+					<h4>WORKFORCE MEMBERS</h4>
+					<p>{{ data.workforce }}
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -65,8 +67,8 @@
 			<div class="widget widget-stats bg-aqua">
 				<div class="stats-icon"><i class="fa fa-institution"></i></div>
 				<div class="stats-info">
-					<h4>Organisation Units</h4>
-					<center><p>{{ data.org_units }}</p></center>	
+					<h4>ORGANISATION UNITS / CBOs</h4>
+					<p>{{ data.org_units }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -79,8 +81,83 @@
 			<div class="widget widget-stats bg-red">
 				<div class="stats-icon"><i class="fa fa-chain-broken"></i></div>
 				<div class="stats-info">
-					<h4>Case Records</h4>
-					<center><p>{{ data.cases }}</p></center>
+					<h4>HOUSEHOLDS</h4>
+					<p>{{ data.cases }}</p>
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+	</div>
+	<!-- end row -->
+
+    {% else %}
+	<div class="row">
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-green">
+				<div class="stats-icon"><i class="fa fa-child"></i></div>
+				<div class="stats-info">
+					<h4>CHILDREN / OVC</h4>
+					<p>{{ data.children }}</p>
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-blue">
+				<div class="stats-icon"><i class="fa fa-users"></i></div>
+				<div class="stats-info">
+					<h4>CAREGIVERS / GUARDIANS</h4>
+					<p>{{ data.guardians }}</p>
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-purple">
+				<div class="stats-icon"><i class="fa fa-user"></i></div>
+				<div class="stats-info">
+					<h4>WORKFORCE MEMBERS</h4>
+					<p>{{ data.workforce }}
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-aqua">
+				<div class="stats-icon"><i class="fa fa-institution"></i></div>
+				<div class="stats-info">
+					<h4>ORGANISATION UNITS</h4>
+					<p>{{ data.org_units }}</p>
+				</div>
+				<div class="stats-link">
+					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<!-- end col-3 -->
+		<!-- begin col-3 -->
+		<div class="col-md-2 col-sm-3">
+			<div class="widget widget-stats bg-red">
+				<div class="stats-icon"><i class="fa fa-chain-broken"></i></div>
+				<div class="stats-info">
+					<h4>CASE RECORDS</h4>
+					<p>{{ data.cases }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -93,8 +170,8 @@
 			<div class="widget widget-stats bg-grey">
 				<div class="stats-icon"><i class="fa fa-clock-o"></i></div>
 				<div class="stats-info">
-					<h4>Pending Cases Count</h4>
-					<center><p>{{ data.pending }}</p></center>	
+					<h4>PENDING CASES</h4>
+					<p>{{ data.pending }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -104,6 +181,8 @@
 		<!-- end col-3 -->
 	</div>
 	<!-- end row -->
+	<!-- end row -->
+	{% endif %}
 	<!-- begin row -->
 	<div class="row">
 		<!-- begin col-8 -->
@@ -149,6 +228,7 @@
     <script>
         var Kdata = [{% autoescape off %}{{ kvals }}{% endautoescape %}];
         var Cdata = [{% autoescape off %}{{ cvals }}{% endautoescape %}];
+        var Odata = [{% autoescape off %}{{ ovals }}{% endautoescape %}];
         var xLabel = [{% autoescape off %}{{ dates }}{% endautoescape %}];
         var dData = [{% autoescape off %}{{ dvals }}{% endautoescape %}];
     </script>

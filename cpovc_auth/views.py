@@ -12,7 +12,8 @@ from django.contrib.auth.models import Group
 
 from .functions import (
     save_group_geo_org, remove_group_geo_org, get_allowed_units_county,
-    get_groups, save_temp_data, check_national, get_attached_units)
+    get_groups, save_temp_data, check_national, get_attached_units,
+    get_orgs_tree)
 from .models import AppUser, CPOVCPermission
 from cpovc_registry.models import (
     RegPerson, RegPersonsExternalIds, RegPersonsOrgUnits, RegPersonsGeo)
@@ -60,8 +61,6 @@ def log_in(request):
                         login(request, user)
                         # grps = user.groups.all()
                         perms = user.get_all_permissions()
-                        print perms
-                        print "**" * 20
                         """
                         group_ids = Group.objects.all().values_list(
                             'id', flat=True)
@@ -71,6 +70,7 @@ def log_in(request):
                         # ------------------------------
                         perms = CPOVCPermission.objects.filter(
                             group__id__in=group_ids)
+                        print 'perms', perms.count()
                         pperms = Permission.objects.values('id', 'codename')
                         all_perms = {}
                         for pm in pperms:
@@ -85,17 +85,22 @@ def log_in(request):
                         request.session['is_national'] = is_national
                         ou_vars = get_attached_units(user)
                         print ou_vars
-                        primary_ou, reg_ovc = 0, False
+                        primary_ou, reg_ovc, primary_name = 0, False, ''
                         attached_ou, perms_ou = '', ''
                         if ou_vars:
                             primary_ou = ou_vars['primary_ou']
+                            primary_name = ou_vars['primary_name']
                             attached_ou = ou_vars['attached_ou']
                             perms_ou = ou_vars['perms_ou']
                             reg_ovc = ou_vars['reg_ovc']
+                        level, pous = get_orgs_tree(primary_ou)
+                        print level, pous
                         request.session['ou_primary'] = primary_ou
+                        request.session['ou_primary_name'] = primary_name
                         request.session['ou_attached'] = attached_ou
                         request.session['ou_perms'] = perms_ou
                         request.session['reg_ovc'] = reg_ovc
+                        request.session['user_level'] = level
                         next_param = request.GET
                         if 'next' in next_param:
                             next_page = next_param['next']
@@ -153,6 +158,7 @@ def log_out(request):
             print user_id, next_page, form_params
         return HttpResponseRedirect(url)
     except Exception, e:
+        print 'Error logout - %s' % (str(e))
         raise e
 
 
@@ -205,6 +211,30 @@ def roles_edit(request, user_id):
         person_orgs = RegPersonsOrgUnits.objects.select_related(
             'org_unit').filter(person_id=person_id, is_void=False)
         units_count = person_orgs.count()
+        # Permissions at org level
+        ous = []
+        if 'ou_attached' in request.session:
+            attached_ous = request.session['ou_attached']
+            if attached_ous:
+                ous = [int(ou) for ou in attached_ous.split(',')]
+        a_orgs, user_ous = [], []
+        for p_orgs in person_orgs:
+            p_org_id = p_orgs.org_unit_id
+            user_ous.append(p_org_id)
+            if p_org_id in ous:
+                a_orgs.append(p_org_id)
+        # Check if superior first
+        if len(ous) < len(user_ous) and not request.user.is_superuser:
+            page_info = (' - You have no permissions to manage Rights. '
+                         'Contact your supervisor.')
+            return render(request, 'registry/roles_none.html',
+                          {'page': page_info})
+        # check if same org unit
+        if len(a_orgs) == 0 and not request.user.is_superuser:
+            page_info = (' - You have no permissions to manage Rights. '
+                         'Contact your supervisor.')
+            return render(request, 'registry/roles_none.html',
+                          {'page': page_info})
         # Get geo locations
         person_geos = RegPersonsGeo.objects.select_related(
             'area').filter(person_id=person_id, area_type='GLTW',

@@ -129,6 +129,17 @@ var handleInteractiveChart = function () {
                         apply: true,
                         monotonicFit: true
                     }
+                }, {
+                    data: Odata,
+                    label: 'OVC Registration',
+                    color: purple,
+                    lines: { show: true, fill:false, lineWidth: 2 },
+                    points: { show: false, radius: 2, fillColor: '#fff' },
+                    shadowSize: 0,
+                    curvedLines:  {
+                        apply: true,
+                        monotonicFit: true
+                    }
                 }
             ], 
             {

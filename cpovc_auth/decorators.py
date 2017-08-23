@@ -25,7 +25,7 @@ ALLOWED_PAGES = ['registry/new', 'registry/new_person', 'registry/new_user']
 ALLOWED_OWN = ['registry/edit', 'registry/edit_person']
 
 
-def is_allowed_ous(allowed_groups):
+def is_allowed_ous(allowed_groups, page=1):
     """Method for checking roles and permissions."""
     def decorator(check_func):
         @wraps(check_func, assigned=available_attrs(check_func))

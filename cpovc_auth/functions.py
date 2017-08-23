@@ -3,7 +3,8 @@ from django.utils import timezone
 
 from .models import CPOVCRole, CPOVCUserRoleGeoOrg
 from cpovc_main.models import RegTemp
-from cpovc_registry.models import RegPersonsGeo, RegPersonsOrgUnits
+from cpovc_registry.models import (
+    RegPersonsGeo, RegPersonsOrgUnits, RegOrgUnit)
 
 
 def get_allowed_units_county(user_id):
@@ -140,11 +141,12 @@ def get_attached_units(user):
         person_orgs = RegPersonsOrgUnits.objects.filter(
             person_id=person_id, is_void=False)
         if person_orgs:
-            reg_pri, reg_ovc = 0, False
+            reg_pri, reg_ovc, reg_pri_name = 0, False, ''
             all_roles, all_ous = [], []
             for p_org in person_orgs:
                 p_roles = []
                 org_id = p_org.org_unit_id
+                org_name = p_org.org_unit.org_unit_name
                 reg_assist = p_org.reg_assistant
                 if reg_assist:
                     p_roles.append('REGA')
@@ -152,6 +154,7 @@ def get_attached_units(user):
                 reg_prim = p_org.primary_unit
                 if reg_prim:
                     reg_pri = org_id
+                    reg_pri_name = org_name
                 reg_ovc = p_org.org_unit.handle_ovc
                 if reg_ovc:
                     p_roles.append('ROVC')
@@ -164,10 +167,62 @@ def get_attached_units(user):
             allous = ','.join(all_ous)
             vals = {'perms': orgs, 'primary_ou': reg_pri,
                     'attached_ou': allous, 'perms_ou': allroles,
-                    'reg_ovc': reg_ovc}
+                    'reg_ovc': reg_ovc, 'primary_name': reg_pri_name}
             return vals
         else:
             return {}
     except Exception, e:
         print 'get attached units error - %s' % (str(e))
         return {}
+
+
+def get_parent_unit(org_ids):
+    """Method to do the organisation tree."""
+    try:
+        print org_ids
+        orgs = RegOrgUnit.objects.filter(
+            id__in=org_ids).values_list('parent_org_unit_id', flat=True)
+        print 'Check Org Unit level - %s' % (str(orgs))
+    except Exception as e:
+        print 'No parent unit - %s' % (str(e))
+        return []
+    else:
+        return orgs
+
+
+def get_orgs_tree(org_id):
+    """Method to do the organisation tree."""
+    try:
+        dcs = [1, 2]
+        level = 1
+        orgs = {0: dcs, 1: [], 2: [], 3: [], 4: []}
+        parent_orgs = get_parent_unit([int(org_id)])
+        orgs[1] = parent_orgs
+        is_dcs = (i in parent_orgs for i in dcs)
+        if not parent_orgs:
+            return level, []
+        if any(is_dcs):
+            level = 0
+        else:
+            parent_orgs_1 = get_parent_unit(parent_orgs)
+            is_dcs = (i in parent_orgs_1 for i in dcs)
+            orgs[2] = parent_orgs_1
+            if any(is_dcs):
+                level = 1
+            else:
+                parent_orgs_2 = get_parent_unit(parent_orgs_1)
+                is_dcs = (i in parent_orgs_2 for i in dcs)
+                orgs[3] = parent_orgs_2
+                if any(is_dcs):
+                    level = 2
+                else:
+                    parent_orgs_3 = get_parent_unit(parent_orgs_2)
+                    is_dcs = (i in parent_orgs_3 for i in dcs)
+                    orgs[4] = parent_orgs_3
+                    if any(is_dcs):
+                        level = 3
+    except Exception as e:
+        print 'error with tree - %s' % (str(e))
+        return 1, {}
+    else:
+        return level, orgs
