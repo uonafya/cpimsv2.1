@@ -21,12 +21,12 @@
     {% if request.session.reg_ovc %}
     <div class="row">
 		<!-- begin col-3 -->
-		<div class="col-md-2 col-sm-3">
+		<div class="col-md-3 col-sm-4">
 			<div class="widget widget-stats bg-green">
 				<div class="stats-icon"><i class="fa fa-child"></i></div>
 				<div class="stats-info">
-					<h4>CHILDREN / OVC</h4>
-					<p>{{ data.children }}</p>
+					<h4>OVC - ACTIVE / EVER REGISTERED</h4>
+					<p>{{ ovc.children }} / {{ ovc.children_all }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -40,7 +40,7 @@
 				<div class="stats-icon"><i class="fa fa-users"></i></div>
 				<div class="stats-info">
 					<h4>CAREGIVERS / GUARDIANS</h4>
-					<p>{{ data.guardians }}</p>
+					<p>{{ ovc.guardians }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -54,7 +54,7 @@
 				<div class="stats-icon"><i class="fa fa-user"></i></div>
 				<div class="stats-info">
 					<h4>WORKFORCE MEMBERS</h4>
-					<p>{{ data.workforce }}
+					<p>{{ ovc.workforce }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -67,8 +67,8 @@
 			<div class="widget widget-stats bg-aqua">
 				<div class="stats-icon"><i class="fa fa-institution"></i></div>
 				<div class="stats-info">
-					<h4>ORGANISATION UNITS / CBOs</h4>
-					<p>{{ data.org_units }}</p>
+					<h4>ORG UNITS / CBOs</h4>
+					<p>{{ ovc.org_units }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -77,12 +77,12 @@
 		</div>
 		<!-- end col-3 -->
 		<!-- begin col-3 -->
-		<div class="col-md-2 col-sm-3">
+		<div class="col-md-3 col-sm-4">
 			<div class="widget widget-stats bg-red">
 				<div class="stats-icon"><i class="fa fa-chain-broken"></i></div>
 				<div class="stats-info">
-					<h4>HOUSEHOLDS</h4>
-					<p>{{ data.cases }}</p>
+					<h4>CASE RECORDS</h4>
+					<p>{{ ovc.cases }}</p>
 				</div>
 				<div class="stats-link">
 					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
@@ -90,6 +90,7 @@
 			</div>
 		</div>
 		<!-- end col-3 -->
+
 	</div>
 	<!-- end row -->
 

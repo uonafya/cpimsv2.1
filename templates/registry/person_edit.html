@@ -1042,6 +1042,9 @@ jQuery(document).ready(function() {
            $('#log').html('Please enter National ID for Caregiver.');
            return false;
         }
+        {% else %}
+        var c_idno = '';
+        var c_tel = '';
         {% endif %}
         if (child_subcounty == ''){
            $('#log').html('Please select living in sub county for the child first before attaching caregivers.');

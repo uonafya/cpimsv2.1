@@ -934,6 +934,9 @@ jQuery(document).ready(function() {
            $('#log').html('Please enter National ID for Caregiver.');
            return false;
         }
+        {% else %}
+        var c_idno = '';
+        var c_tel = '';
         {% endif %}
 
         if (child_subcounty == ''){
