@@ -55,6 +55,30 @@
 {% endfor %}
 <!-- end page-header -->
 
+<!-- #csi-warning-dialog -->
+<div class="modal fade" id="csi-warning-dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h4 class="modal-title">
+                <div id="closure-warning-dialog-header">
+                    Warning      
+                </div>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <h4><i class="fa fa-info-circle"></i> <small><b><span id="span_csi_alert" class="dialog_paragraph"></span></b></small></h4>               
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- #end-csi-warning-dialog -->
+
 <div id="error_message" class="alert alert-danger fade in" style="display: none;" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
     <i class="fa fa-info fa-2x pull-left"></i>
@@ -486,9 +510,15 @@ jQuery(document).ready(function()
 	$('html,body').scrollTop(0);
 	FormWizardValidation.init();
 });
-</script>
 
-<script>
+arr_DSHC = new Array();
+arr_DPSS = new Array();
+arr_DPRO = new Array();
+arr_DHES = new Array();
+arr_DHNU = new Array();
+arr_DEDU = new Array();
+domain_log = { "DSHC": arr_DSHC, "DPSS": arr_DPSS, "DPRO": arr_DPRO, "DHES": arr_DHES, "DHNU": arr_DHNU, "DEDU": arr_DEDU }
+
 function loadForm1aEvents()
 {
     var data = new Array();
@@ -1151,7 +1181,8 @@ function AddRow(x)
 		} 
 	}
 	if(x==3)
-	{
+	{   
+
         var OlmisPriorityServiceData = new Array();     
         var olmis_priority_domain = $("#olmis_priority_domain").val();
         var olmis_priority_service = $("#olmis_priority_service").val();        
@@ -1176,57 +1207,205 @@ function AddRow(x)
                 row_id = 'rowid_' + (rows_length-2);
                 row.id = row_id;
                 var btnRemoveSvcId = 'btnRemoveSvc' + index;
-
-                // Insert new cells (<td> elements) of the "new" <tr> element:
-                var cell0 = row.insertCell(0);
-                var cell1 = row.insertCell(1);
-                var cell2 = row.insertCell(2);
-                var cell3 = row.insertCell(3);
-
-                var holmis_priority_domain= "<input id='holmis_priority_domain' type='hidden' value='"+olmis_priority_domain+"'>"
-                var holmis_priority_service = "<input id='holmis_priority_service' type='hidden' value='"+olmis_priority_service+"'>"
-                var holmis_priority_service_status= "<input id='holmis_priority_service_status' type='hidden' value='new'>"
-
-                cell0.innerHTML = '<h6 class="td_style"></h6>';        
-                cell1.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_priority_domain") + holmis_priority_domain + '</h6>';
-                cell2.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_priority_service") + holmis_priority_service + '</h6>';
-                cell3.innerHTML  = '<h6 class="dialog_paragraph">' + holmis_priority_service_status + "<a id=" + btnRemoveSvcId + " class='btn btn-sm btn-link m-r-5 href='#'>Remove</a>" + '</h6>';
-
-                // AddClick Event To Remove Button
-                $("#" + btnRemoveSvcId + "").click(function(e)
+                var total = arr_DSHC.length + arr_DPSS.length + arr_DPRO.length + arr_DHES.length + arr_DHNU.length + arr_DEDU.length;
+                console.log('total : ' + total);                
+                if(total >= 3)
                 {
-                    RemoveRow(3, '', row_id);
-                });
-                
+                    $('#csi-warning-dialog').modal('show');
+                    $('#span_csi_alert').html("You are violating CSI Priority assessment Rules which demands 3 a maximum of priorities from either domain.");
+                    return false;
+                }
+                else
+                {
+                    /* 
+                    Manage validations
+                    ----------------------------------
+                    Get total domain-specific selected 
+                    */
+                    console.log('current priority domain: '+olmis_priority_domain)
+                    if(olmis_priority_domain == 'DEDU')
+                    {
+                        items = olmis_priority_service;
+                        for(var i=0, l = items.length; i < l; i++)
+                        {
+                            if($.inArray(items[i], arr_DEDU) == -1)
+                            {
+                                if(arr_DEDU.length < 3)
+                                {
+                                    arr_DEDU.push(items[i]);
+                                }
+                            }
+                            else
+                            {
+                                $('#csi-warning-dialog').modal('show');
+                                $('#span_csi_alert').html('One or more of the priority need you have selected have been captured.');
+                                return false;
+                            }
+                        }
+                        domain_log.DEDU = arr_DEDU;
+                    }
 
-                //Show ClearGridOption
-                // $("#btnClearGrid").css({'display': 'block'})
+                    if(olmis_priority_domain == 'DHNU')
+                    {
+                        items = olmis_priority_service;
+                        for(var i=0, l = items.length; i < l; i++)
+                        {
+                            if($.inArray(items[i], arr_DHNU) == -1)
+                            {
+                                if(arr_DHNU.length < 3)
+                                {
+                                    arr_DHNU.push(items[i]);
+                                }
+                            }
+                            else
+                            {
+                                $('#csi-warning-dialog').modal('show');
+                                $('#span_csi_alert').html('One or more of the priority need you have selected have been captured.');
+                                return false;
+                            }
+                        }
+                        domain_log.DHNU = arr_DHNU;
+                    }
 
-                // Reset Input Elements/Error Divs
-                $("#olmis_priority_domain").multiselect("clearSelection");
-                $("#olmis_priority_domain").multiselect("refresh");
-                $("#olmis_priority_service").multiselect("clearSelection");
-                $("#olmis_priority_service").multiselect("refresh");
-                $("#sel_olmis_priority_service").html('');
-                $(".alert").hide();                
+                    if(olmis_priority_domain == 'DHES')
+                    {
+                        items = olmis_priority_service;
+                        for(var i=0, l = items.length; i < l; i++)
+                        {
+                            if($.inArray(items[i], arr_DHES) == -1)
+                            {
+                                if(arr_DHES.length < 3)
+                                {
+                                    arr_DHES.push(items[i]);
+                                }
+                            }
+                            else
+                            {
+                                $('#csi-warning-dialog').modal('show');
+                                $('#span_csi_alert').html('One or more of the priority need you have selected have been captured.');
+                                return false;
+                            }
+                        }
+                        domain_log.DHES = arr_DHES;
+                    }
 
-                $('#priority_manager_table tr').each(function(row, tr)
-                {                            
-                    var olmis_priority_domain = $(tr).find('input[id="holmis_priority_domain"]').val();
-                    var olmis_priority_service = $(tr).find('input[id="holmis_priority_service"]').val();
+                    if(olmis_priority_domain == 'DPRO')
+                    {
+                        items = olmis_priority_service;
+                        for(var i=0, l = items.length; i < l; i++)
+                        {
+                            if($.inArray(items[i], arr_DPRO) == -1)
+                            {
+                                if(arr_DPRO.length < 3)
+                                {
+                                    arr_DPRO.push(items[i]);
+                                }
+                            }
+                            else
+                            {
+                                $('#csi-warning-dialog').modal('show');
+                                $('#span_csi_alert').html('One or more of the priority need you have selected have been captured.');
+                                return false;
+                            }
+                        }
+                        domain_log.DPRO = arr_DPRO;
+                    }
 
-                    OlmisPriorityServiceData[row]= {
-                        "olmis_priority_domain" : olmis_priority_domain,
-                        "olmis_priority_service" : olmis_priority_service
-                        } 
-                });
-                
-                OlmisPriorityServiceData.shift(); //remove first row(headers stuff)
-                OlmisPriorityServiceData.shift(); //remove second row(controls stuff)
-                OlmisPriorityServiceData = JSON.stringify(OlmisPriorityServiceData); 
+                    if(olmis_priority_domain == 'DPSS')
+                    {
+                        items = olmis_priority_service;
+                        for(var i=0, l = items.length; i < l; i++)
+                        {
+                            if($.inArray(items[i], arr_DPSS) == -1)
+                            {
+                                if(arr_DPSS.length < 3)
+                                {
+                                    arr_DPSS.push(items[i]);
+                                }
+                            }
+                            else
+                            {
+                                $('#csi-warning-dialog').modal('show');
+                                $('#span_csi_alert').html('One or more of the priority need you have selected have been captured.');
+                                return false;
+                            }
+                        }
+                        domain_log.DPSS = arr_DPSS;
+                    }
 
-                // Set olmis_priority_service_provided_list
-                $('#olmis_priority_service_provided_list').val(OlmisPriorityServiceData);
+                    if(olmis_priority_domain == 'DSHC')
+                    {
+                        items = olmis_priority_service;
+                        for(var i=0, l = items.length; i < l; i++)
+                        {
+                            if($.inArray(items[i], arr_DSHC) == -1)
+                            {
+                                if(arr_DSHC.length < 3)
+                                {
+                                    arr_DSHC.push(items[i]);
+                                }
+                            }
+                            else
+                            {
+                                $('#csi-warning-dialog').modal('show');
+                                $('#span_csi_alert').html('One or more of the priority need you have selected have been captured.');
+                                return false;
+                            }
+                        }
+                        domain_log.DSHC = arr_DSHC;
+                    }
+                    console.log( 'DSHC: '+arr_DSHC.length+', DPSS:'+arr_DPSS.length+ ', DPRO:'+arr_DPRO.length+', DHES:'+arr_DHES.length+', DHNU: '+arr_DHNU.length+', DEDU:'+arr_DEDU.length);
+                    // Insert new cells (<td> elements) of the "new" <tr> element:
+                    var cell0 = row.insertCell(0);
+                    var cell1 = row.insertCell(1);
+                    var cell2 = row.insertCell(2);
+                    var cell3 = row.insertCell(3);
+
+                    var holmis_priority_domain= "<input id='holmis_priority_domain' type='hidden' value='"+olmis_priority_domain+"'>"
+                    var holmis_priority_service = "<input id='holmis_priority_service' type='hidden' value='"+olmis_priority_service+"'>"
+                    var holmis_priority_service_status= "<input id='holmis_priority_service_status' type='hidden' value='new'>"
+
+                    cell0.innerHTML = '<h6 class="td_style"></h6>';        
+                    cell1.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_priority_domain") + holmis_priority_domain + '</h6>';
+                    cell2.innerHTML = '<h6 class="td_style">' + displayVals(2, "olmis_priority_service") + holmis_priority_service + '</h6>';
+                    cell3.innerHTML  = '<h6 class="dialog_paragraph">' + holmis_priority_service_status + "<a id=" + btnRemoveSvcId + " class='btn btn-sm btn-link m-r-5 href='#'>Remove</a>" + '</h6>';
+
+                    // AddClick Event To Remove Button
+                    $("#" + btnRemoveSvcId + "").click(function(e)
+                    {
+                        RemoveRow(3, '', row_id);
+                    });
+                    
+
+                    //Show ClearGridOption
+                    // $("#btnClearGrid").css({'display': 'block'})
+
+                    // Reset Input Elements/Error Divs
+                    $("#olmis_priority_domain").multiselect("clearSelection");
+                    $("#olmis_priority_domain").multiselect("refresh");
+                    $("#olmis_priority_service").multiselect("clearSelection");
+                    $("#olmis_priority_service").multiselect("refresh");
+                    $("#sel_olmis_priority_service").html('');
+                    $(".alert").hide();                
+
+                    $('#priority_manager_table tr').each(function(row, tr)
+                    {                            
+                        var olmis_priority_domain = $(tr).find('input[id="holmis_priority_domain"]').val();
+                        var olmis_priority_service = $(tr).find('input[id="holmis_priority_service"]').val();
+
+                        OlmisPriorityServiceData[row]= {
+                            "olmis_priority_domain" : olmis_priority_domain,
+                            "olmis_priority_service" : olmis_priority_service
+                            } 
+                    });
+                    
+                    OlmisPriorityServiceData.shift(); //remove first row(headers stuff)
+                    OlmisPriorityServiceData.shift(); //remove second row(controls stuff)
+                    OlmisPriorityServiceData = JSON.stringify(OlmisPriorityServiceData); 
+
+                    // Set olmis_priority_service_provided_list
+                    $('#olmis_priority_service_provided_list').val(OlmisPriorityServiceData);
+                }
             }
             else
             {
@@ -1302,11 +1481,20 @@ function RemoveRow(index, uuid, tr_id)
 
     if(index == 3)
     {
-        // $('#priority_manager_table').find("tr:gt(1)").remove();
-        // $("#btnClearGrid").css({ 'display': "none" });
+        $('#priority_manager_table').find("tr:gt(1)").remove();
+        $("#btnClearGrid").css({ 'display': "none" });
+
+        arr_DSHC = new Array();
+        arr_DPSS = new Array();
+        arr_DPRO = new Array();
+        arr_DHES = new Array();
+        arr_DHNU = new Array();
+        arr_DEDU = new Array();
+        domain_log = { "DSHC": arr_DSHC, "DPSS": arr_DPSS, "DPRO": arr_DPRO, "DHES": arr_DHES, "DHNU": arr_DHNU, "DEDU": arr_DEDU }
 
         // Delete Table Row
-        $("#" + tr_id).remove();
+        //console.log('remove row with id: '+tr_id)
+        //#$("#" + tr_id).remove();
 
         var OlmisPriorityServiceData = new Array();
         $('#priority_manager_table tr').each(function(row, tr)
@@ -1469,6 +1657,34 @@ $("#olmis_priority_service").change(function(event)
 {
     $("#olmis_priority_service_errormsg").css({ 'display': "none" });
     displayVals(1, 'olmis_priority_service');
+
+    // Get selected options.
+    var selectedOptions = $('#olmis_priority_service option:selected');
+
+    if (selectedOptions.length == 3) 
+    {
+        // Disable all other checkboxes.
+        var nonSelectedOptions = $('#olmis_priority_service option').filter(function() {
+            return !$(this).is(':selected');
+            });
+
+        var dropdown = $('#olmis_priority_service').siblings('.multiselect-container');
+        nonSelectedOptions.each(function() {
+            var input = $('input[value="' + $(this).val() + '"]');
+            input.prop('disabled', true);
+            input.parent('li').addClass('disabled');
+        });
+    }
+    else 
+    {
+        // Enable all checkboxes.
+        var dropdown = $('#olmis_priority_service').siblings('.multiselect-container');
+        $('#olmis_priority_service option').each(function() {
+            var input = $('input[value="' + $(this).val() + '"]');
+            input.prop('disabled', false);
+            input.parent('li').addClass('disabled');
+        });
+    }
 
 });
 
