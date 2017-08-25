@@ -4,12 +4,14 @@ REPORTS = {}
 REPORTS[1] = 'registration'
 # Registration
 QUERIES['registration'] = '''
-select reg_org_unit.org_unit_name AS CBO, reg_person.first_name, reg_person.surname,
+select reg_org_unit.org_unit_name AS CBO,
+reg_person.first_name, reg_person.surname,
 reg_person.other_names, reg_person.date_of_birth, registration_date,
 date_part('year', age(reg_person.date_of_birth)) AS age,
-date_part('year', age(ovc_registration.registration_date, reg_person.date_of_birth)) AS age_at_reg,
+date_part('year', age(ovc_registration.registration_date,
+reg_person.date_of_birth)) AS age_at_reg,
 child_cbo_id as OVCID,
-reg_persons_geo.area_id as ward,
+list_geo.area_name as ward,
 CASE
 WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
 WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 1 AND 4 THEN 'b.[1-4yrs]' 
@@ -38,16 +40,15 @@ left outer join reg_person chw on child_chv_id=chw.id
 left outer join reg_person cgs on caretaker_id=cgs.id
 left outer join reg_org_unit on child_cbo_id=reg_org_unit.id
 left outer join reg_persons_geo on ovc_registration.person_id=reg_persons_geo.person_id
+left outer join list_geo on list_geo.area_id=reg_persons_geo.area_id
 where child_cbo_id in (%s);'''
-
 
 # PEPFAR
 QUERIES['pepfar'] = '''
-select ovc_care_services.service_provided,
+select
 cast(count(distinct ovc_care_events.person_id) as integer) as OVCCount,
-ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name AS CBO,
-list_geo.area_name,
+list_geo.area_name as ward,
 date_part('year', age(reg_person.date_of_birth)) AS age,
 CASE
 WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
@@ -81,10 +82,8 @@ list_geo.area_name;'''
 QUERIES['datim'] = '''
 select
 cast(count(distinct ovc_registration.person_id) as integer) as OVCCount,
-ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name AS CBO,
-reg_persons_geo.area_id,
-list_geo.area_name,
+list_geo.area_name as ward,
 date_part('year', age(reg_person.date_of_birth)) AS age,
 CASE
 WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
@@ -117,10 +116,8 @@ ovc_registration.hiv_status, list_geo.area_name;'''
 QUERIES['datim_1'] = '''
 select 
 cast(count(distinct ovc_care_events.person_id) as integer) as OVCCount,
-ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name AS CBO,
-reg_persons_geo.area_id,
-list_geo.area_name,
+list_geo.area_name as ward,
 date_part('year', age(reg_person.date_of_birth)) AS age,
 CASE
 WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
@@ -151,10 +148,8 @@ list_geo.area_name;'''
 QUERIES['datim_2'] = '''
 select
 cast(count(distinct ovc_registration.person_id) as integer) as OVCCount,
-ovc_registration.child_cbo_id,
 reg_org_unit.org_unit_name AS CBO,
-reg_persons_geo.area_id,
-list_geo.area_name,
+list_geo.area_name as ward,
 date_part('year', age(reg_person.date_of_birth)) AS age,
 CASE
 WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
