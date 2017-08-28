@@ -113,12 +113,13 @@
                         <a href="#" data-toggle="tooltip" title="Select report type."><i class="fa fa-info-circle fa-lg"></i></a>
                     </div>      
                     <div class="panel-body panel-form">
-                        <div class="form-group">
+                        <div style="margin: 10px;">
                             <label class="control-label col-md-4 col-sm-4"></label>
                             <div class="col-md-6 col-sm-6">
                                 <button type="submit" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-check-square-o"></i> View </button>
                                 <button type="button" id="map-print" class="btn btn-sm btn-danger m-r-5" onclick="printChart()"><i class="fa fa-print"></i> Print Report</button>
                                 <button type="button" id="rpt-download" class="btn btn-sm btn-primary m-r-5"><i class="fa fa-download"></i> Download</button>
+                                <span  id="other_reports"></span>
                                 <input type="hidden" name="rpt_id" id="rpt_id">
                             </div>
                         </div>
@@ -164,6 +165,7 @@ jQuery(document).ready(function() {
     });
     
     $('#map-print, #rpt-download').hide();
+    $('#other_reports').empty();
     $('#case_load_report').on('submit', function(event){
         event.preventDefault();
         $('#report_results').html("Processing Report...");
@@ -180,12 +182,22 @@ jQuery(document).ready(function() {
             success : function(response) {
                 var data = response.data;
                 var file_name = response.file_name;
+                var xls = response.xls;
                 var status = response.status;
                 var message = response.message;
                 var tpl = $.pivotUtilities.aggregatorTemplates;
                 var numberFormat = $.pivotUtilities.numberFormat;
                 var intFormat = numberFormat({digitsAfterDecimal: 0});
                 $("#rpt_id").val(file_name);
+
+                var url = '<a href="{% url "download_reports" file_name="0000" %}"';
+                // XLS
+                var xlsm = url.replace('0000', xls+'.xlsm');
+                xlsm += 'class="btn btn-sm btn-danger active m-r-5">';
+                xlsm += '<i class="fa fa-file-excel-o"></i> Excel</a>';
+                if (status == 0){
+                    $('#other_reports').html(xlsm);
+                }
 
                 var renderers = $.extend(
                     $.pivotUtilities.renderers,

@@ -6,6 +6,7 @@ import time
 import string
 import calendar
 import collections
+import pandas
 from django.db import connection
 from datetime import datetime, timedelta, date
 from calendar import monthrange, month_name
@@ -44,10 +45,12 @@ from cpovc_forms.models import (
 
 from django.conf import settings
 from django.db.models import Count
-from queries import QUERIES, REPORTS
+from .queries import QUERIES, REPORTS
+from .parameters import ORPTS, RPTS
 
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATICFILES_DIRS[0]
+DOC_ROOT = settings.DOCUMENT_ROOT
 
 
 class Canvas(canvas.Canvas):
@@ -1987,6 +1990,15 @@ def get_variables(request):
         adhoc_id = request.POST.get('report_vars')
         org_type = request.POST.get('org_type')
         cluster = request.POST.get('cluster')
+        report_ovc = request.POST.get('report_ovc')
+        report_ovc_id = request.POST.get('report_ovc_id')
+        rpt_ovc = int(report_ovc) if report_ovc else 1
+        rpt_ovc_id = int(report_ovc_id) if report_ovc_id else 1
+        if rpt_ovc == 6:
+            report_ovc_name = ORPTS[rpt_ovc_id]
+        else:
+            report_ovc_name = RPTS[rpt_ovc]
+        report_name = report_ovc_name.title().replace(' ', '')
         categories = {}
         report_id = int(report) if report else 0
         if int(report_id) in [3, 4]:
@@ -2064,6 +2076,8 @@ def get_variables(request):
         report_variables['org_type'] = org_type_id
         adhoc_type = adhoc_id if adhoc_id else None
         report_variables['adhoc_type'] = adhoc_type
+        report_variables['report_ovc'] = report_ovc
+        report_variables['report_ovc_name'] = report_name
         report_variables['cci_si_title'] = region_names[report_region]
         sc = variables['sub_county']
         is_opt = report_region == 4
@@ -2384,7 +2398,7 @@ def get_services_data(servs, params):
             is_void=False, registration_date__lt=end_date)
         if cbo_id:
             regs = regs.filter(child_cbo_id__in=cbos)
-        pids = regs.values_list('person_id', flat=True)
+        # pids = regs.values_list('person_id', flat=True)
         # Results
         cbos = 'and ovc_registration.child_cbo_id in (%s)' % (cbo_id)
         if report_id == 1:
@@ -2485,6 +2499,28 @@ def write_xls(response, data, titles=None):
         print "error creating excel - %s" % (str(e))
         raise e
     else:
+        pass
+
+
+def write_xlsm(csv_file, file_name, report_id=1):
+    """Method to write excel."""
+    try:
+        print MEDIA_ROOT
+        csv_file_name = '%s/%s.csv' % (MEDIA_ROOT, csv_file)
+        excel_file = '%s/%s.xlsx' % (MEDIA_ROOT, file_name)
+        s_name = RPTS[report_id]
+        vba_file = '%s/%s/vbaProject.bin' % (DOC_ROOT, s_name)
+        writer = pandas.ExcelWriter(excel_file, engine='xlsxwriter')
+        data = pandas.read_csv(csv_file_name)
+        data.to_excel(writer, sheet_name='Sheet', index=False)
+        workbook = writer.book
+        xlsm_file = '%s/%s.xlsm' % (MEDIA_ROOT, file_name)
+        workbook.filename = xlsm_file
+        workbook.add_vba_project(vba_file)
+        writer.save()
+        print 'Macros written'
+    except Exception, e:
+        print "error creating excel - %s" % (str(e))
         pass
 
 

@@ -22,7 +22,7 @@ from .functions import (
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
     get_case_data, org_unit_tree, get_performance, get_performance_detail,
     get_pivot_data, get_pivot_ovc, get_variables, get_sql_data, write_xls,
-    csvxls_data)
+    csvxls_data, write_xlsm)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -40,6 +40,7 @@ from reportlab.pdfgen import canvas
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from .parameters import ORPTS
 
 MEDIA_ROOT = settings.MEDIA_ROOT
 DOC_ROOT = settings.DOCUMENT_ROOT
@@ -526,17 +527,8 @@ def reports_generate(request):
             html = all_data.format(**report_variables)
             # Write the csv
             write_csv(raw_data, file_name, report_variables)
-            # Write xlsx
-            if int(report_id) == 6:
-                xltms = {1: 'datim', 2: 'pepfar', 3: 'datim'}
-                sheets = {'datim': 'RAWDATA', 'pepfar': 'Sheet1'}
-                xltm = xltms[int(ovc_type)]
-                sheet = sheets[xltm]
-                report_variables['xltm'] = xltm
-                report_variables['sheet'] = sheet
-                report_variables['sheet_start'] = 5
-                del raw_data[0]
-                write_xlsx(raw_data, file_name, report_variables)
+            # Write xlsx with macros
+            print ovc_type
             results = {'status': 0, 'file_name': file_name, 'report': html,
                        'message': 'No data matching your query.'}
             return JsonResponse(results, content_type='application/json',
@@ -843,13 +835,15 @@ def reports_ovc_rawdata(request):
         if request.method == 'POST':
             ext = request.POST.get('ext')
         print ext
+        report_ovc_id = int(report_variables['report_ovc'])
+        report_name = report_variables['report_ovc_name']
         start_date = report_variables['start_date']
         today = datetime.now()
         if start_date > today:
             results = []
         else:
             results = get_pivot_ovc(request, report_variables)
-        fid = '%s_%s' % (today, user_id)
+        fid = '%s_%s_%s' % (report_name, today, user_id)
         fid = fid.replace(':', '').replace(' ', '_')
         fid = base64.urlsafe_b64encode(fid)
         #
@@ -864,9 +858,14 @@ def reports_ovc_rawdata(request):
                 val = res[i]
                 vals.append(val)
             data.append(vals)
-        write_csv(data, 'tmp-%s' % (fid), {})
+        csv_file = 'tmp-%s' % (fid)
+        write_csv(data, csv_file, {})
+        xlsm_name = ''
+        if report_ovc_id == 1:
+            xlsm_name = '%sReport_%s' % (report_name, user_id)
+            write_xlsm(csv_file, xlsm_name)
         datas = {'file_name': fid, 'data': results,
-                 'status': 0, 'message': 'Success'}
+                 'status': 0, 'message': 'Success', 'xls': xlsm_name}
         return JsonResponse(datas, content_type='application/json',
                             safe=False)
     except Exception, e:
@@ -879,19 +878,8 @@ def reports_ovc_rawdata(request):
 def reports_ovc(request, id):
     """Method to do pivot reports."""
     try:
-        rpts = {}
-        rpts[1] = 'Registration list'
-        rpts[2] = 'Registration by HH'
-        rpts[3] = 'CSI'
-        rpts[4] = 'CHV monthly RR'
-        rpts[5] = 'List of OVC not served'
-        rpts[6] = 'PEPFAR detailed summary'
-        rpts[7] = 'Registration by CHV'
-        rpts[8] = 'Beneficiary list'
-        rpts[9] = 'Form1a summary'
-        rpts[10] = 'Needs vs Served by domain'
         rpt_id = int(id)
-        name = rpts[rpt_id] if rpt_id in rpts else rpts[1]
+        name = ORPTS[rpt_id] if rpt_id in ORPTS else ORPTS[1]
         form = CaseLoad(request.user)
         return render(request, 'reports/pivot_ovc.html',
                       {'form': form, 'name': name,
@@ -907,10 +895,14 @@ def reports_ovc_download(request):
     today = datetime.now()
     dates = today.strftime('%d%m%Y')
     f = request.GET.get('f')
-    mc_name = "%s_REGISTRATION.xlsx" % (dates)
+    rnames = base64.urlsafe_b64decode(str(f))
+    s_name = rnames.split('_')[0]
+    file_name = "REGISTRATIONReport_%s" % (dates)
+    mc_name = "%s.xlsx" % (file_name)
     if f:
         data, titles = csvxls_data(request, f)
-        mc_name = "%s_REPORT.xlsx" % (dates)
+        file_name = "%sReport_%s" % (s_name, dates)
+        mc_name = "%s.xlsx" % (file_name)
     else:
         data, titles = get_sql_data(request)
     file_name = 'attachment; filename="%s"' % (mc_name)
@@ -919,4 +911,6 @@ def reports_ovc_download(request):
     response = HttpResponse(content_type=ctype)
     response['Content-Disposition'] = file_name
     write_xls(response, data, titles)
+    # csv_file = '%s/tmp-%s.csv' % (MEDIA_ROOT, f)
+    # write_xlsm(response, csv_file, xlsm_bin, file_name)
     return response

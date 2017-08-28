@@ -1,8 +1,12 @@
 QUERIES = {}
+# Reports
 REPORTS = {}
 # Reports listings
 REPORTS[1] = 'registration'
-# Registration
+REPORTS[2] = 'registration'
+REPORTS[3] = 'registration'
+
+# Registration List
 QUERIES['registration'] = '''
 select reg_org_unit.org_unit_name AS CBO,
 reg_person.first_name, reg_person.surname,
