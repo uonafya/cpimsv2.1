@@ -281,7 +281,7 @@ def ovc_registration(request, ovc_id, edit=0):
                 edit_hiv = True
                 ovc_detail.hiv_status = nhiv_status
             elif ovc_detail.hiv_status == 'HSTP' and nhiv_status == 'HSTN':
-                if request.is_staff:
+                if request.user.is_staff:
                     edit_hiv = True
                     ovc_detail.hiv_status = nhiv_status
         is_active = False if is_exited else True
