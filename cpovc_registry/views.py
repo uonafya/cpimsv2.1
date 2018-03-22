@@ -736,7 +736,7 @@ def persons_search(request):
                     search_wfc_by_org_unit=search_wfc_by_org_unit)
                 """
                 results = get_list_of_persons(
-                    search_string=search_string, number_of_results=5000,
+                    search_string=search_string, number_of_results=2000,
                     in_person_types=type_of_person, include_died=include_dead,
                     search_criteria=search_criteria)
 
