@@ -14,13 +14,11 @@ class MyUserAdmin(UserAdmin):
 
     model = AppUser
 
-    list_display = ['username', 'sex', 'surname', 'first_name', 'last_name',
-                    'email', 'timestamp_created', 'is_active']
+    list_display = ['username', 'first_name', 'last_name', 'email',
+                    'is_active']
 
     search_fields = ['username']
     readonly_fields = ['reg_person']
-    list_filter = ['is_active', 'is_staff', 'is_superuser',
-                   'timestamp_created', 'groups', 'reg_person__sex_id']
 
     fieldsets = (
         (_('Personal info'), {'fields': ('username', 'password',

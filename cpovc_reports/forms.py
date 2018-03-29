@@ -204,32 +204,3 @@ class CaseLoad(forms.Form):
             attrs={'class': 'form-control',
                    'data-parsley-required': 'true',
                    'autofocus': 'true'}))
-
-
-class ClusterForm(forms.Form):
-    """Class for case load reports forms."""
-
-    def __init__(self, user, *args, **kwargs):
-        """Override method especially for dynamic lookup data."""
-        self.user = user
-        super(ClusterForm, self).__init__(*args, **kwargs)
-        org_units_list = get_specific_orgs(self.user.reg_person_id)
-
-        if user.is_superuser:
-            org_units_list = get_org_units_list('Please select Unit')
-
-        cbo_unit_id = forms.MultipleChoiceField(
-            choices=org_units_list,
-            initial='',
-            widget=forms.SelectMultiple(
-                attrs={'class': 'form-control',
-                       'data-parsley-required': 'true',
-                       'id': 'cbo'}))
-
-        self.fields['cbo'] = cbo_unit_id
-
-    cluster = forms.CharField(
-        widget=forms.TextInput(
-            attrs={'class': 'form-control',
-                   'data-parsley-required': 'true',
-                   'id': 'cluster'}))

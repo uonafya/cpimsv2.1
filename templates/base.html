@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load git_version %}
 
 <!DOCTYPE html>
 <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
@@ -74,9 +75,7 @@
 							<li><a href="{% url 'password_change' %}">Change Password</a></li>
 							<li><a href="#"><span class="badge badge-danger pull-right">2</span> Messages</a></li>
 							<li class="divider"></li>
-							<li><a href="{% url 'cluster' %}">Clusters</a></li>
-							<li class="divider"></li>
-							{% if request.user.is_staff %}
+							{% if request.user.is_superuser %}
 							    <li><a href="/admin/">Administration</a></li>
 							{% endif %}
 							<li><a href="{% url 'logout' %}">Log Out</a></li>
@@ -129,7 +128,8 @@
 		</div>
 		<!-- end #content -->
 		<div id="footer" class="footer"> {{ status }} &nbsp; &copy; {% now "Y" %}. All Rights Reserved. Version: 
-        2.0.0
+        {% git_version as the_version %}
+		{{ the_version }}
         <span class="promo"><img src="{% static 'img/logo_private.png' %}" height="60"></span>
 		</div>
         <div class="modal fade" id="modal-session">

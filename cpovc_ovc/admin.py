@@ -1,6 +1,5 @@
 """Admin backend for editing this aggregate data."""
 from django.contrib import admin
-from import_export.admin import ImportExportModelAdmin
 
 from .models import (
     OVCAggregate, OVCFacility, OVCSchool, OVCCluster,
@@ -34,7 +33,7 @@ class OVCFacilityAdmin(admin.ModelAdmin):
 admin.site.register(OVCFacility, OVCFacilityAdmin)
 
 
-class OVCSchoolAdmin(ImportExportModelAdmin):
+class OVCSchoolAdmin(admin.ModelAdmin):
     """Aggregate data admin."""
 
     search_fields = ['school_name']

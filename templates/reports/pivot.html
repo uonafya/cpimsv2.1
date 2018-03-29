@@ -161,23 +161,20 @@ jQuery(document).ready(function() {
             data: $("#case_load_report").serialize() + "&org_unit_name="+oname,
             // handle a successful response
             success : function(response) {
-                var data = response.data;
                 var file_name = response.file_name;
                 var status = response.status;
                 var message = response.message;
                 var tpl = $.pivotUtilities.aggregatorTemplates;
-                var numberFormat = $.pivotUtilities.numberFormat;
-                var intFormat = numberFormat({digitsAfterDecimal: 0});
 
                 var renderers = $.extend(
                     $.pivotUtilities.renderers,
-                    $.pivotUtilities.c3_renderers
+                    $.pivotUtilities.d3_renderers
                     );
                 ages = ['0 - 5 yrs', '6 - 10 yrs', '11 - 15 yrs',
                         '16 - 17 yrs', '18+ yrs'];
 
 
-                $("#report_html").pivotUI(data, {
+                $("#report_html").pivotUI(response, {
                     //renderers: renderers,
                     derivedAttributes: {
                         "Age Set": function(mp) {
@@ -186,13 +183,9 @@ jQuery(document).ready(function() {
                         }
                     },
                     cols: ["Age Set", "Sex"], rows: ["Category"],
-                    rowOrder: "value_a_to_z",
                     aggregators: {
-                        "Number of OVC":  function() { 
-                            return tpl.count()()
-                        },
-                        "Sum of OVC":  function() { 
-                            return tpl.sum(intFormat)(["OVCCount"]) 
+                        "Number of Cases":  function() { 
+                            return tpl.count()() 
                         }
                     },
                     rendererName: "Table"

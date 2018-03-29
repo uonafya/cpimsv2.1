@@ -2455,8 +2455,6 @@ class OVCF1AForm(forms.Form):
                #'data-parsley-required': "true",
                #'data-parsley-group': 'group3'
                }))
-    caretaker_id = forms.CharField(widget=forms.HiddenInput(
-        attrs={'id': 'caretaker_id'}))
 
 
 class OVCHHVAForm(forms.Form):

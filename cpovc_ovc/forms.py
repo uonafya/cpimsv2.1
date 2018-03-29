@@ -4,8 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from cpovc_main.functions import get_list, get_org_units_list
 
 search_criteria_list = (('', 'Select Criteria'), ('1', 'Names'),
-                        ('2', 'HouseHold'), ('3', 'CHV'), ('4', 'CBO'),
-                        ('5', 'Caregiver'))
+                        ('2', 'HouseHold'), ('3', 'CHV'), ('4', 'CBO'))
 
 immunization_list = get_list('immunization_status_id', 'Please Select')
 
@@ -43,10 +42,10 @@ class OVCSearchForm(forms.Form):
                    'data-parsley-required': "true",
                    'id': 'search_criteria'}))
 
-    person_exited = forms.CharField(
+    person_deceased = forms.CharField(
         required=False,
         widget=forms.CheckboxInput(
-            attrs={'id': 'person_exited'}))
+            attrs={'id': 'person_deceased'}))
 
     form_type = forms.ChoiceField(
         choices=ovc_form_type_list,

@@ -4,17 +4,17 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
-from datetime import date
+from django.db.models import Count
 from .forms import OVCSearchForm, OVCRegistrationForm
 from cpovc_registry.models import (
-    RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds)
+    RegPerson, RegPersonsGuardians, RegPersonsSiblings, RegPersonsExternalIds,
+    OVCCheckin)
 from cpovc_main.functions import get_dict
 from .models import (
     OVCRegistration, OVCHHMembers, OVCEligibility)
 from .functions import (
     ovc_registration, get_hh_members, get_ovcdetails, gen_cbo_id, search_ovc,
-    search_master, get_school, get_health, manage_checkins)
+    search_master, get_school, get_health, get_checkins)
 from cpovc_auth.decorators import is_allowed_ous
 from cpovc_forms.models import OVCCareEvents
 
@@ -23,23 +23,7 @@ from cpovc_forms.models import OVCCareEvents
 def ovc_home(request):
     """Some default page for Server Errors."""
     try:
-        rid = 0
-        reqid = request.GET.get('id', '')
-        offset = request.GET.get('offset', '')
-        limit = request.GET.get('limit', '')
-        if reqid and offset and limit:
-            rid = 2
-        if request.method == 'POST' or rid:
-            aid = request.POST.get('id')
-            act_id = int(aid) if aid else 0
-            action_id = rid if rid else act_id
-            if action_id in [1, 2, 3]:
-                msg, chs = manage_checkins(request, rid)
-                results = {'status': 0, 'message': msg, 'checkins': chs}
-                if rid == 2:
-                    results = chs
-                return JsonResponse(results, content_type='application/json',
-                                    safe=False)
+        if request.method == 'POST':
             form = OVCSearchForm(data=request.POST)
             ovcs = search_ovc(request)
 
@@ -218,12 +202,11 @@ def ovc_edit(request, id):
         facility_id, facility = '', ''
         if creg.hiv_status == 'HSTP':
             health = get_health(ovc_id)
-            if health:
-                ccc_no = health.ccc_number
-                date_linked = health.date_linked.strftime('%d-%b-%Y')
-                art_status = health.art_status
-                facility_id = health.facility_id
-                facility = health.facility.facility_name
+            ccc_no = health.ccc_number
+            date_linked = health.date_linked.strftime('%d-%b-%Y')
+            art_status = health.art_status
+            facility_id = health.facility_id
+            facility = health.facility.facility_name
         # Get School information
         sch_class, sch_adm_type = '', ''
         school_id, school = '', ''
@@ -295,29 +278,31 @@ def ovc_edit(request, id):
 def ovc_view(request, id):
     """Some default page for Server Errors."""
     try:
-        aid = 0
-        reqid = request.GET.get('id', '')
-        offset = request.GET.get('offset', '')
-        limit = request.GET.get('limit', '')
-        if reqid and offset and limit:
-            aid = 2
-        if request.method == 'POST' or aid:
-            msg, chs = manage_checkins(request, aid)
+        if request.method == 'POST':
+            chs = ''
+            org_unit_id = None
+            ovc_id = request.POST.get('ovc_id')
+            aid = request.POST.get('id')
+            action_id = int(aid) if aid else 0
+            user_id = request.user.id
+            if action_id == 1:
+                msg = 'OVC checked in successfully.'
+                if 'ou_primary' in request.session:
+                    ou_id = request.session['ou_primary']
+                    org_unit_id = int(ou_id) if ou_id else None
+                checkin, created = OVCCheckin.objects.update_or_create(
+                    person_id=ovc_id, user_id=user_id,
+                    defaults={'person_id': ovc_id, 'user_id': user_id,
+                              'org_unit_id': org_unit_id},)
+            elif action_id == 2:
+                chs, cnt = get_checkins(user_id)
+                msg = 'OVC checked in returned %s results.' % (cnt)
             results = {'status': 0, 'message': msg, 'checkins': chs}
-            if aid == 2:
-                results = chs
             return JsonResponse(results, content_type='application/json',
                                 safe=False)
         ovc_id = int(id)
         child = RegPerson.objects.get(is_void=False, id=ovc_id)
         creg = OVCRegistration.objects.get(is_void=False, person_id=ovc_id)
-        days = 0
-        if not creg.is_active and creg.exit_date:
-            edate = creg.exit_date
-            tdate = date.today()
-            days = (tdate - edate).days
-        print 'exit days', days
-        allow_edit = False if days > 90 else True
         params = {}
         gparams = {}
         # Get guardians
@@ -343,14 +328,6 @@ def ovc_view(request, id):
         school = {}
         if creg.school_level != 'SLNS':
             school = get_school(ovc_id)
-        # Get house hold
-        hhold = OVCHHMembers.objects.get(
-            is_void=False, person_id=child.id)
-        # Get HH members
-        hhid = hhold.house_hold_id
-        hhmqs = OVCHHMembers.objects.filter(
-            is_void=False, house_hold_id=hhid).order_by("-hh_head")
-        hhmembers = hhmqs.exclude(person_id=child.id)
         # Get siblings
         siblings = RegPersonsSiblings.objects.filter(
             is_void=False, child_person_id=child.id)
@@ -358,8 +335,7 @@ def ovc_view(request, id):
         servs = {'FSAM': 'f1a', 'FCSI': 'fcsi', 'FHSA': 'fhva'}
         services = {'f1a': 0, 'fcsi': 0, 'fhva': 0}
         sqs = OVCCareEvents.objects.filter(
-            Q(person_id=child.id) | Q(house_hold_id=hhid))
-        sqs = sqs.filter(is_void=False).values(
+            is_void=False, person_id=child.id).values(
             'event_type_id').annotate(
                 total=Count('event_type_id')).order_by('total')
         for serv in sqs:
@@ -368,6 +344,14 @@ def ovc_view(request, id):
             if item in servs:
                 item_key = servs[item]
                 services[item_key] = item_count
+        # Get house hold
+        hhold = OVCHHMembers.objects.get(
+            is_void=False, person_id=child.id)
+        # Get HH members
+        hhid = hhold.house_hold_id
+        hhmqs = OVCHHMembers.objects.filter(
+            is_void=False, house_hold_id=hhid).order_by("-hh_head")
+        hhmembers = hhmqs.exclude(person_id=child.id)
         # Re-usable values
         check_fields = ['relationship_type_id', 'school_level_id',
                         'hiv_status_id', 'immunization_status_id',
@@ -380,7 +364,7 @@ def ovc_view(request, id):
                        'vals': vals, 'hhold': hhold, 'creg': creg,
                        'extids': gparams, 'health': health,
                        'hhmembers': hhmembers, 'school': school,
-                       'services': services, 'allow_edit': allow_edit})
+                       'services': services})
     except Exception, e:
         print "error with OVC viewing - %s" % (str(e))
         raise e

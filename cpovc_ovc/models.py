@@ -70,7 +70,6 @@ class OVCRegistration(models.Model):
     has_bcert = models.BooleanField(null=False, default=False)
     is_disabled = models.BooleanField(null=False, default=False)
     hiv_status = models.CharField(max_length=4, null=True)
-    # art_status = models.CharField(max_length=4, null=True)
     school_level = models.CharField(max_length=4, null=True)
     immunization_status = models.CharField(max_length=4, null=True)
     org_unique_id = models.CharField(max_length=15, null=True)
@@ -288,7 +287,7 @@ class OVCClusterCBO(models.Model):
 
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
-    cluster = models.ForeignKey(OVCCluster, on_delete=models.CASCADE)
+    cluster = models.ForeignKey(OVCCluster)
     cbo = models.ForeignKey(RegOrgUnit)
     added_at = models.DateTimeField(default=timezone.now)
     is_void = models.BooleanField(default=False)

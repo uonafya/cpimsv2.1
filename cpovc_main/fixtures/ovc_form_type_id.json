@@ -46,21 +46,5 @@
             "item_description": "Services and Monitoring(Form 1A)", 
             "the_order": 3
         }
-    }, 
-    {
-        "pk": 18929, 
-        "model": "cpovc_main.SetupList", 
-        "fields": {
-            "item_category": "OVC Forms", 
-            "user_configurable": "False", 
-            "field_name": "ovc_form_type_id", 
-            "item_sub_category": "", 
-            "is_void": "False", 
-            "item_id": "FSCA", 
-            "item_description_short": "Caregiver Assessment", 
-            "sms_keyword": "False", 
-            "item_description": "Caregiver Assessment(Form 1B)", 
-            "the_order": 4
-        }
     }
 ]

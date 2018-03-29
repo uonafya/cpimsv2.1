@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Registry views for CPIMS."""
-import uuid
 from datetime import datetime
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, JsonResponse
@@ -21,8 +20,7 @@ from .functions import (
     save_person_extids, save_person_type, remove_person_type, save_sibling,
     save_audit_trail, create_geo_list, counties_from_aids, get_user_details,
     get_list_types, geos_from_aids, person_duplicate, copy_locations,
-    unit_duplicate, get_temp, save_household, get_household, get_index_child,
-    check_duplicate)
+    unit_duplicate, get_temp, save_household, get_household, get_index_child)
 from cpovc_auth.models import AppUser
 from cpovc_registry.models import (
     RegOrgUnit, RegOrgUnitContact, RegPerson, RegPersonsOrgUnits,
@@ -446,14 +444,6 @@ def new_person(request):
         # We handle POST request
         if request.method == 'POST':
             form = RegistrationForm(request.user, data=request.POST)
-            # Check duplicate first
-            person_uid = request.POST.get('person_uid')
-            unique_id = check_duplicate(person_uid)
-            if not unique_id:
-                msg = 'Duplicate records identified.'
-                messages.add_message(request, messages.ERROR, msg)
-                return HttpResponseRedirect(reverse(persons_search))
-
             # Extract Caregivers, Org Units, Siblings
             attached_cg = extract_post_params(request)
             attached_ou = extract_post_params(request, 'ou_')
@@ -562,17 +552,6 @@ def new_person(request):
                         primary_unit=is_pri_unit,
                         reg_assistant=is_reg_ass,
                         is_void=False).save()
-            # For OVC programming Caregiver and Volunteer add cbo_id
-            reg_ovc = request.session.get('reg_ovc', False)
-            ovc_cbos = ['TBGR', 'TWVL']
-            ovc_type = str(person_type)
-            if reg_ovc and ovc_type in ovc_cbos:
-                cbo_id = request.POST.get('cbo_unit_id')
-                person_id = int(reg_person_pk)
-                RegPersonsOrgUnits(
-                    person_id=person_id, org_unit_id=cbo_id,
-                    date_linked=now, date_delinked=None, primary_unit=True,
-                    reg_assistant=False, is_void=False).save()
 
             # Capture RegPersonsGeo Model
             area_ids = {}
@@ -607,8 +586,7 @@ def new_person(request):
             if attached_cg:
                 for ccid_id in attached_cg:
                     is_adult = attached_cg[ccid_id]['adult']
-                    cgid = attached_cg[ccid_id]['cpid']
-                    caregiver_id = int(cgid) if cgid.isnumeric() else 0
+                    caregiver_id = int(attached_cg[ccid_id]['cpid'])
                     relationship = attached_cg[ccid_id]['ctype']
                     child_headed = True if is_adult == 'No' else False
                     RegPersonsGuardians(
@@ -668,14 +646,6 @@ def new_person(request):
                 params['paper_person_id'] = audit_workforce_id
                 params['person_id'] = int(reg_person_pk)
                 save_audit_trail(request, params)
-            # Master Table update
-            if unique_id:
-                unique_id.person_type = person_type
-                unique_id.person_id = int(reg_person_pk)
-                unique_id.system_id = 'XXXX'
-                unique_id.save(
-                    update_fields=["person_type", "person_id", "system_id"])
-
             operation_msg = 'Person (%s) save success.' % first_name.upper()
             messages.add_message(request, messages.INFO, operation_msg)
             if child_ovc == 'AYES':
@@ -691,11 +661,10 @@ def new_person(request):
             # Not request.POST
             chvs = RegistrationForm(request.user)
             chvs = len(chvs.chvs)
-            person_uid = uuid.uuid4
             form = RegistrationForm(request.user, data=my_params)
             return render(request, 'registry/person_new.html',
                           {'form': form, 'titles': titles, 'todate': todate,
-                           'chvs': chvs, 'person_uid': person_uid},)
+                           'chvs': chvs},)
 
     except Exception, e:
         operation_msg = 'Error occured when saving person -  %s' % (str(e))
@@ -736,7 +705,7 @@ def persons_search(request):
                     search_wfc_by_org_unit=search_wfc_by_org_unit)
                 """
                 results = get_list_of_persons(
-                    search_string=search_string, number_of_results=2000,
+                    search_string=search_string, number_of_results=50,
                     in_person_types=type_of_person, include_died=include_dead,
                     search_criteria=search_criteria)
 
@@ -744,6 +713,7 @@ def persons_search(request):
                 ids = []
                 for result in results:
                     ids.append(result.pk)
+
                 geo_names = names_from_ids(ids, registry='persons')
                 org_names = names_from_ids(ids, registry='person_orgs')
                 p_types = names_from_ids(ids, registry='person_types')
@@ -1111,29 +1081,7 @@ def edit_person(request, id):
                     identifier_types['IGNM'] = given_name
 
                 save_person_extids(identifier_types, eperson_id)
-                # For OVC programming Caregiver and Volunteer add cbo_id
-                reg_ovc = request.session.get('reg_ovc', False)
-                ovc_cbos = ['TBGR', 'TWVL', 'TBVC']
-                ovc_type = str(person_type)
-                print 'ptypes', ovc_type
-                if reg_ovc and ovc_type in ovc_cbos:
-                    cbo_id = request.POST.get('cbo_unit_id')
-                    org, created = RegPersonsOrgUnits.objects.update_or_create(
-                        person_id=eperson_id, org_unit_id=cbo_id,
-                        date_delinked=None,
-                        defaults={'person_id': eperson_id,
-                                  'date_linked': now, 'date_delinked': None,
-                                  'primary_unit': True, 'reg_assistant': False,
-                                  'org_unit_id': cbo_id, 'is_void': False},)
-                    print 'Delink all the old regions'
-                    ops = RegPersonsOrgUnits.objects.filter(
-                        person_id=eperson_id, is_void=False).exclude(
-                        org_unit_id=cbo_id)
-                    for op in ops:
-                        print 'delink', op.id
-                        op.is_void = True
-                        op.date_delinked = now
-                        op.save()
+
                 msg = 'Update of Person (%s) was successful.' % first_name
                 # For households
                 attached_cg = extract_post_params(request, naming='cc_')
@@ -1161,9 +1109,6 @@ def edit_person(request, id):
                 msg = 'Update of (%s) to dead was successful.' % (first_name)
             elif edit_type == 3:
                 delete_person(id)
-                if ovc:
-                    ovc.is_void = True
-                    ovc.save(update_fields=["is_void"])
                 msg = 'Person (%s) deleted successfully.' % (first_name)
 
             # Perform audit trail here for all
@@ -1278,9 +1223,7 @@ def edit_person(request, id):
 
             # Get org unit values to help with checking primary unit
             pri_unit_id, units_list = '', []
-            cbo_id = 0
             for person_org in person_orgs:
-                cbo_id = person_org.org_unit_id
                 pri_unit = person_org.primary_unit
                 unit_names = person_org.org_unit.org_unit_name
                 units_list.append(unit_names)
@@ -1350,11 +1293,6 @@ def edit_person(request, id):
             if ovc:
                 initial_vals['cbo_unit_id'] = ovc.child_cbo_id
                 initial_vals['chv_unit_id'] = ovc.child_chv_id
-            # For caregivers and volunteers for OVC Programming
-            reg_ovc = request.session.get('reg_ovc', False)
-            ovc_cbos = ['TBGR', 'TWVL']
-            if reg_ovc and person_type_id in ovc_cbos:
-                initial_vals['cbo_unit_id'] = cbo_id
 
             all_values = merge_two_dicts(initial_vals, identifiers)
 
@@ -1528,10 +1466,8 @@ def person_actions(request):
                         org_unit_id = int(unid)
                         pri_unit = attached_ou[unid]['pri']
                         reg_ass = attached_ou[unid]['reg']
-                        pri_check = pri_unit == 'AYES' or pri_unit == 'Yes'
-                        reg_check = reg_ass == 'AYES' or reg_ass == 'Yes'
-                        is_pri_unit = True if pri_check else False
-                        is_reg_ass = True if reg_check else False
+                        is_pri_unit = True if pri_unit == 'AYES' else False
+                        is_reg_ass = True if reg_ass == 'AYES' else False
                         val, ctd = RegPersonsOrgUnits.objects.update_or_create(
                             person_id=person_id, org_unit_id=org_unit_id,
                             is_void=False,
@@ -1557,24 +1493,19 @@ def person_actions(request):
                 message = 'Caregiver added successfully'
                 attached_cg = extract_post_params(request, naming='cc_')
                 # This will be a single record - Re-used method
-                cpims_id = request.POST.get('caregiver_cpims_id')
                 print 'CHK', attached_cg
                 for ncg in attached_cg:
                     dob = None
                     if len(attached_cg[ncg]) > 2:
                         cgobj = attached_cg[ncg]
-                        cgid = attached_cg[ncg]['cpid']
-                        caregiver_id = int(cgid) if cgid.isnumeric() else 0
+                        caregiver_id = int(attached_cg[ncg]['cpid'])
                         sex_id = attached_cg[ncg]['gender']
                         date_of_birth = attached_cg[ncg]['dob']
                         first_name = attached_cg[ncg]['fname']
                         other_names = attached_cg[ncg]['oname']
                         surname = attached_cg[ncg]['sname']
                         idno = cgobj['idno'] if 'idno' in cgobj else None
-                        tel_no = cgobj['tel'] if 'tel' in cgobj else None
-                        tel = tel_no if tel_no else None
-                        print 'obj', cgobj
-                        print 'tel', tel
+                        tel = cgobj['tel'] if 'tel' in cgobj else None
                         if caregiver_id == 0:
                             if date_of_birth:
                                 dob = convert_date(date_of_birth)

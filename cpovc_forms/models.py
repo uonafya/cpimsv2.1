@@ -760,18 +760,3 @@ class OVCCareEAV(models.Model):
 
     class Meta:
         db_table = 'ovc_care_eav'
-
-
-class OVCCareF1B(models.Model):
-    """ This table will hold Form 1B data """
-
-    form_id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False)
-    event = models.ForeignKey(OVCCareEvents, on_delete=models.CASCADE)
-    domain = models.CharField(max_length=5)
-    entity = models.CharField(max_length=5)
-    value = models.SmallIntegerField(default=1)
-    is_void = models.BooleanField(default=False)
-
-    class Meta:
-        db_table = 'ovc_care_f1b'

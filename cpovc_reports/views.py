@@ -9,22 +9,20 @@ import urllib
 import string
 import mimetypes
 import calendar
-import pandas as pd
 from datetime import datetime
 # from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib import messages
 from django.http import JsonResponse
-from .forms import CaseLoad, ClusterForm
+from .forms import CaseLoad
 from .functions import (
     get_case_details, case_load_header, get_data_element,
     simple_document, draw_page, get_geo_locations, get_data, get_period,
     get_sub_county_info, get_raw_data, create_year_list, get_totals,
     get_case_data, org_unit_tree, get_performance, get_performance_detail,
     get_pivot_data, get_pivot_ovc, get_variables, get_sql_data, write_xls,
-    csvxls_data, write_xlsm, get_cluster, edit_cluster, create_pepfar,
-    get_dashboard_summary)
+    csvxls_data, write_xlsm)
 
 from cpovc_registry.models import RegOrgUnit
 from cpovc_registry.functions import get_contacts, merge_two_dicts
@@ -219,26 +217,10 @@ def write_xlsx(data, file_name, params):
 def write_csv(data, file_name, params):
     """Method to write csv given data."""
     try:
-        csv_file = '%s/%s.csv' % (MEDIA_ROOT, file_name)
-        with open(csv_file, 'wb') as csvfile:
+        with open('%s/%s.csv' % (MEDIA_ROOT, file_name), 'wb') as csvfile:
             csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"',
                                    quoting=csv.QUOTE_MINIMAL)
             csvwriter.writerows(data)
-        # Save excel to flat file
-        if 'archive' in params:
-            print file_name
-            epoch_time = int(time.time())
-            file_name = file_name.replace('tmp-', '')
-            rnames = base64.urlsafe_b64decode(str(file_name))
-            print rnames
-            report_details = rnames.split('_')
-            s_name = '%s.%s' % (report_details[0], epoch_time)
-            uid = report_details[-1]
-            df_new = pd.read_csv(csv_file)
-            xlsx_file = '%s/xlsx/%s-%s.xlsx' % (MEDIA_ROOT, uid, s_name)
-            writer = pd.ExcelWriter(xlsx_file)
-            df_new.to_excel(writer, index=False)
-            writer.save()
     except Exception, e:
         raise e
 
@@ -513,12 +495,6 @@ def reports_generate(request):
     try:
         if not request.user.is_authenticated():
             msg = 'You have been logged out. Please log in again to proceed.'
-            results = {'status': 9, 'file_name': '', 'message': msg}
-            return JsonResponse(results, content_type='application/json',
-                                safe=False)
-        time_now = int(datetime.now().strftime('%H'))
-        if time_now in range(8, 17):
-            msg = 'Reports temporarily disabled. Check again later.'
             results = {'status': 9, 'file_name': '', 'message': msg}
             return JsonResponse(results, content_type='application/json',
                                 safe=False)
@@ -839,18 +815,13 @@ def reports_rawdata(request):
         report_variables = get_variables(request)
         results = get_pivot_data(request, report_variables)
         file_name = 'results.csv'
-        # write_csv(results, file_name, report_variables)
-        status = 9
-        message = "No data matching your query."
-        if len(results) > 0:
-            status = 0
-            message = "Query finished successfully."
+        write_csv(results, file_name, report_variables)
         data = {'file_name': file_name, 'data': results,
-                'status': status, 'message': message}
+                'Status': 0, 'message': 'Success'}
         return JsonResponse(data, content_type='application/json',
                             safe=False)
     except Exception, e:
-        print 'error getting raw data 2 - %s' % (str(e))
+        print 'error getting raw data - %s' % (str(e))
         return JsonResponse([], content_type='application/json',
                             safe=False)
 
@@ -859,7 +830,6 @@ def reports_ovc_rawdata(request):
     """Method to do adhoc pivot reports."""
     try:
         ext = 'Pivot'
-        # time_now = int(datetime.now().strftime('%H'))
         user_id = request.user.id
         report_variables = get_variables(request)
         if request.method == 'POST':
@@ -868,7 +838,6 @@ def reports_ovc_rawdata(request):
         report_ovc_id = int(report_variables['report_ovc'])
         report_name = report_variables['report_ovc_name']
         start_date = report_variables['start_date']
-        report_id = int(request.POST.get('rpt_ovc_id', 1))
         today = datetime.now()
         if start_date > today:
             results = []
@@ -882,57 +851,21 @@ def reports_ovc_rawdata(request):
         if results:
             for res in results[0]:
                 titles.append(res)
-        print 'RID', report_ovc_id, report_id
-        if report_ovc_id == 6 and report_id == 1:
-            titles = ['OVCID', 'FIRST_NAME', 'SURNAME', 'OTHER_NAMES',
-                      'DATE_OF_BIRTH', 'AGE', 'AGE_AT_REG', 'GENDER',
-                      'REGISTRATION_DATE', 'EXIT_STATUS', 'EXIT_DATE',
-                      'OVCHIVSTATUS', 'ARTSTATUS', 'BIRTHCERT', 'BCERTNUMBER',
-                      'OVCDISABILITY', 'NCPWDNUMBER', 'PARENT_NAMES', 'CHW',
-                      'CBO', 'WARD', 'CONSTITUENCY', 'COUNTY', 'AGERANGE',
-                      'SCHOOLLEVEL', 'IMMUNIZATION', 'CPIMS_ID']
-        if report_ovc_id == 6 and report_id == 5:
-            titles = ['CHW', 'OVCID', 'FIRST_NAME', 'SURNAME', 'OTHER_NAMES',
-                      'DATE_OF_BIRTH', 'AGE', 'AGE_AT_REG', 'GENDER',
-                      'REGISTRATION_DATE', 'EXIT_STATUS', 'EXIT_DATE',
-                      'OVCHIVSTATUS', 'ARTSTATUS', 'BIRTHCERT', 'BCERTNUMBER',
-                      'OVCDISABILITY', 'NCPWDNUMBER', 'PARENT_NAMES',
-                      'CBO', 'WARD', 'CONSTITUENCY', 'COUNTY',
-                      'AGERANGE', 'SCHOOLLEVEL', 'IMMUNIZATION']
-        if report_ovc_id == 6 and report_id == 12:
-            titles = ['FIRST_NAME', 'SURNAME', 'OTHER_NAMES',
-                      'GENDER', 'AGE', 'AGERANGE', 'REGISTRATION_DATE',
-                      'OVCHIVSTATUS', 'ART_STATUS', 'DATE_LINKED',
-                      'CCC_NUMBER', 'FACILITY', 'EXIT_STATUS', 'EXIT_REASON',
-                      'EXIT_DATE', 'SCHOOLLEVEL', 'DOMAIN', 'SERVICE',
-                      'DATE_OF_SERVICE', 'CBO', 'COUNTY', 'CONSTITUENCY',
-                      'WARD', 'CHW', 'CAREGIVER', 'CAREGIVERHIVSTATUS']
         data = [titles]
-        print 'res', results
         for res in results:
             vals = []
             for n, i in enumerate(titles):
                 val = res[i]
-                if type(val) is unicode:
-                    val = val.encode('ascii', 'ignore').decode('ascii')
                 vals.append(val)
             data.append(vals)
         csv_file = 'tmp-%s' % (fid)
-        write_csv(data, csv_file, {'archive': True})
+        write_csv(data, csv_file, {})
         xlsm_name = ''
-        status = 9
-        message = "No results matching your query."
-        if len(results) > 0:
-            status = 0
-            message = "Query executed successfully."
-            if len(results) > 100000 or report_id == 12:
-                message += " File too big to render. Please download."
-                results = []
         if report_ovc_id == 1:
             xlsm_name = '%sReport_%s' % (report_name, user_id)
             write_xlsm(csv_file, xlsm_name)
         datas = {'file_name': fid, 'data': results,
-                 'status': status, 'message': message, 'xls': xlsm_name}
+                 'status': 0, 'message': 'Success', 'xls': xlsm_name}
         return JsonResponse(datas, content_type='application/json',
                             safe=False)
     except Exception, e:
@@ -963,7 +896,6 @@ def reports_ovc_download(request):
     dates = today.strftime('%d%m%Y')
     f = request.GET.get('f')
     rnames = base64.urlsafe_b64decode(str(f))
-    print rnames
     s_name = rnames.split('_')[0]
     file_name = "REGISTRATIONReport_%s" % (dates)
     mc_name = "%s.xlsx" % (file_name)
@@ -978,68 +910,7 @@ def reports_ovc_download(request):
     ctype += 'officedocument.spreadsheetml.sheet'
     response = HttpResponse(content_type=ctype)
     response['Content-Disposition'] = file_name
-    # Write the excel
-    if s_name.upper() == 'PEPFARDETAILEDSUMMARY':
-        create_pepfar(request, response, f)
-    else:
-        write_xls(response, data, titles)
+    write_xls(response, data, titles)
     # csv_file = '%s/tmp-%s.csv' % (MEDIA_ROOT, f)
     # write_xlsm(response, csv_file, xlsm_bin, file_name)
     return response
-
-
-@login_required
-def cluster(request):
-    """Method to handle clusters."""
-    try:
-        msgs = {}
-        msgs[1] = 'Need more at least 2 CBOs'
-        msgs[2] = 'Can not have IP in Cluster'
-        msgs[3] = 'Another cluster exists with same CBOs'
-        form = ClusterForm(request.user)
-        if request.method == 'POST':
-            cluster_id = request.POST.get('id', 0)
-            status = edit_cluster(request, cluster_id)
-            if cluster_id:
-                results = {'status': status}
-                return JsonResponse(results, content_type='application/json',
-                                    safe=False)
-            if status == 0:
-                msg = 'Cluster saved successfully.'
-                messages.info(request, msg)
-            else:
-                form = ClusterForm(request.user, data=request.POST)
-                msg_name = msgs[status] if status in msgs else 'Error'
-                msg = 'Cluster not saved - %s.' % (msg_name)
-                messages.error(request, msg)
-        clusters = get_cluster(request, id=0)
-        return render(request, 'reports/cluster.html',
-                      {'form': form, 'clusters': clusters})
-    except Exception as e:
-        raise e
-    else:
-        pass
-
-
-def dashboard_details(request):
-    """ Method to return dashboard details."""
-    try:
-        ous = request.session.get('ou_attached', False)
-        report_id = request.GET.get('report_id', 0)
-        rid = int(report_id) if report_id else 0
-        print 'OUs', ous
-        if rid > 10:
-            # This is for GoK
-            datas = get_dashboard_summary(request, rid)
-        else:
-            # This is for USG
-            datas = get_dashboard_summary(request, rid, 1)
-        results = {"data": datas}
-        return JsonResponse(results, content_type='application/json',
-                            safe=False)
-    except Exception as e:
-        print 'Error getting dasboard details - %s' % (str(e))
-        return JsonResponse({}, content_type='application/json',
-                            safe=False)
-    else:
-        pass

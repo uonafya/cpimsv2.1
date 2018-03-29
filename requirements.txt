@@ -1,4 +1,4 @@
-Django==1.8.15
+Django==1.8.11
 django-crispy-forms==1.6.0
 jellyfish==0.5.4
 pillow==2.4.0
@@ -11,3 +11,4 @@ jellyfish==0.5.4
 python-memcached
 pandas==0.20.3
 xlsxwriter==0.9.8
+

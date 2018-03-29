@@ -576,42 +576,29 @@
                 <input type='radio' class="edit_person" name='edit_person' value="3"> Person never existed. (Registration mistake or duplicate.)
                 <div class="separator"><p></p></div>
 
-                <!-- begin panel -->
-                <div class="row" id="audit_detail_div">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <div class="panel-heading-btn">
-                            <a href="#" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-collapse"><i class="fa fa-plus"></i></a>
-                        </div>
-                        <h4 class="panel-title">Audit Trails</h4>
-                    </div>
-                    <div class="panel-body collapse">
+                    <div class="row" id="audit_detail_div">
                         <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Person recorded on paper</th>
-                                            <th>Paper date</th>
-                                            <th>Person recorded electronically</th>
-                                            <th>Electronic date time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for audit in audits %}
-                                        <tr>
-                                            <td>{{ audit.person_recorded_paper.first_name }}
-                                             {{ audit.person_recorded_paper.surname }}</td>
-                                            <td>{{ audit.date_recorded_paper }}</td>
-                                            <td>{{ audit.app_user.reg_person.first_name }}
-                                            {{ audit.app_user.reg_person.surname }}</td>
-                                            <td>{{ audit.timestamp_modified }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                    </div>
-                </div>
-                <!-- end panel -->   
-                        
+                            <thead>
+                                <tr>
+                                    <th>Person recorded on paper</th>
+                                    <th>Paper date</th>
+                                    <th>Person recorded electronically</th>
+                                    <th>Electronic date time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for audit in audits %}
+                                <tr>
+                                    <td>{{ audit.person_recorded_paper.first_name }}
+                                     {{ audit.person_recorded_paper.surname }}</td>
+                                    <td>{{ audit.date_recorded_paper }}</td>
+                                    <td>{{ audit.app_user.reg_person.first_name }}
+                                    {{ audit.app_user.reg_person.surname }}</td>
+                                    <td>{{ audit.timestamp_modified }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="audit_workforce">Workforce member recorded on paper :<span class="asteriskField">*</span></label>
@@ -1393,8 +1380,6 @@ jQuery(document).ready(function() {
         $("#id_caregiver_firstname").val(ui.item.fname);
         $("#id_caregiver_surname").val(ui.item.sname);
         $("#id_caregiver_othernames").val(ui.item.onames);
-        $("#caregiver_idno").val(ui.item.idno);
-        $("#caregiver_tel").val(ui.item.tel);
       },
       open: function() {
         $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -1900,12 +1885,6 @@ function handle_caregiver(person_text){
     $('#tribe_id_div').hide();
     $('#religion_id_div').hide();
     $('#nation_id_div').hide();
-    {% if request.session.reg_ovc %}
-    $("#cbo_chv_add").show();
-    $('#add_org_info').html('');
-    $('#chv_id_div').hide();    
-    $('#chv_unit_id').attr('data-parsley-required', 'false');
-    {% endif %}
 }
 
 function handle_volunteer(person_text){
@@ -1956,13 +1935,6 @@ function handle_volunteer(person_text){
     $('#tribe_id_div').hide();
     $('#religion_id_div').hide();
     $('#nation_id_div').hide();
-    {% if request.session.reg_ovc %}
-    $("#cbo_chv_add").show();
-    $('#add_org_info').html('');
-    $('#chv_id_div').hide();    
-    $('#chv_unit_id').attr('data-parsley-required', 'false');
-    {% endif %}
-
 }
 
 function handle_government(person_text){

@@ -7,6 +7,7 @@ from django.core import serializers
 from django.conf import settings
 from django.db.models import Q
 import json
+import operator
 import random
 import uuid
 # from itertools import chain #
@@ -41,8 +42,6 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 from cpovc_registry.functions import get_list_types, extract_post_params
-from cpovc_ovc.functions import get_ovcdetails
-from .functions import create_fields, create_form_fields, save_form1b
 
 
 def validate_serialnumber(user_id, subcounty, serial_number):
@@ -6836,38 +6835,6 @@ def delete_csi(request, id):
         messages.add_message(request, messages.ERROR, msg)
         return HttpResponseRedirect(reverse(forms_registry))
 
-
-@login_required
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def new_form1b(request, id):
-    if request.method == 'POST':
-        save_form1b(request, id)
-        msg = 'Form 1B saved successfully'
-        messages.add_message(request, messages.INFO, msg)
-        url = reverse('ovc_view', kwargs={'id': id})
-        return HttpResponseRedirect(url)
-    init_data = get_ovcdetails(id)
-    ovc = get_ovcdetails(id)
-    cid = ovc.caretaker_id
-    check_fields = ['sex_id']
-    months = ['Mar', 'Jun', 'Sep', 'Dec']
-    today = datetime.now()
-    month = str(today.strftime('%b'))
-    f1b_allow = True if month in months else True
-    vals = get_dict(field_name=check_fields)
-    ffs = create_fields(['form1b_items'])
-    domains = create_form_fields(ffs)
-    # print ffsd
-    form = OVCF1AForm(initial={'person': id, 'caretaker_id': cid})
-    f1bs = OVCCareEvents.objects.filter(
-        event_type_id='FM1B', person_id=cid)
-    return render(request,
-                  'forms/new_form1b.html',
-                  {'form': form, 'data': init_data,
-                   'vals': vals, 'domains': domains, 'ovc': ovc,
-                   'form1b_allowed': f1b_allow, 'f1bs': f1bs})
-
-
 @login_required
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def form1a_events(request, id):
@@ -6877,9 +6844,9 @@ def form1a_events(request, id):
     form = OVCF1AForm(initial={'person': id})
     return render(request,
                   'forms/form1a_events.html',
-                  {'form': form, 'init_data': init_data,
-                   'vals': vals})
-
+                  {'form': form,
+                    'init_data': init_data,
+                    'vals': vals})
 
 @login_required
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)

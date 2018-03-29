@@ -84,7 +84,6 @@
                             <th width="5%">ID</th>
                             <th>First Name</th>
                             <th>Surname</th>
-                            <th>Other Names</th>
                             <th>Person Type</th> 
                             <th>Sex</th>
                             <th>Date of Birth</th>
@@ -100,7 +99,6 @@
                             <td>{{ result.id }}</td>
                             <td>{{ result.first_name }}</td>
                             <td>{{ result.surname }}</td>
-                            <td>{{ result.other_names }}</td>
                             <td>{{ result.pk|gen_value:person_types }}</td>
                             <td>{{ result.sex_id|gen_value:vals }}</td>
                             <td>{{ result.date_of_birth }}</td>
@@ -109,7 +107,7 @@
                             {% if result.pk|gen_value:geos %}
                                 {{ result.pk|gen_value:geos }}
                             {% else %}
-                                None
+                                National
                             {% endif %}
                             </td>
                             <td>

@@ -11,7 +11,7 @@
             "item_id": "VBAD", 
             "item_description_short": "Very Bad", 
             "sms_keyword": "False", 
-            "item_description": "1-Very Bad", 
+            "item_description": "4-Very Bad", 
             "the_order": 1
         }
     },
@@ -27,7 +27,7 @@
             "item_id": "GBAD", 
             "item_description_short": "Bad", 
             "sms_keyword": "False", 
-            "item_description": "2-Bad", 
+            "item_description": "3-Bad", 
             "the_order": 2
         }
     },
@@ -43,7 +43,7 @@
             "item_id": "GOOD", 
             "item_description_short": "Good", 
             "sms_keyword": "False", 
-            "item_description": "4-Good", 
+            "item_description": "2-Good", 
             "the_order": 3
         }
     },
@@ -59,7 +59,7 @@
             "item_id": "FAIR", 
             "item_description_short": "Fair", 
             "sms_keyword": "False", 
-            "item_description": "3-Fair", 
+            "item_description": "1-Fair", 
             "the_order": 4
         }
     },

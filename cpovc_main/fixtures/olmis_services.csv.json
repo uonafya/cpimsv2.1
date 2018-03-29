@@ -107,7 +107,7 @@
             "item_id": "SE1S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E1s - Enrolled back to school", 
+            "item_description": "Enrolled back to school", 
             "the_order": 1
         }
     },
@@ -123,7 +123,7 @@
             "item_id": "SE2S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E2s - School levies", 
+            "item_description": "School levies", 
             "the_order": 2
         }
     },
@@ -139,7 +139,7 @@
             "item_id": "SE3S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E3s - Financial education and literacy training [LIFE POA]", 
+            "item_description": "Financial education and literacy training [LIFE POA]", 
             "the_order": 3
         }
     },
@@ -155,7 +155,7 @@
             "item_id": "SE4S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E4s - School fees", 
+            "item_description": "School fees", 
             "the_order": 4
         }
     },
@@ -171,7 +171,7 @@
             "item_id": "SE5S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E5s - Scholastic material", 
+            "item_description": "Scholastic material", 
             "the_order": 5
         }
     },
@@ -187,7 +187,7 @@
             "item_id": "SE6S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E6s - Sanitary pads", 
+            "item_description": "Sanitary pads", 
             "the_order": 6
         }
     },
@@ -203,7 +203,7 @@
             "item_id": "SE7S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E7s - Vocational training", 
+            "item_description": "Vocational training", 
             "the_order": 7
         }
     },
@@ -219,7 +219,7 @@
             "item_id": "SE8S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "E8s - School uniform", 
+            "item_description": "School uniform", 
             "the_order": 8
         }
     },
@@ -229,7 +229,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_education_service_id_b", 
+            "field_name": "olmis_education_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "EG1S", 
@@ -245,7 +245,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_education_service_id_b", 
+            "field_name": "olmis_education_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "EG2S", 
@@ -267,8 +267,8 @@
             "item_id": "HC10", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC10s - VitaminA", 
-            "the_order": 11
+            "item_description": "VitaminA", 
+            "the_order": 1
         }
     },
     {
@@ -283,7 +283,7 @@
             "item_id": "HC1S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC1s - Treated for illness", 
+            "item_description": "Treated for illness", 
             "the_order": 2
         }
     },
@@ -299,7 +299,7 @@
             "item_id": "HC2S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC2s - Mosquito net", 
+            "item_description": "Mosquito net", 
             "the_order": 3
         }
     },
@@ -315,7 +315,7 @@
             "item_id": "HC3S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC3s - Escorted to care and treatment", 
+            "item_description": "Escorted to care and treatment", 
             "the_order": 4
         }
     },
@@ -331,7 +331,7 @@
             "item_id": "HC4S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC4s - Access care and treatment without transport/escort support", 
+            "item_description": "Access care and treatment without transport/escort support", 
             "the_order": 5
         }
     },
@@ -347,7 +347,7 @@
             "item_id": "HC5S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC5s - Health and nutrition education", 
+            "item_description": "Health and nutrition education", 
             "the_order": 6
         }
     },
@@ -363,7 +363,7 @@
             "item_id": "HC6S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC6s - Supplementary feeding", 
+            "item_description": "Supplementary feeding", 
             "the_order": 7
         }
     },
@@ -379,7 +379,7 @@
             "item_id": "HC7S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC7s - Transport to care and treatment services", 
+            "item_description": "Transport to care and treatment services", 
             "the_order": 8
         }
     },
@@ -395,7 +395,7 @@
             "item_id": "HC8S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC8s - Testing for HIV", 
+            "item_description": "Testing for HIV", 
             "the_order": 9
         }
     },
@@ -411,17 +411,17 @@
             "item_id": "HC9S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HC9s - Deworming tablets", 
+            "item_description": "Deworming tablets", 
             "the_order": 10
         }
     },
     {
-        "pk": 20068, 
+        "pk": 20025, 
         "model": "cpovc_main.SetupList", 
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG1S", 
@@ -437,7 +437,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG2S", 
@@ -453,7 +453,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG3S", 
@@ -469,7 +469,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG4S", 
@@ -485,7 +485,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG6S", 
@@ -501,7 +501,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG7S", 
@@ -517,7 +517,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG8S", 
@@ -533,7 +533,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_health_service_id_b", 
+            "field_name": "olmis_health_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HG9S", 
@@ -555,7 +555,7 @@
             "item_id": "HE1S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HE1s - Link to a job opportunity", 
+            "item_description": "Link to a job opportunity", 
             "the_order": 1
         }
     },
@@ -568,10 +568,10 @@
             "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
-            "item_id": "HE2S", 
+            "item_id": "HE1S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HE2s - Business Skills Training", 
+            "item_description": "Business Skills Training", 
             "the_order": 2
         }
     },
@@ -587,7 +587,7 @@
             "item_id": "HE3S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HE3s - Job Market Skill Training", 
+            "item_description": "Job Market Skill Training", 
             "the_order": 3
         }
     },
@@ -603,7 +603,7 @@
             "item_id": "HE4S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "HE4s - Start-up kit", 
+            "item_description": "Start-up kit", 
             "the_order": 4
         }
     },
@@ -613,7 +613,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_hes_service_id_b", 
+            "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HEG1", 
@@ -629,7 +629,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_hes_service_id_b", 
+            "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HEG2", 
@@ -645,7 +645,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_hes_service_id_b", 
+            "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HEG3", 
@@ -661,7 +661,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_hes_service_id_b", 
+            "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HEG4", 
@@ -677,7 +677,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_hes_service_id_b", 
+            "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HEG5", 
@@ -693,7 +693,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_hes_service_id_b", 
+            "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HEG6", 
@@ -709,7 +709,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_hes_service_id_b", 
+            "field_name": "olmis_hes_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "HEG5", 
@@ -725,7 +725,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_protection_service_id_b", 
+            "field_name": "olmis_protection_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "PG1S", 
@@ -741,7 +741,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_protection_service_id_b", 
+            "field_name": "olmis_protection_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "PG2S", 
@@ -757,7 +757,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_protection_service_id_b", 
+            "field_name": "olmis_protection_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "PG3S", 
@@ -779,7 +779,7 @@
             "item_id": "PT1S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PT1s - Rescued from an abusive enviroment", 
+            "item_description": "Rescued from an abusive enviroment", 
             "the_order": 4
         }
     },
@@ -795,7 +795,7 @@
             "item_id": "PT2S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PT2s - Age appropriate information on rights/responsibilities", 
+            "item_description": "Age appropriate information on rights/responsibilities", 
             "the_order": 5
         }
     },
@@ -811,7 +811,7 @@
             "item_id": "PT3S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PT3s - Legal assistance in case of abuse", 
+            "item_description": "Legal assistance in case of abuse", 
             "the_order": 6
         }
     },
@@ -827,7 +827,7 @@
             "item_id": "PT4S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PT4s - Has been re-united with family", 
+            "item_description": "Has been re-united with family", 
             "the_order": 7
         }
     },
@@ -843,7 +843,7 @@
             "item_id": "PT5S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PT5s - Birth certificate", 
+            "item_description": "Birth certificate", 
             "the_order": 7
         }
     },
@@ -859,7 +859,7 @@
             "item_id": "PS1S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PS1s - Mentored by older or responsible person", 
+            "item_description": "Mentored by older or responsible person", 
             "the_order": 1
         }
     },
@@ -875,7 +875,7 @@
             "item_id": "PS2S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PS2s - Linked to support group or peer club", 
+            "item_description": "Linked to support group or peer club", 
             "the_order": 2
         }
     },
@@ -891,7 +891,7 @@
             "item_id": "PS3S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PS3s - Life skills", 
+            "item_description": "Life skills", 
             "the_order": 3
         }
     },
@@ -907,7 +907,7 @@
             "item_id": "PS4S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "PS4s - Basic counseling to address needs", 
+            "item_description": "Basic counseling to address needs", 
             "the_order": 4
         }
     },
@@ -917,7 +917,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_pss_service_id_b", 
+            "field_name": "olmis_pss_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "PSG1", 
@@ -933,7 +933,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_pss_service_id_b", 
+            "field_name": "olmis_pss_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "PSG2", 
@@ -949,7 +949,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_pss_service_id_b", 
+            "field_name": "olmis_pss_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "PSG3", 
@@ -965,7 +965,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_pss_service_id_b", 
+            "field_name": "olmis_pss_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "PSG4", 
@@ -987,7 +987,7 @@
             "item_id": "SC1S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "SC1s - Shelter Repaired", 
+            "item_description": "Shelter Repaired", 
             "the_order": 1
         }
     },
@@ -1003,7 +1003,7 @@
             "item_id": "SC2S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "SC2s - Linked to Adult Caregiver", 
+            "item_description": "Linked to Adult Caregiver", 
             "the_order": 2
         }
     },
@@ -1019,7 +1019,7 @@
             "item_id": "SC3S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "SC3s - Blanket", 
+            "item_description": "Blanket", 
             "the_order": 3
         }
     },
@@ -1035,7 +1035,7 @@
             "item_id": "SC4S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "SC4s - Household repair", 
+            "item_description": "Household repair", 
             "the_order": 4
         }
     },
@@ -1051,7 +1051,7 @@
             "item_id": "SC5S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "SC5s - Mattress", 
+            "item_description": "Mattress", 
             "the_order": 5
         }
     },
@@ -1067,7 +1067,7 @@
             "item_id": "SC6S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "SC6s - Shoes", 
+            "item_description": "Shoes", 
             "the_order": 6
         }
     },
@@ -1083,7 +1083,7 @@
             "item_id": "SC7S", 
             "item_description_short": "",
             "sms_keyword": "False", 
-            "item_description": "SC7s - Clothes", 
+            "item_description": "Clothes", 
             "the_order": 7
         }
     },
@@ -1093,7 +1093,7 @@
         "fields": {
             "item_category": "Service", 
             "user_configurable": "False", 
-            "field_name": "olmis_shelter_service_id_b", 
+            "field_name": "olmis_shelter_service_id", 
             "item_sub_category": "", 
             "is_void": "False", 
             "item_id": "SG1S", 

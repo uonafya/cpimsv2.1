@@ -97,7 +97,6 @@
                         <div class="col-md-6 col-sm-6">
                             {{ form.cluster }}
                         </div>
-                       
                         <a href="#" data-toggle="tooltip" title="Select your preset cluster."><i class="fa fa-info-circle fa-lg"></i></a>
                     </div>
                     <div class="form-group">
@@ -198,31 +197,29 @@ jQuery(document).ready(function() {
                 xlsm += '<i class="fa fa-file-excel-o"></i> Excel</a>';
                 if (status == 0){
                     $('#other_reports').html(xlsm);
-                    $('#map-print, #rpt-download').show();
+                }
 
-                    var renderers = $.extend(
-                        $.pivotUtilities.renderers,
-                        $.pivotUtilities.c3_renderers
-                        );
-                    $("#report_html").pivotUI(data, {
-                        //renderers: renderers,
-                        cols: [ "AGERANGE", "GENDER"],
-                        rows: ["WARD", "DOMAIN"],
-                        aggregators: {
-                            "Number of OVC":  function() { 
-                                return tpl.count()()
-                            },
-                            "Sum of OVC":  function() { 
-                                return tpl.sum(intFormat)(["OVCCOUNT"]) 
-                            }
+                var renderers = $.extend(
+                    $.pivotUtilities.renderers,
+                    $.pivotUtilities.d3_renderers
+                    );
+                $("#report_html").pivotUI(data, {
+                    //renderers: renderers,
+                    cols: [ "AGERANGE", "GENDER"],
+                    rows: ["WARD", "DOMAIN"],
+                    aggregators: {
+                        "Number of OVC":  function() { 
+                            return tpl.count()()
                         },
-                        rendererName: "Table"
-                    }, true);
-                    //
-                    $('#report_results').html("");
-                }else{
-                    $('#report_results').html(message);
-                }    
+                        "Sum of OVC":  function() { 
+                            return tpl.sum(intFormat)(["OVCCOUNT"]) 
+                        }
+                    },
+                    rendererName: "Table"
+                }, true);
+                //
+                $('#report_results').html("");
+                $('#map-print, #rpt-download').show();
  
             },
             // handle a non-successful response
