@@ -19,6 +19,9 @@ from django.contrib.auth.views import (
 from cpovc_auth.views import password_reset
 from django.views.generic import TemplateView
 
+
+from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
+
 from cpovc_access.forms import StrictPasswordChangeForm
 
 
@@ -61,7 +64,10 @@ urlpatterns = [
         TemplateView.as_view(template_name='comodo.txt',
                              content_type='text/plain')),
     url(r'^robots\.txt$', TemplateView.as_view(template_name='robots.txt',
-                                               content_type='text/plain'))]
+                                               content_type='text/plain')),
+    url(r'^api-token-auth/', obtain_jwt_token),
+    url(r'^api-token-refresh/', refresh_jwt_token),
+]
 
 handler400 = 'cpims.views.handler_400'
 handler404 = 'cpims.views.handler_404'
