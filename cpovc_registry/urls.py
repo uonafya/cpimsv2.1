@@ -1,5 +1,6 @@
 """Registry section urls."""
 from django.conf.urls import patterns, url
+from cpovc_registry.api import RegPersonsOrgUnitsView
 
 # This should contain urls related to registry ONLY
 urlpatterns = patterns(
@@ -17,5 +18,12 @@ urlpatterns = patterns(
     url(r'^person/view/(?P<id>\d+)/$', 'view_person', name='view_person'),
     url(r'^person/delete/(?P<id>\d+)/$', 'delete_person',
         name='delete_person'),
-    url(r'^lookup/$', 'registry_look', name='reg_lookup'), )
+    url(r'^lookup/$', 'registry_look', name='reg_lookup'), 
+    
+    )
+
+
+api_urls = [
+    url(r'^cbo/$', RegPersonsOrgUnitsView.as_view(), name='reg-person-orgunit-view'),  
+]
 # {% url 'view_person' id=result.id %}

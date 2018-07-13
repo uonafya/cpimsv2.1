@@ -20,11 +20,18 @@ from cpovc_auth.views import password_reset
 from django.views.generic import TemplateView
 
 
-from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
-
 from cpovc_access.forms import StrictPasswordChangeForm
 
+# api urls
+from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
+from cpovc_registry.urls import api_urls as registry_api_urls
 
+root_api_urls = [
+    url(r'^login/', obtain_jwt_token),
+    url(r'^token-refresh/', refresh_jwt_token),
+    url(r'^registry/', include(registry_api_urls)),
+
+]
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls), name='admin'),
     # url(r'^$', 'cpovc_auth.views.log_in', name='home'),
@@ -65,9 +72,11 @@ urlpatterns = [
                              content_type='text/plain')),
     url(r'^robots\.txt$', TemplateView.as_view(template_name='robots.txt',
                                                content_type='text/plain')),
-    url(r'^api-token-auth/', obtain_jwt_token),
-    url(r'^api-token-refresh/', refresh_jwt_token),
+
+    url(r'^api/', include(root_api_urls)),
 ]
+
+
 
 handler400 = 'cpims.views.handler_400'
 handler404 = 'cpims.views.handler_404'
