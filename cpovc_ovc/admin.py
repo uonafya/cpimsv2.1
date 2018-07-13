@@ -1,10 +1,59 @@
 """Admin backend for editing this aggregate data."""
+import csv
+import time
 from django.contrib import admin
+from django.http import HttpResponse
+from import_export.admin import ImportExportModelAdmin
 
 from .models import (
     OVCAggregate, OVCFacility, OVCSchool, OVCCluster,
-    OVCClusterCBO)
+    OVCClusterCBO, OVCRegistration)
 
+
+def dump_to_csv(modeladmin, request, qs):
+    """
+    These takes in a Django queryset and spits out a CSV file.
+
+    Generic method for any queryset
+    """
+    model = qs.model
+    file_id = 'CPIMS_%s_%d' % (model.__name__, int(time.time()))
+    file_name = 'attachment; filename=%s.csv' % (file_id)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = file_name
+    writer = csv.writer(response, csv.excel)
+
+    headers = []
+    for field in model._meta.fields:
+        headers.append(field.name)
+    writer.writerow(headers)
+
+    for obj in qs:
+        row = []
+        for field in headers:
+            val = getattr(obj, field)
+            if callable(val):
+                val = val()
+            if type(val) == unicode:
+                val = val.encode("utf-8")
+            row.append(val)
+        writer.writerow(row)
+    return response
+dump_to_csv.short_description = u"Dump to CSV"
+
+
+class OVCRegistrationAdmin(admin.ModelAdmin):
+    """Aggregate data admin."""
+
+    search_fields = ['person',]
+    list_display = ['id', 'person', 'child_cbo', 'child_chv',
+                    'caretaker', 'registration_date', 'hiv_status',
+                    'is_active', 'is_void']
+    readonly_fields = ['id', 'person', 'caretaker', 'child_chv']
+    list_filter = ['is_active', 'is_void', 'hiv_status']
+
+
+admin.site.register(OVCRegistration, OVCRegistrationAdmin)
 
 class OVCAggregateAdmin(admin.ModelAdmin):
     """Aggregate data admin."""
@@ -28,12 +77,13 @@ class OVCFacilityAdmin(admin.ModelAdmin):
                     'sub_county']
     # readonly_fields = ['id']
     list_filter = ['is_void']
+    actions = [dump_to_csv]
 
 
 admin.site.register(OVCFacility, OVCFacilityAdmin)
 
 
-class OVCSchoolAdmin(admin.ModelAdmin):
+class OVCSchoolAdmin(ImportExportModelAdmin):
     """Aggregate data admin."""
 
     search_fields = ['school_name']
@@ -41,6 +91,7 @@ class OVCSchoolAdmin(admin.ModelAdmin):
                     'sub_county']
     # readonly_fields = ['id']
     list_filter = ['is_void']
+    actions = [dump_to_csv]
 
 
 admin.site.register(OVCSchool, OVCSchoolAdmin)
@@ -59,6 +110,7 @@ class OVCClusterAdmin(admin.ModelAdmin):
     # readonly_fields = ['id']
     list_filter = ['is_void']
     inlines = (CBOsInline, )
+    actions = [dump_to_csv]
 
 
 admin.site.register(OVCCluster, OVCClusterAdmin)

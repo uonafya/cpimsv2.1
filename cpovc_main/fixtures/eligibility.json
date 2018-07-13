@@ -425,9 +425,9 @@
             "item_id": "ERTL", 
             "is_void": "False", 
             "item_sub_category": "", 
-            "item_description_short": "Transfer to another LIP", 
+            "item_description_short": "Transfer(Non PEPFAR)", 
             "sms_keyword": "False", 
-            "item_description": "Transfer to another LIP", 
+            "item_description": "Transfer to another LIP (Non PEPFAR)", 
             "item_category": "Exit Reason"
         }
     },
@@ -435,7 +435,7 @@
         "pk": 1172, 
         "model": "cpovc_main.SetupList", 
         "fields": {
-            "the_order": 15, 
+            "the_order": 16, 
             "user_configurable": "False", 
             "field_name": "exit_reason_id", 
             "item_id": "ERDO", 
@@ -451,15 +451,15 @@
         "pk": 1173, 
         "model": "cpovc_main.SetupList", 
         "fields": {
-            "the_order": 16, 
+            "the_order": 15, 
             "user_configurable": "False", 
             "field_name": "exit_reason_id", 
             "item_id": "ERFO", 
             "is_void": "False", 
             "item_sub_category": "", 
-            "item_description_short": "Fostering", 
+            "item_description_short": "Transfer(PEPFAR)", 
             "sms_keyword": "False", 
-            "item_description": "Fostering", 
+            "item_description": "Transfer to another LIP (PEPFAR)", 
             "item_category": "Exit Reason"
         }
     }

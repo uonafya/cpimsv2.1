@@ -15,7 +15,7 @@ urlpatterns = patterns(
         name='manage_reports'),
     url(r'^dashboard/$', 'manage_dashboard',
         name='manage_dashboard'),
-    url(r'^download/(?P<file_name>[0-9A-Za-z_\.=\- ]+)$',
+    url(r'^download/(?P<file_name>[0-9A-Za-z_\.=\-\' ]+)$',
         'reports_download', name='download_reports'),
     url(r'^generate/$', 'reports_generate',
         name='generate_reports'),
@@ -34,4 +34,10 @@ urlpatterns = patterns(
     url(r'^download/$', 'reports_ovc_download',
         name='ovc_download'),
     url(r'^ovc/(?P<id>\d+)/$', 'reports_ovc',
-        name='reports_ovc'),)
+        name='reports_ovc'),
+    url(r'^dashboard/data/$', 'dashboard_details',
+        name='dashboard_details'),
+    url(r'^cluster/$', 'cluster', name='cluster'),
+    url(r'^ovc/$', 'reports_ovc_list', name='reports_ovc_list'),)
+
+

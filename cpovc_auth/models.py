@@ -69,6 +69,13 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
 
     email = property(_get_email)
 
+    def _get_sex(self):
+        sex_id = self.reg_person.sex_id
+        sex = 'Male' if sex_id == 'SMAL' else 'Female'
+        return sex
+
+    sex = property(_get_sex)
+
     def _get_first_name(self):
         return self.reg_person.first_name
 

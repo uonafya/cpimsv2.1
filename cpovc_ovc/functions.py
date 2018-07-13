@@ -6,34 +6,40 @@ from django.db.models import Q
 from django.db import connection
 from .models import (
     OVCRegistration, OVCHouseHold, OVCHHMembers, OVCHealth, OVCEligibility,
-    OVCFacility, OVCSchool, OVCEducation)
+    OVCFacility, OVCSchool, OVCEducation, OVCExit)
 from cpovc_registry.models import (
     RegPerson, RegOrgUnit, RegPersonsTypes, OVCCheckin)
 from cpovc_main.functions import convert_date
 from cpovc_registry.functions import (
-    extract_post_params, save_person_extids, get_attached_ous)
+    extract_post_params, save_person_extids, get_attached_ous,
+    get_orgs_child)
 
 
 def get_checkins(user_id):
     """Method to get all checkins."""
     try:
         chs, cnt = '', 0
-        checkins = OVCCheckin.objects.filter(user_id=user_id)
+        checkins = OVCCheckin.objects.filter(
+            user_id=user_id).order_by("-timestamp_created")
+        cins = []
         for checkin in checkins:
             cnt += 1
             time_diff = get_timediff(checkin.timestamp_created)
-            chs += '<tr><td>%s</td>' % (cnt)
-            chs += '<td>%s</td>' % (checkin.person.full_name)
-            chs += '<td>%s ago</td>' % (time_diff)
-            chs += '<td><a href="/ovc/view/%s/">' % (checkin.person_id)
+            t_diff = '%s ago' % (time_diff)
+            chs = '<a href="/ovcare/ovc/view/%s/">' % (checkin.person_id)
             chs += '<button type="button" class="btn btn-primary">'
-            chs += ' View OVC</button></a></td>'
-            chs += '<td></td></tr>'
+            chs += ' View OVC</button></a>'
+            chs += ' <button type="button" class="btn btn-danger'
+            chs += ' removecheckin" id="%s">' % (checkin.person_id)
+            chs += ' Remove</button></a>'
+            chd = {'ovc_id': checkin.person_id, 'ctime': t_diff,
+                   'ovc_name': checkin.person.full_name, 'caction': chs}
+            cins.append(chd)
     except Exception as e:
         print 'error getting checkins - %s' % (str(e))
         return "", 0
     else:
-        return chs, cnt
+        return cins, cnt
 
 
 def get_school(ovc_id):
@@ -64,8 +70,11 @@ def search_ovc(request):
         ous = []
         name = request.POST.get('search_name')
         criteria = request.POST.get('search_criteria')
+        exited = request.POST.get('person_exited')
+        is_exited = True if exited else False
         # Limit permissions
-        ous = get_attached_ous(request)
+        aous = get_attached_ous(request)
+        ous = get_orgs_child(aous, 1)
         cid = int(criteria)
         cbos, pids, chvs = [], [], []
         designs = ['COVC', 'CGOC']
@@ -78,6 +87,7 @@ def search_ovc(request):
         q_filter = Q()
         # 1: Names, 2: HH, 3: CHV, 4: CBO
         names = name.split()
+        cids = []
         if cid == 0:
             for nm in names:
                 for field in field_names:
@@ -87,8 +97,10 @@ def search_ovc(request):
         elif cid == 1:
             pids = []
             query = ("SELECT id FROM reg_person WHERE to_tsvector"
-                     "(first_name || ' ' || surname || ' ' || other_names)"
-                     " @@ to_tsquery('%s') ORDER BY date_of_birth DESC")
+                     "(first_name || ' ' || surname || ' '"
+                     " || COALESCE(other_names,''))"
+                     " @@ to_tsquery('english', '%s') AND is_void=False"
+                     " ORDER BY date_of_birth DESC")
             # " OFFSET 10 LIMIT 10")
             vals = ' & '.join(names)
             sql = query % (vals)
@@ -97,7 +109,7 @@ def search_ovc(request):
                 cursor.execute(sql)
                 row = cursor.fetchall()
                 pids = [r[0] for r in row]
-            print 'cids', pids
+            # print 'cids', pids
         elif cid == 2:
             pids = OVCHHMembers.objects.filter(
                 is_void=False,
@@ -118,6 +130,17 @@ def search_ovc(request):
             cbos = RegOrgUnit.objects.filter(
                 is_void=False, org_unit_name__icontains=name).values_list(
                 'id', flat=True)
+        elif cid == 5:
+            query = ("SELECT id FROM reg_person WHERE to_tsvector"
+                     "(first_name || ' ' || surname || ' ' || other_names)"
+                     " @@ to_tsquery('english', '%s') AND designation = 'CCGV'"
+                     " ORDER BY date_of_birth DESC")
+            vals = ' & '.join(names)
+            sql = query % (vals)
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                row = cursor.fetchall()
+                cids = [r[0] for r in row]
         else:
             for nm in names:
                 for field in field_names:
@@ -125,15 +148,20 @@ def search_ovc(request):
                 pids = queryset.filter(q_filter).values_list(
                     'id', flat=True)
         # Query ovc table
-        print ous
-        qs = OVCRegistration.objects.filter(is_void=False)
+        if is_exited:
+            qs = OVCRegistration.objects.filter(is_void=False)
+        else:
+            qs = OVCRegistration.objects.filter(
+                is_void=False, is_active=True)
         if not request.user.is_superuser:
             qs = qs.filter(child_cbo_id__in=ous)
-        pst, plen = 0, 100
+        pst, plen = 0, 1000
         if cbos:
             ovcs = qs.filter(child_cbo_id__in=cbos)[pst:plen]
         elif chvs:
             ovcs = qs.filter(child_chv_id__in=chvs)[pst:plen]
+        elif cids:
+            ovcs = qs.filter(caretaker_id__in=cids)[pst:plen]
         else:
             ovcs = qs.filter(person_id__in=pids)[pst:plen]
     except Exception, e:
@@ -204,7 +232,11 @@ def get_ovcdetails(ovc_id):
 def ovc_registration(request, ovc_id, edit=0):
     """Method to complete ovc registration."""
     try:
+        min_date = convert_date('01-Jan-1900')
         reg_date = request.POST.get('reg_date')
+        reg_date = convert_date(reg_date)
+        if reg_date < min_date:
+            reg_date = min_date
         bcert = request.POST.get('has_bcert')
         disabled = request.POST.get('disb')
         hh_members = request.POST.getlist('hh_member')
@@ -231,60 +263,82 @@ def ovc_registration(request, ovc_id, edit=0):
         is_exited = request.POST.get('is_exited')
         exit_reason = request.POST.get('exit_reason')
         criterias = request.POST.getlist('eligibility')
-        reg_date = datetime.now().strftime("%Y-%m-%d")
+        exit_date = datetime.now().strftime("%Y-%m-%d")
+        ovc_detail = get_object_or_404(OVCRegistration, person_id=ovc_id)
+        # HIV status update only if unknown
         if edit == 0:
+            edit_hiv = True
             cbo_uid = gen_cbo_id(cbo_id, ovc_id)
             org_cid = cbo_uid if org_uid == org_uid_check else org_uid
+            ovc_detail.hiv_status = str(hiv_status)
         else:
             org_cid = org_uid
+            nhiv_status = str(hiv_status)
+            edit_hiv = False
+            if ovc_detail.hiv_status == 'HSKN':
+                edit_hiv = True
+                ovc_detail.hiv_status = nhiv_status
+            elif ovc_detail.hiv_status == 'HSTN' and nhiv_status == 'HSTP':
+                edit_hiv = True
+                ovc_detail.hiv_status = nhiv_status
+            elif ovc_detail.hiv_status == 'HSTP' and nhiv_status == 'HSTN':
+                if request.user.is_staff:
+                    edit_hiv = True
+                    ovc_detail.hiv_status = nhiv_status
+            elif ovc_detail.hiv_status == 'HSTP' and nhiv_status == 'HSTP':
+                edit_hiv = True
+                ovc_detail.hiv_status = nhiv_status
         is_active = False if is_exited else True
-        ovc_detail = get_object_or_404(OVCRegistration, person_id=ovc_id)
         ovc_detail.registration_date = reg_date
         ovc_detail.has_bcert = has_bcert
         ovc_detail.is_disabled = is_disabled
-        if edit == 0 or not ovc_detail.hiv_status:
-            ovc_detail.hiv_status = str(hiv_status)
         ovc_detail.immunization_status = str(immmune)
         ovc_detail.org_unique_id = org_cid
         ovc_detail.caretaker_id = caretaker
         ovc_detail.school_level = school_level
         ovc_detail.is_active = is_active
         ovc_detail.exit_reason = exit_reason
+        if exit_reason:
+            ovc_detail.exit_date = exit_date
         ovc_detail.save(
             update_fields=["registration_date", "has_bcert", "is_disabled",
                            "immunization_status", "org_unique_id",
                            "caretaker_id", "school_level", "hiv_status",
-                           "is_active", "exit_reason"])
+                           "is_active", "exit_reason", "exit_date"])
         # Update eligibility
         for criteria_id in criterias:
             eligibility, created = OVCEligibility.objects.update_or_create(
                 person_id=ovc_id, criteria=criteria_id,
                 defaults={'person_id': ovc_id, 'criteria': criteria_id},)
         # Update Health status
-        if hiv_status == 'HSTP':
+        if hiv_status == 'HSTP' and edit_hiv:
             facility = request.POST.get('facility_id')
             art_status = request.POST.get('art_status')
             link_date = request.POST.get('link_date')
             date_linked = convert_date(link_date)
             ccc_no = request.POST.get('ccc_number')
-            health, created = OVCHealth.objects.update_or_create(
-                person_id=ovc_id,
-                defaults={'person_id': ovc_id,
-                          'facility_id': facility, 'art_status': art_status,
-                          'date_linked': date_linked, 'ccc_number': ccc_no,
-                          'is_void': False},)
+            if facility and art_status and date_linked and ccc_no:
+                health, created = OVCHealth.objects.update_or_create(
+                    person_id=ovc_id,
+                    defaults={'person_id': ovc_id,
+                              'facility_id': facility,
+                              'art_status': art_status,
+                              'date_linked': date_linked, 'ccc_number': ccc_no,
+                              'is_void': False},)
         # Update School details
         if school_level != 'SLNS':
-            school_class = request.POST.get('school_class')
             school_id = request.POST.get('school_id')
+            school_class = request.POST.get('school_class')
             school_adm = request.POST.get('admission_type')
-            health, created = OVCEducation.objects.update_or_create(
-                person_id=ovc_id, school_class=school_class,
-                defaults={'person_id': ovc_id,
-                          'school_id': school_id, 'school_level': school_level,
-                          'school_class': school_class,
-                          'admission_type': school_adm,
-                          'is_void': False},)
+            if school_id and school_class and school_adm:
+                health, created = OVCEducation.objects.update_or_create(
+                    person_id=ovc_id, school_class=school_class,
+                    defaults={'person_id': ovc_id,
+                              'school_id': school_id,
+                              'school_level': school_level,
+                              'school_class': school_class,
+                              'admission_type': school_adm,
+                              'is_void': False},)
         cgs = extract_post_params(request, naming='cg_')
         hhrs = extract_post_params(request, naming='hhr_')
         # Alive status, HIV status and Death cause for Guardian
@@ -357,7 +411,8 @@ def ovc_registration(request, ovc_id, edit=0):
                               'member_alive': hh_alive,
                               'date_linked': todate, 'hiv_status': hh_hiv},)
     except Exception, e:
-        raise e
+        print 'Error updating OVCID:%s - %s' % (ovc_id, str(e))
+        pass
     else:
         pass
 
@@ -399,3 +454,106 @@ def gen_cbo_id(cbo_id, ovc_id):
         raise e
     else:
         pass
+
+
+def get_house_hold(person_id):
+    """Method to get household id."""
+    try:
+        hh_detail = get_object_or_404(
+            OVCHouseHold, head_person_id=person_id)
+    except Exception as e:
+        print 'error getting hh - %s' % (str(e))
+        return None
+    else:
+        return hh_detail
+
+
+def manage_checkins(request, gid=0):
+    """Method to handle checkins."""
+    try:
+        chs, ovc_ids = '', []
+        org_unit_id = None
+        ovcid = request.POST.get('ovc_id')
+        aid = request.POST.get('id')
+        ovcids = request.POST.getlist('ovc_id[]')
+        act_id = int(aid) if aid else 0
+        action_id = gid if gid else act_id
+        user_id = request.user.id
+        if ovcid:
+            ovc_ids = [ovcid]
+        elif ovcids:
+            ovc_ids = ovcids
+        if action_id == 1:
+            if 'ou_primary' in request.session:
+                ou_id = request.session['ou_primary']
+                org_unit_id = int(ou_id) if ou_id else None
+            cnt = 0
+            for ovc_id in ovc_ids:
+                cnt += 1
+                checkin, created = OVCCheckin.objects.update_or_create(
+                    person_id=ovc_id, user_id=user_id,
+                    defaults={'person_id': ovc_id, 'user_id': user_id,
+                              'org_unit_id': org_unit_id},)
+            msg = 'OVC (%s) checked in successfully.' % (str(cnt))
+        elif action_id == 2:
+            chs, cnt = get_checkins(user_id)
+            msg = 'OVC checked in returned %s results.' % (cnt)
+        elif action_id == 3:
+            ovcid = request.POST.get('ovc_out_id')
+            # chs, cnt = get_checkins(user_id)
+            ovcs = OVCCheckin.objects.filter(person_id=ovcid)
+            for ovc in ovcs:
+                ovc.delete()
+            msg = 'OVC checked out successfully.'
+    except Exception as e:
+        print 'error handling checkins - %s' % (str(e))
+        return msg, 0
+    else:
+        return msg, chs
+
+
+def ovc_management(request):
+    try:
+        action_id = int(request.POST.get('action'))
+        if action_id == 2:
+            perform_exit(request)
+    except Exception as e:
+        raise e
+    else:
+        pass
+
+
+def perform_exit(request):
+    try:
+        ovcid = request.POST.get('ovc_id')
+        exit_date = convert_date(request.POST.get('exit_date'))
+        exit_reason = request.POST.get('exit_reason')
+        exit_org_name = request.POST.get('exit_org_name')
+        #
+        ovc_details = OVCRegistration.objects.get(person_id=ovcid)
+        ovc_details.exit_date = exit_date
+        ovc_details.exit_reason = exit_reason
+        if exit_org_name:
+            # ovc_details.exit_org_name = exit_org_name
+            org, created = OVCExit.objects.update_or_create(
+                person_id=ovcid,
+                defaults={'person_id': ovcid, 'org_unit_name': exit_org_name},)
+        ovc_details.is_active = False
+        ovc_details.save(
+            update_fields=["exit_date", "exit_reason", "is_active"])
+    except Exception as e:
+        print 'error exiting - %s' % (str(e))
+        raise e
+    else:
+        pass
+
+
+def get_exit_org(ovc_id):
+    """Method to get exit organization."""
+    try:
+        org = OVCExit.objects.get(is_void=False, person_id=ovc_id)
+    except Exception as e:
+        print 'No org details - %s' % (str(e))
+        return ''
+    else:
+        return org.org_unit_name

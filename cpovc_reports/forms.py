@@ -17,6 +17,9 @@ document_type = (('DSCE', 'Social enquiry'), ('DSUM', 'Summons'))
 report_types = (('', 'Select type'), ('M', 'Monthly'),
                 ('Q', 'Quarterly'), ('Y', 'Yearly'))
 
+report_types_others = (('', 'Select type'), ('M', 'Monthly'),
+                       ('Q', 'Quarterly'), ('Y', 'Yearly'), ('O', 'Others'))
+
 report_types_datim = (('', 'Select type'), ('S', 'Semi Annual'),
                       ('Y', 'Annual'))
 
@@ -32,7 +35,19 @@ inst_vars = (('', 'Select Type'),
 
 usg_reports = (('', 'Select Report'), (1, 'DATIM'),
                (2, 'Services by Domain (PEPFAR Summary)'),
-               (3, 'Key Performance Indicator'))
+               (3, 'Key Performance Indicator'),
+               (4, 'CHV monthly RR'),
+               (5, 'List of OVC not served'),
+               (6, 'PEPFAR Summary'),
+               (7, 'Registration by CHV'),
+               (8, 'Beneficiary list'),
+               (9, 'Form1A summary'),
+               (10, 'Needs vs Served by domain'),
+               (11, 'Form1B summary'),
+               (12, 'List of OVC served'),
+               (13, 'Master List'),
+               (14, 'List of OVC Assessed'),
+               (15, 'Priority List'))
 report_period = ()
 
 YEAR_CHOICES = create_year_list()
@@ -49,7 +64,7 @@ class CaseLoad(forms.Form):
         org_units = get_specific_orgs(self.user.reg_person_id)
         org_inst = get_specific_orgs(self.user.reg_person_id, 1)
         # clusters
-        cluster_list = get_clusters(self.user)
+        cluster_list = get_clusters(self.user, "Please Select Cluster")
         if user.is_superuser:
             org_units = get_org_units_list('Please select Unit')
             inst_types = ['TNRH', 'TNRB', 'TNRR', 'TNRS', 'TNAP', 'TNRC']
@@ -123,6 +138,15 @@ class CaseLoad(forms.Form):
 
     report_type_other = forms.ChoiceField(
         choices=report_types_other,
+        initial='',
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'id': 'id_report_type',
+                   'data-parsley-required': 'true',
+                   'autofocus': 'true'}))
+
+    report_type_others = forms.ChoiceField(
+        choices=report_types_others,
         initial='',
         widget=forms.Select(
             attrs={'class': 'form-control',
@@ -204,3 +228,32 @@ class CaseLoad(forms.Form):
             attrs={'class': 'form-control',
                    'data-parsley-required': 'true',
                    'autofocus': 'true'}))
+
+
+class ClusterForm(forms.Form):
+    """Class for case load reports forms."""
+
+    def __init__(self, user, *args, **kwargs):
+        """Override method especially for dynamic lookup data."""
+        self.user = user
+        super(ClusterForm, self).__init__(*args, **kwargs)
+        org_units_list = get_specific_orgs(self.user.reg_person_id)
+
+        if user.is_superuser:
+            org_units_list = get_org_units_list('Please select Unit')
+
+        cbo_unit_id = forms.MultipleChoiceField(
+            choices=org_units_list,
+            initial='',
+            widget=forms.SelectMultiple(
+                attrs={'class': 'form-control',
+                       'data-parsley-required': 'true',
+                       'id': 'cbo'}))
+
+        self.fields['cbo'] = cbo_unit_id
+
+    cluster = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'class': 'form-control',
+                   'data-parsley-required': 'true',
+                   'id': 'cluster'}))

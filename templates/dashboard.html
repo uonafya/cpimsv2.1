@@ -2,6 +2,11 @@
 {% load staticfiles %}
 {% block page_title %} Dashboard {% endblock %}
 
+{% block style_code %}
+<link href="{% static 'plugins/datatables/css/jquery.dataTables.min.css' %}" rel="stylesheet" />
+<link href="{% static 'plugins/datatables/css/buttons.dataTables.min.css' %}" rel="stylesheet" />
+{% endblock style_code%}
+
 {% block primary %}
 <!-- begin breadcrumb -->
 <ol class="breadcrumb pull-right">
@@ -10,7 +15,12 @@
 </ol>
 <!-- end breadcrumb -->
 <!-- begin page-header -->
-<h1 class="page-header">{% if request.session.ou_primary_name %} {{ request.session.ou_primary_name }} - {% endif %}Dashboard <small>Application data and usage summary</small>
+<h1 class="page-header" id="phead">
+{% if request.session.ou_primary_name %}
+{{ request.session.ou_primary_name }}
+{% else %} 
+National
+{% endif %} - Dashboard <small>Application data and usage summary</small>
  </h1>
 <!-- end page-header -->
 
@@ -25,11 +35,12 @@
 			<div class="widget widget-stats bg-green">
 				<div class="stats-icon"><i class="fa fa-child"></i></div>
 				<div class="stats-info">
-					<h4>OVC - ACTIVE / EVER REGISTERED</h4>
+					<h4 id="rpt_1">OVC - ACTIVE / EVER REGISTERED</h4>
 					<p>{{ ovc.children }} / {{ ovc.children_all }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_1">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+
 				</div>
 			</div>
 		</div>
@@ -39,11 +50,11 @@
 			<div class="widget widget-stats bg-blue">
 				<div class="stats-icon"><i class="fa fa-users"></i></div>
 				<div class="stats-info">
-					<h4>CAREGIVERS / GUARDIANS</h4>
+					<h4 id="rpt_2">CAREGIVERS / GUARDIANS</h4>
 					<p>{{ ovc.guardians }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_2">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -53,11 +64,11 @@
 			<div class="widget widget-stats bg-purple">
 				<div class="stats-icon"><i class="fa fa-user"></i></div>
 				<div class="stats-info">
-					<h4>WORKFORCE MEMBERS</h4>
+					<h4 id="rpt_3">WORKFORCE MEMBERS</h4>
 					<p>{{ ovc.workforce }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_3">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -67,11 +78,11 @@
 			<div class="widget widget-stats bg-aqua">
 				<div class="stats-icon"><i class="fa fa-institution"></i></div>
 				<div class="stats-info">
-					<h4>ORG UNITS / CBOs</h4>
+					<h4 id="rpt_4">ORG UNITS / CBOs</h4>
 					<p>{{ ovc.org_units }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_4">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -81,11 +92,11 @@
 			<div class="widget widget-stats bg-red">
 				<div class="stats-icon"><i class="fa fa-chain-broken"></i></div>
 				<div class="stats-info">
-					<h4>CASE RECORDS</h4>
-					<p>{{ ovc.cases }}</p>
+					<h4 id="rpt_5">HOUSEHOLDS</h4>
+					<p>{{ ovc.household }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_5">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -101,11 +112,11 @@
 			<div class="widget widget-stats bg-green">
 				<div class="stats-icon"><i class="fa fa-child"></i></div>
 				<div class="stats-info">
-					<h4>CHILDREN / OVC</h4>
+					<h4 id="rpt_11">CHILDREN / OVC</h4>
 					<p>{{ data.children }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_11">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -115,11 +126,11 @@
 			<div class="widget widget-stats bg-blue">
 				<div class="stats-icon"><i class="fa fa-users"></i></div>
 				<div class="stats-info">
-					<h4>CAREGIVERS / GUARDIANS</h4>
+					<h4 id="rpt_12">CAREGIVERS / GUARDIANS</h4>
 					<p>{{ data.guardians }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_12">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -129,11 +140,11 @@
 			<div class="widget widget-stats bg-purple">
 				<div class="stats-icon"><i class="fa fa-user"></i></div>
 				<div class="stats-info">
-					<h4>WORKFORCE MEMBERS</h4>
+					<h4 id="rpt_13">WORKFORCE MEMBERS</h4>
 					<p>{{ data.workforce }}
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_13">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -143,11 +154,11 @@
 			<div class="widget widget-stats bg-aqua">
 				<div class="stats-icon"><i class="fa fa-institution"></i></div>
 				<div class="stats-info">
-					<h4>ORGANISATION UNITS</h4>
+					<h4 id="rpt_14">ORGANISATION UNITS</h4>
 					<p>{{ data.org_units }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_14">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -157,11 +168,11 @@
 			<div class="widget widget-stats bg-red">
 				<div class="stats-icon"><i class="fa fa-chain-broken"></i></div>
 				<div class="stats-info">
-					<h4>CASE RECORDS</h4>
+					<h4 id="rpt_15">CASE RECORDS</h4>
 					<p>{{ data.cases }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_15">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -171,11 +182,11 @@
 			<div class="widget widget-stats bg-grey">
 				<div class="stats-icon"><i class="fa fa-clock-o"></i></div>
 				<div class="stats-info">
-					<h4>PENDING CASES</h4>
+					<h4 id="rpt_16">PENDING CASES</h4>
 					<p>{{ data.pending }}</p>
 				</div>
 				<div class="stats-link">
-					<a href="javascript:;">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
+					<a href="#" class="dash_details" id="dt_16">View Detail <i class="fa fa-arrow-circle-o-right"></i></a>
 				</div>
 			</div>
 		</div>
@@ -208,16 +219,66 @@
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
 					</div>
+					{% if request.session.reg_ovc or request.user.is_superuser %}
+					<h4 class="panel-title">IP / LIP Case Load Summary (Last 30 Days)</h4>
+					{% else %}
 					<h4 class="panel-title">Case categories (Top 5)</h4>
+					{% endif %}
 				</div>
 				<div class="panel-body">
+					{% if request.session.reg_ovc or request.user.is_superuser %}
+					<div id="stacked-chart" class="height-sm"></div>
+					<!--<div id="donut-chart" class="height-sm"></div>-->
+					{% else %}
+					<!--<div id="stacked-chart" class="height-sm"></div>-->
 					<div id="donut-chart" class="height-sm"></div>
+					{% endif %}	
 				</div>
 			</div>
 		</div>
     </div>
     
 	<!-- End content area -->
+<div class="modal fade" id="modal-reports">
+    <div class="modal-dialog">
+        <div class="modal-content form-horizontal form-bordered">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Reports details - <span id="sdetails"></span></h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="row">
+                        <table id="mydata" class="display" width="100%" cellspacing="0">
+						    <thead>
+						        <tr>
+						            <th>#</th>
+						            <th>Name</th>
+						            <th>Date Last Modified</th>
+						            <th>Details</th>
+						        </tr>
+						    </thead>
+						    <tfoot>
+						        <tr>
+						            <th>#</th>
+						            <th>Name</th>
+						            <th>Date Last Modified</th>
+						            <th>Details</th>
+						        </tr>
+						    </tfoot>
+						</table>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
 </div>
 <!-- end row -->
 {% endblock %}
@@ -225,6 +286,7 @@
 {% block lazy_javascript_code %}
     <script src="{% static 'plugins/flot/jquery.flot.min.js' %}"></script>
     <script src="{% static 'plugins/flot/jquery.flot.pie.min.js' %}"></script>
+	<script src="{% static 'plugins/flot/jquery.flot.stack.min.js' %}"></script>
     <script src="{% static 'js/curvedLines.js' %}"></script>
     <script>
         var Kdata = [{% autoescape off %}{{ kvals }}{% endautoescape %}];
@@ -232,11 +294,73 @@
         var Odata = [{% autoescape off %}{{ ovals }}{% endautoescape %}];
         var xLabel = [{% autoescape off %}{{ dates }}{% endautoescape %}];
         var dData = [{% autoescape off %}{{ dvals }}{% endautoescape %}];
+        var OMdata = [{% autoescape off %}{{ omvals }}{% endautoescape %}];
+        var OFdata = [{% autoescape off %}{{ ofvals }}{% endautoescape %}];
     </script>
     <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="{% static 'plugins/datatables/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+    <script src="{% static 'js/buttons.html5.min.js' %}"></script>
 	<script>
 		$(document).ready(function() {
 			Dashboard.init();
+
+		    $('a.dash_details').click(function() {
+
+		       var rid = $(this).attr('id');
+		       var rrid = rid.replace('dt_', '');
+		       var rname = $('#rpt_'+rrid).html();
+		       {% if request.session.ou_primary_name %}
+				    var heading = '{{ request.session.ou_primary_name }} - ';
+				{% else %} 
+				    var heading = 'National - ';
+				{% endif %}
+		       $('#modal-reports').modal('show');
+		       $(document).prop('title', 'CPIMS Dashboard - '+ heading + rname);
+		       $('#sdetails').html(heading + rname);
+
+		       var buttonCommon = {
+		        exportOptions: {
+		            format: {
+		                body: function ( data, row, column, node ) {
+		                    // Strip $ from salary column to make it numeric
+		                    return data;
+		                }
+		            }
+		        }
+		    };
+		    $('#mydata').DataTable( {
+		        ajax:{"url": "{% url 'dashboard_details' %}",
+			          "data": function ( d ) {
+			                d.report_id = rrid;
+			         }
+			     },
+		        columns: [
+		            { data: 'id' },
+		            { data: 'name' },
+		            { data: 'create_date' },
+		            { data: 'action' }
+		        ],
+		        dom: 'Bfrtip',
+		        destroy: true,
+		        buttons: [
+		            $.extend( true, {}, buttonCommon, {
+		                extend: 'copyHtml5'
+		            } ),
+		            $.extend( true, {}, buttonCommon, {
+		                extend: 'excelHtml5'
+		            } ),
+		            $.extend( true, {}, buttonCommon, {
+		                extend: 'pdfHtml5'
+		            } )
+		        ]
+		    } );
+		       return false;
+		    });
 		});
-	</script>
+</script>
 {% endblock %}

@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.http import JsonResponse
-from cpovc_registry.functions import dashboard
+from cpovc_registry.functions import dashboard, ovc_dashboard
 from cpovc_main.functions import get_dict
 from cpovc_access.functions import access_request
 from django.contrib.auth.decorators import login_required
@@ -24,9 +24,20 @@ def home(request):
         summary['workforce'] = '{:,}'.format(dash['workforce_members'])
         summary['cases'] = '{:,}'.format(dash['case_records'])
         summary['pending'] = '{:08}'.format(dash['pending_cases'])
-        child_regs = dash['child_regs']
-        ovc_regs = dash['ovc_regs']
-        case_regs = dash['case_regs']
+        # OVC care
+        odash = ovc_dashboard(request)
+        ovc = {}
+        ovc['org_units'] = '{:,}'.format(odash['org_units'])
+        ovc['children'] = '{:,}'.format(odash['children'])
+        ovc['children_all'] = '{:,}'.format(odash['children_all'])
+        ovc['guardians'] = '{:,}'.format(odash['guardian'])
+        ovc['workforce'] = '{:,}'.format(odash['workforce_members'])
+        ovc['cases'] = '{:,}'.format(odash['case_records'])
+        ovc['pending'] = '{:08}'.format(odash['pending_cases'])
+        ovc['household'] = 0
+        child_regs = odash['child_regs']
+        ovc_regs = odash['ovc_regs']
+        case_regs = odash['case_regs']
         case_cats = dash['case_cats']
         for date in range(0, 22, 2):
             end_date = start_date + timedelta(days=date)
@@ -49,31 +60,51 @@ def home(request):
         my_dvals, cnt = [], 0
         colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00',
                   '#ffff33']
-        # Case category names
-        cat_names = get_dict(field_name=['case_category_id'])
-        other_case = 0
-        for case_cat in case_cats:
-            cat_id = case_cat['case_category']
-            cat_data = case_cat['unit_count']
-            if cnt > 4:
-                other_case += cat_data
-            else:
-                cname = cat_names[cat_id] if cat_id in cat_names else cat_id
-                cat_name = cname[:16] + ' ...' if len(cname) > 16 else cname
-                my_data = '{label: "%s", data: %s, color: "%s"}' % (
-                    cat_name, cat_data, colors[cnt])
-                my_dvals.append(my_data)
-            cnt += 1
-        if not case_cats:
+        reg_ovc = request.session.get('reg_ovc', 0)
+        ovc_criterias = False
+        total_ovc = odash['children_all']
+        if reg_ovc and total_ovc > 0:
+            # Eligibility criteria
+            ovc_criterias = True
+            other_case = 0
+            cat_name = "Missing Criteria"
+            cat_data = total_ovc
+            cnt = 0
+            my_data = '{label: "%s", data: %s, color: "%s"}' % (
+                cat_name, cat_data, colors[cnt])
+            my_dvals.append(my_data)
+        else:
+            # Case category names
+            cnames = get_dict(field_name=['case_category_id'])
+            other_case = 0
+            for case_cat in case_cats:
+                cat_id = case_cat['case_category']
+                cat_data = case_cat['unit_count']
+                if cnt > 4:
+                    other_case += cat_data
+                else:
+                    cnm = cnames[cat_id] if cat_id in cnames else cat_id
+                    cat_name = cnm[:16] + ' ...' if len(cnm) > 16 else cnm
+                    my_data = '{label: "%s", data: %s, color: "%s"}' % (
+                        cat_name, cat_data, colors[cnt])
+                    my_dvals.append(my_data)
+                cnt += 1
+        if not case_cats and not ovc_criterias:
             my_dvals.append('{label: "No data", data: 0, color: "#fd8d3c"}')
         if other_case > 0:
             my_dvals.append(
                 '{label: "Others", data: %s, color: "#fb9a99"}' % (other_case))
         dvals = ', '.join(my_dvals)
+        ovc_params = odash['ovc_summary']
+        om_data = '[0, {m0}], [1, {m1}], [2, {m2}], [3, {m3}], [4, {m4}]'
+        of_data = '[0, {f0}], [1, {f1}], [2, {f2}], [3, {f3}], [4, {f4}]'
+        omdata = om_data.format(**ovc_params)
+        ofdata = of_data.format(**ovc_params)
         return render(request, 'dashboard.html',
                       {'status': 200, 'dates': dates, 'kvals': kvals,
                        'dvals': dvals, 'cvals': cvals, 'data': summary,
-                       'ovals': ovals})
+                       'ovals': ovals, 'ovc': ovc, 'omvals': omdata,
+                       'ofvals': ofdata})
     except Exception, e:
         print 'dashboard error - %s' % (str(e))
         raise e

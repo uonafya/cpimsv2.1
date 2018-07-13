@@ -179,7 +179,7 @@ def get_attached_units(user):
 def get_parent_unit(org_ids):
     """Method to do the organisation tree."""
     try:
-        print org_ids
+        # print org_ids
         orgs = RegOrgUnit.objects.filter(
             id__in=org_ids).values_list('parent_org_unit_id', flat=True)
         print 'Check Org Unit level - %s' % (str(orgs))

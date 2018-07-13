@@ -108,7 +108,7 @@ var handleInteractiveChart = function () {
         $.plot($("#interactive-chart"), [
                 {
                     data: Cdata, 
-                    label: "Case Records", 
+                    label: "Services / Case Records", 
                     color: red,
                     lines: { show: true, fill:false, lineWidth: 2 },
                     points: { show: false, radius: 2, fillColor: '#fff' },
@@ -313,6 +313,84 @@ var handleDashboardGritterNotification = function() {
     });
 };
 
+var handleStackedChart = function () {
+    "use strict";
+
+    var ticksLabel = [
+        [0, "Ever <br/>Registered"], [1, "Active OVC"], [2, "School Going"],
+        [3, "OVC Served"], [4, "Caregivers"]
+    ];
+    
+    var options = { 
+        xaxis: {  tickColor: 'transparent',  ticks: ticksLabel},
+        yaxis: {  tickColor: '#ddd', ticksLength: 10},
+        grid: { 
+            hoverable: true, 
+            tickColor: "#ccc",
+            borderWidth: 0,
+            borderColor: 'rgba(0,0,0,0.2)'
+        },
+        series: {
+            stack: true,
+            lines: { show: false, fill: false, steps: false },
+            bars: { show: true, barWidth: 0.5, align: 'center', fillColor: null },
+            highlightColor: 'rgba(0,0,0,0.8)'
+        },
+        legend: {
+            show: true,
+            labelBoxBorderColor: '#ccc',
+            position: 'ne',
+            noColumns: 1
+        }
+    };
+    var xData = [
+        {
+            data:OMdata,
+            color: blueDark,
+            label: 'Male',
+            bars: {
+                fillColor: blueDark
+            }
+        },
+        {
+            data:OFdata,
+            color: red,
+            label: 'Female',
+            bars: {
+                fillColor: red
+            }
+        }
+    ];
+    $.plot("#stacked-chart", xData, options);
+    
+    function showTooltip2(x, y, contents) {
+        $('<div id="tooltip" class="flot-tooltip">' + contents + '</div>').css( {
+            top: y,
+            left: x + 35
+        }).appendTo("body").fadeIn(200);
+    }
+    var previousXValue = null;
+    var previousYValue = null;
+    $("#stacked-chart").bind("plothover", function (event, pos, item) {
+        if (item) {
+            var y = item.datapoint[1] - item.datapoint[2];
+            
+            if (previousXValue != item.series.label || y != previousYValue) {
+                previousXValue = item.series.label;
+                previousYValue = y;
+                $("#tooltip").remove();
+    
+                showTooltip2(item.pageX, item.pageY, y + " " + item.series.label);
+            }
+        }
+        else {
+            $("#tooltip").remove();
+            previousXValue = null;
+            previousYValue = null;       
+        }
+    });
+};
+
 var Dashboard = function () {
 	"use strict";
     return {
@@ -326,6 +404,7 @@ var Dashboard = function () {
             handleVectorMap();
             handleDashboardDatepicker();
             handleDonutChart();
+            handleStackedChart();
         }
     };
 }();

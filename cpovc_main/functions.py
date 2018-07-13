@@ -223,14 +223,15 @@ def get_vgeo_list(area_id):
     else:
         return queryset
 
+
 def get_vorg_list(org_unit_id):
     '''
     Get list general filtered by field_name
     '''
     try:
-        queryset = RegOrgUnit.objects.filter(id=org_unit_id, is_void=False).order_by('org_unit_name')
-        #print 'OrgUnit Name: %s' %queryset.org_unit_name
-        
+        queryset = RegOrgUnit.objects.filter(
+            id=org_unit_id, is_void=False).order_by('org_unit_name')
+        # print 'OrgUnit Name: %s' %queryset.org_unit_name
     except Exception, e:
         error = 'Error getting whole list - %s' % (str(e))
         print error
@@ -252,9 +253,11 @@ def get_general_list(field_names=[], item_category=False):
                 q_filter |= Q(**{"field_name": field_name})
             queryset = queryset.filter(q_filter)
         else:
-            queryset = queryset.filter(field_name=field_names[0])
+            queryset = queryset.filter(
+                field_name=field_names[0]).order_by('the_order')
         if item_category:
-            queryset = queryset.filter(item_category=item_category)
+            queryset = queryset.filter(
+                item_category=item_category).order_by('the_order')
     except Exception, e:
         error = 'Error getting whole list - %s' % (str(e))
         print error
@@ -275,7 +278,8 @@ def get_list(field_name=[], default_txt=False, category=False):
         else:
             v_list = get_general_list([field_name], category)
             cache.set(cache_key, v_list, 300)
-        my_list = v_list.values_list('item_id', 'item_description')
+        my_list = v_list.values_list(
+            'item_id', 'item_description').order_by('the_order')
         if default_txt:
             initial_list = ('', default_txt)
             final_list = [initial_list] + list(my_list)

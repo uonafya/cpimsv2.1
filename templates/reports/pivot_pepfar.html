@@ -186,28 +186,32 @@ jQuery(document).ready(function() {
                 var numberFormat = $.pivotUtilities.numberFormat;
                 var intFormat = numberFormat({digitsAfterDecimal: 0});
                 $("#rpt_id").val(file_name);
+                if (status == 0){
+                    $('#map-print, #rpt-download').show();
 
-                var renderers = $.extend(
-                    $.pivotUtilities.renderers,
-                    $.pivotUtilities.d3_renderers
-                    );
-                $("#report_html").pivotUI(data, {
-                    //renderers: renderers,
-                    cols: ["AGERANGE", "GENDER"],
-                    rows: ["DOMAIN"],
-                    aggregators: {
-                        "Number of OVC":  function() { 
-                            return tpl.count()()
+                    var renderers = $.extend(
+                        $.pivotUtilities.renderers,
+                        $.pivotUtilities.d3_renderers
+                        );
+                    $("#report_html").pivotUI(data, {
+                        //renderers: renderers,
+                        cols: ["AGERANGE", "GENDER"],
+                        rows: ["DOMAIN"],
+                        aggregators: {
+                            "Number of OVC":  function() { 
+                                return tpl.count()()
+                            },
+                            "Sum of OVC":  function() { 
+                                return tpl.sum(intFormat)(["OVCCOUNT"]) 
+                            }
                         },
-                        "Sum of OVC":  function() { 
-                            return tpl.sum(intFormat)(["OVCCOUNT"]) 
-                        }
-                    },
-                    rendererName: "Table"
-                    }, true);
-                //
-                $('#report_results').html("");
-                $('#map-print, #rpt-download').show();
+                        rendererName: "Table"
+                        }, true);
+                    //
+                    $('#report_results').html("");
+                }else{
+                    $('#report_results').html(message);
+                } 
  
             },
             // handle a non-successful response

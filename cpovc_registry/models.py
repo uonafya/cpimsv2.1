@@ -29,7 +29,16 @@ class RegOrgUnit(models.Model):
         else:
             return True
 
+    def _parent_unit(self):
+        if self.parent_org_unit_id:
+            _parent_unit = RegOrgUnit.objects.get(
+                id=self.parent_org_unit_id)
+            return _parent_unit
+        else:
+            return "N/A"
+
     is_active = property(_is_active)
+    parent_unit = property(_parent_unit)
 
     class Meta:
         """Override table details."""
@@ -271,6 +280,8 @@ class RegPersonsTypes(models.Model):
         """Override table details."""
 
         db_table = 'reg_persons_types'
+        verbose_name = 'Person Type Registry'
+        verbose_name_plural = 'Person Types Registries'
 
 
 class RegPersonsGeo(models.Model):
@@ -477,6 +488,22 @@ class OVCHouseHold(models.Model):
         """Override table details."""
 
         db_table = 'reg_household'
+
+
+class PersonsMaster(models.Model):
+    """Model for Siblings details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    person = models.ForeignKey(RegPerson, null=True)
+    person_type = models.CharField(max_length=5, null=True)
+    system_id = models.CharField(max_length=100, null=True)
+    timestamp_created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'reg_person_master'
 
 
 @receiver(pre_save, sender=RegOrgUnit)

@@ -84,7 +84,7 @@ def log_in(request):
                         is_national = check_national(user)
                         request.session['is_national'] = is_national
                         ou_vars = get_attached_units(user)
-                        print ou_vars
+                        # print ou_vars
                         primary_ou, reg_ovc, primary_name = 0, False, ''
                         attached_ou, perms_ou = '', ''
                         if ou_vars:
@@ -133,7 +133,7 @@ def log_out(request):
         next_page = '/'
         # Check this value before logout
         just_logged_out = request.session.get('password_change_relogin', False)
-        print 'PC', just_logged_out
+        # print 'PC', just_logged_out
         print "User [%s] successfully logged out." % (request.user.username)
         logout(request)
         msg = 'You have successfully logged out.'
@@ -223,18 +223,6 @@ def roles_edit(request, user_id):
             user_ous.append(p_org_id)
             if p_org_id in ous:
                 a_orgs.append(p_org_id)
-        # Check if superior first
-        if len(ous) < len(user_ous) and not request.user.is_superuser:
-            page_info = (' - You have no permissions to manage Rights. '
-                         'Contact your supervisor.')
-            return render(request, 'registry/roles_none.html',
-                          {'page': page_info})
-        # check if same org unit
-        if len(a_orgs) == 0 and not request.user.is_superuser:
-            page_info = (' - You have no permissions to manage Rights. '
-                         'Contact your supervisor.')
-            return render(request, 'registry/roles_none.html',
-                          {'page': page_info})
         # Get geo locations
         person_geos = RegPersonsGeo.objects.select_related(
             'area').filter(person_id=person_id, area_type='GLTW',
@@ -256,11 +244,13 @@ def roles_edit(request, user_id):
         for org_unit in person_orgs:
             org_unit_id = org_unit.org_unit.org_unit_id_vis
             org_unit_name = org_unit.org_unit.org_unit_name
+            primary_unit = org_unit.primary_unit
             unit_name = '%s %s' % (org_unit_id, org_unit_name)
             unit_id = org_unit.org_unit.id
             field_prefix = 'orgs-%s' % (cnt)
             data['%s-org_unit_id' % (field_prefix)] = unit_id
             data['%s-org_unit_name' % (field_prefix)] = unit_name
+            data['%s-org_unit_primary' % (field_prefix)] = primary_unit
             if unit_id in ex_orgs:
                 all_fields = ex_orgs[unit_id]
                 for all_field in all_fields:
@@ -300,7 +290,7 @@ def roles_edit(request, user_id):
                 gdata['%s-area_welfare' % (field_prefix)] = True
                 gdata['%s-sub_county' % (field_prefix)] = county_name
                 cnts += 1
-        print 'RCHECK', person_geos, ex_areas, gdata
+        # print 'RCHECK', person_geos, ex_areas, gdata
         geo_form_set = formset_factory(RolesGeoArea)
         gformset = geo_form_set(gdata, prefix='areas')
         # Get all groups

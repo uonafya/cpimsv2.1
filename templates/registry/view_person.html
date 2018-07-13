@@ -57,11 +57,13 @@
                             <h4><i class="fa fa-key"></i> ID: {{ person_details.id }} </h4>
                         </div>
                         <!-- end profile-highlight -->
+                        {% if person_details.person_type_name == 'Child' %}
                         <center>
                             <button id="btn_biometrics" class="btn btn-sm btn-primary m-r-5">
                             <b> Biometrics </b>&nbsp; <i class="fa fa-edit"></i>
                             </button>
                         </center>
+                        {% endif %}
                     </div>
                     <!-- end profile-left -->
 
@@ -77,6 +79,7 @@
                                             <th width="25%"></th>
                                             <th>
                                             <h4>{{ person_details.first_name }} {{ person_details.surname }}
+                                                {% if person_details.other_names %}{{ person_details.other_names }}{% endif %}
                                                 <br>
                                                 <small><b>
                                                 {% if not person_details.date_of_death == None %}

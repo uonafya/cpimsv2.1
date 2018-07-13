@@ -13,6 +13,7 @@ from cpovc_reports import urls as reports_urls
 from cpovc_gis import urls as gis_urls
 from cpovc_api import urls as api_urls
 from cpovc_ovc import urls as ovc_urls
+from cpovc_settings import urls as settings_urls
 from django.contrib.auth.views import (
     password_reset_done, password_change, password_change_done)
 from cpovc_auth.views import password_reset
@@ -37,7 +38,8 @@ urlpatterns = [
     url(r'^reports/', include(reports_urls)),
     url(r'^gis/', include(gis_urls)),
     url(r'^api/', include(api_urls)),
-    url(r'^ovc/', include(ovc_urls)),
+    url(r'^ovcare/', include(ovc_urls)),
+    url(r'^settings/', include(settings_urls)),
     url(r'^accounts/login/$', 'cpovc_auth.views.log_in', name='login'),
     url(r'^accounts/password/reset/$', password_reset,
         {'template_name': 'registration/password_reset.html'},

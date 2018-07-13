@@ -40,18 +40,23 @@
             </div>
             <!-- start panel body -->
             <div class="panel-body">
-                <form action="." method="post" name="ovcreg_form" id="ovcreg_form" data-parsley-validate="true">
+                <form action="." method="post" name="ovcreg_form" id="ovcreg_form">
                 {% csrf_token %}
+                <input type="hidden" name="ovc_id" id="ovc_id" value="{{ child.id }}">
 
                 <div id="wizard">
                 <ol>
                   <li>
                       OVC Details
-                      <small>Biodata.</small>
+                      <small>Biodata and basic details.</small>
                   </li>
                   <li>
-                      Health and Education
-                      <small>Health and education information.</small>
+                      Health
+                      <small>Immunization and HIV information.</small>
+                  </li>
+                  <li>
+                      Education
+                      <small>Education information.</small>
                   </li>
                   <li>
                       Parents / Caregiver
@@ -172,7 +177,7 @@
         </div>
         <div class="primary1">
             <fieldset>
-                <legend class="pull-left width-full">Health and Education details</legend>
+                <legend class="pull-left width-full">Health details</legend>
                 <!-- begin row -->
                  {% if  not child.years > 5 %}
                  <div class="row">
@@ -197,21 +202,23 @@
                     </div>
                     <!-- end col-2 -->
                     <!-- begin col-2 -->
-                    <div class="col-md-3" id="facility_div">
+                    <div class="col-md-6" id="facility_div">
                     <div class="form-group">
                         <label>Facility</label>
                          {{ form.facility }}
                       </div>
                     </div>
                     <!-- end col-2 -->
-                    <div class="col-md-1" id="facility_id_div">
+                    <div class="col-md-2" id="facility_id_div">
                     <div class="form-group">
-                        <label>ID</label>
+                        <label>ID (Auto-populated)</label>
                         {{ form.facility_id }}
                       </div>
                     </div>
+                </div>
+                <div class="row">
                     <!-- begin col-2 -->
-                    <div class="col-md-2" id="art_div">
+                    <div class="col-md-3" id="art_div">
                     <div class="form-group">
                         <label>ART Status</label>
                         {{ form.art_status }}
@@ -219,7 +226,7 @@
                     </div>
                     <!-- end col-2 -->
                     <!-- begin col-2 -->
-                    <div class="col-md-2" id="link_date_div">
+                    <div class="col-md-3" id="link_date_div">
                     <div class="form-group">
                         <label>Date of Linkage</label>
                         {{ form.link_date }}
@@ -227,7 +234,7 @@
                     </div>
                     <!-- end col-2 -->
                     <!-- begin col-2 -->
-                    <div class="col-md-1" id="ccc_no_div">
+                    <div class="col-md-3" id="ccc_no_div">
                     <div class="form-group">
                         <label>CCC Number</label>
                         {{ form.ccc_number }}
@@ -236,9 +243,26 @@
                     <!-- end col-2 -->
                 </div>
                 <!-- begin row -->
+                <div class="row">
+                    <div class="col-md-1">
+                      <a href="#modal-facility" data-toggle="modal"><button type="button" class="btn btn-primary"><i class="fa fa-plus"></i> Facility</button></a>
+                    </div>
+                    <div class="col-md-11">
+                        <div class="alert alert-danger fade in m-b-15">
+                                <strong>Warning!</strong>
+                                Facility details will only be saved if you provide all the details.
+                                <span class="close" data-dismiss="alert">&times;</span>
+                            </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="primary2">
+            <fieldset>
+                <legend class="pull-left width-full">Education details</legend>
                  <div class="row">
                     <!-- begin col-2 -->
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                     <div class="form-group">
                         <label>School Level</label>
                         {{ form.school_level }}
@@ -254,7 +278,7 @@
                     </div>
                     <!-- end col-2 -->  
                     <!-- begin col-2 -->
-                    <div class="col-md-3" id="school_name_div">
+                    <div class="col-md-4" id="school_name_div">
                     <div class="form-group">
                         <label>School Name</label>
                         {{ form.school_name }}
@@ -277,17 +301,25 @@
                     <!-- end col-2 -->
                 </div>
                 <div class="row">
-                      <a href="#modal-facility" data-toggle="modal"><button type="button" class="btn btn-primary"><i class="fa fa-plus"></i> Facility</button></a>
+                    <div class="col-md-1">
                       <a href="#modal-school" data-toggle="modal"><button type="button" class="btn btn-primary"><i class="fa fa-plus"></i> School</button></a>
+                    </div>
+                    <div class="col-md-11">
+                        <div class="alert alert-danger fade in m-b-15">
+                            <strong>Warning!</strong>
+                            School details will only be saved if you provide all the details.
+                            <span class="close" data-dismiss="alert">&times;</span>
+                        </div>
+                    </div>
                 </div>
                 </fieldset>
             </div>
-        <div class="primary2">
+        <div class="primary3">
                 <fieldset>
                 <legend class="pull-left width-full">Parents / Caregiver details</legend>
                 <!-- begin row -->
                  <div class="row">
-                    <div class="col-md-9">
+                    <div class="col-md-12">
                     <table class="table">
                     <thead>
                         <tr>
@@ -344,6 +376,8 @@
                     </table>
                     </div>
                     <!-- begin col-2 -->
+                </div>
+                <div class="row">
                     <div class="col-md-3">
                     <div class="form-group">
                         <label>Primary Caretaker {{ ctaker }}</label>
@@ -363,7 +397,7 @@
                 </div>
              </fieldset>
             </div>
-        <div class="primary3">
+        <div class="primary4">
                 <fieldset>
                 <legend class="pull-left width-full">Siblings details</legend>
                 <!-- begin row -->
@@ -433,6 +467,7 @@
                     <label class="control-label col-md-4 col-sm-4"></label>
                     <div class="col-md-6 col-sm-6">
                         <button type="submit" class="btn btn-primary" value="submit" id="s1">Update</button>
+                        <button type="button" class="btn btn-primary" value="exit-ovc" id="ovcexit">Exit OVC</button>
                         <a href="{% url 'ovc_home' %}">
                         <button type="button" class="btn btn-default">Cancel</button>
                         </a>
@@ -482,8 +517,77 @@
         </div>
     </div>
     <!-- # end modal-dialog -->
+    <!-- # start modal-dialog -->
+    <div class="modal fade" id="modal-ovc-exit">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Exit OVC - {{ child.first_name }} {{ child.surname }} | {{ child.age }}</h4>
+                </div>
+                <div class="modal-body">
+                    <p>This is for handling all OVC exits.</p>
+                    <div id="exit-message"></div>
+                    <!-- begin col-4 -->
+                    <div class="primary4">
+                    <fieldset>
+                    <div class="row">
+                        <div class="col-md-4">
+                           <label>Exit reason</label>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.ovc_exit_reason }}
+                            </div>
+                        <!-- end col-4 -->
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                           <label>Exit Date</label>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.exit_date }}
+                            </div>
+                        <!-- end col-4 -->
+                        </div>
+                    </div>
+                    <div class="row" id="exit_org_div">
+                        <div class="col-md-4">
+                           <label>Organization Name</label>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.exit_org_name }}
+                            </div>
+                        <!-- end col-4 -->
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary" value="exit-ovc" id="oexit">Exit OVC</button>
+                            </div>
+                        <!-- end col-4 -->
+                        </div>
+                    </div>
+                    </fieldset>
+                    </div>
+                        
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- # end modal-dialog -->
 </div>
 </div>
+</form>
 <!-- end row -->
 {% endblock %}
 
@@ -491,35 +595,70 @@
 <script src="{% static 'plugins/bootstrap-wizard/js/bwizard.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/bootstrap-multiselect.js' %}"></script>
 <script>
-    $("#wizard").bwizard({ validating: function (e, ui) {
+    $("#wizard").bwizard();
+
+    $('#ovcreg_form').submit(function(){
+        if ($('#ovcreg_form').parsley().isValid()){ 
+             $('#messages').html('Form is OK.');
+             $('#messages').show();
+        }else{
+            $('#messages').html('Please fill all the mandatory fields. Only complete records will be saved.');
+            $('#messages').show();
+            return true;
+        }
+         
+    });
+
+    $('#ovcexit').click(function() { 
+        $('#modal-ovc-exit').modal('toggle');
+    });
+
+    $('#oexit').click(function() {
+        $('#ovcreg_form').parsley().validate("primary4");
+        var ovc_id = $('#ovc_id').val();
+        var ovc_exit_reason = $('#ovc_exit_reason').val();
+        var ovc_exit_date = $('#exit_date').val();
+        var ovc_exit_org = $('#exit_org_name').val();
+
         
-         if (ui.index == 0) {
-            // step-1 validation
-            
-            if (false === $('form[name="ovcreg_form"]').parsley().validate('primary')) {
-                return false;
-            }
-        } else if ((ui.index == 1) && (ui.nextIndex > ui.index)){
-            // step-2 validation
-            
-              if (false === $('form[name="ovcreg_form"]').parsley().validate('primary1')) {
-                return false;
-            }
-        } else if ((ui.index == 2) && (ui.nextIndex > ui.index)) {
-            // step-3 validation
-            
-            if (false === $('form[name="ovcreg_form"]').parsley().validate('primary2')) {
-                return false;
-            }
-        } else if ((ui.index == 3) && (ui.nextIndex >= ui.index)) {
-            // step-4 validation
-            $("#form_actions").show();
-            if (false === $('form[name="ovcreg_form"]').parsley().validate('primary3')) {
-                  return false;
-            }
+        var csrftoken = $.cookie('csrftoken');
+        var values = {'ovc_id': ovc_id, 'action': 2,
+                      'exit_reason': ovc_exit_reason,
+                      'exit_date': ovc_exit_date,
+                      'exit_org_name': ovc_exit_org,
+                      'csrfmiddlewaretoken': csrftoken };
+        //Ajax call
+        var is_allowed = true;
+        if ((ovc_exit_reason == 'ERTL' || ovc_exit_reason == 'ERFO') && ovc_exit_org == ''){
+            is_allowed = false;
+        }
+        //if ($('#ovcreg_form').parsley().isValid()){
+        if (ovc_exit_reason && ovc_exit_date && is_allowed){
+            $.ajax({
+                type: "POST",
+                data: values,
+                dataType: "json",
+                url: "{% url 'ovc_manage' %}",
+                success: function(data){
+                    $('#messages').html('Exit was successful - ' + ovc_exit_date );
+                    $('#messages').show();
+                    // Redirect to view
+                    $('#modal-ovc-exit').modal('toggle');
+                    $(location).attr('href', '{% url 'ovc_view' id=child.id %}');
+                },
+                error: function(){
+                    $('#messages').html("Error");
+                    $('#messages').show();
+                }
+            });
+        }else{
+            $('#exit-message').html("Please provide all the details.");
+            $("#exit-message").addClass( "alert alert-danger fade in" );
         }
 
-    }});
+
+    });
+    
     var is_exit = $('#is_exited').is(":checked");
     disable_fields(is_exit, 'exit_reason');
 
@@ -538,7 +677,7 @@
         buttonClass: 'btn btn-white'
     });
 
-    $('#reg_date, #link_date').datepicker({
+    $('#reg_date, #link_date, #exit_date').datepicker({
         dateFormat: 'yy-mm-dd', format: 'dd-M-yyyy',
         endDate: '+0d', enddate: '+0d', autoclose: true
     });
@@ -561,6 +700,14 @@
     $('#disb').live('change', function() {
         var cond = $('#disb').is(":checked");
         disable_fields(cond, 'ncpwd_no');
+    });
+
+    $('#exit_org_div').hide();
+    var cond = $('#ovc_exit_reason').val();
+    handle_exit_org(cond);
+    $('#ovc_exit_reason').live('change', function() {
+        var cond = $('#ovc_exit_reason').val();
+        handle_exit_org(cond);
     });
 
     $('#caretaker').val('{{ child.caretaker }}');
@@ -667,6 +814,16 @@
             });
         }else{
              $('#school_class').append('<option></option>'); 
+        }
+    }
+
+    function handle_exit_org(cond){
+        if (cond == 'ERFO' || cond == 'ERTL'){
+           $('#exit_org_div').show(); 
+           $('#exit_org_name').attr("data-parsley-required", "true");
+        }else{
+           $('#exit_org_div').hide();
+           $('#exit_org_name').attr("data-parsley-required", "false");
         }
     }
 

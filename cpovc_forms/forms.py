@@ -545,10 +545,11 @@ class ResidentialFollowupForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ResidentialFollowupForm, self).__init__(*args, **kwargs)
-        # schools_list = [('', 'Please Select')] + list(SchoolList.objects.filter().values_list('school_id', 'school_name'))
-        org_unit_ids = ['TICC', 'TICA', 'TICH', 'TIRS', 'TIRC', 'TIBI', 'TNRC']
-        org_unit_ids0 = ['TNSA', 'TNSI', 'TNCI', 'TNRH', 'TNRC', 'TNRR']
-        org_unit_ids.extend(org_unit_ids0)
+        # schools_list = [('', 'Please Select')] + list(SchoolList.objects
+        # .filter().values_list('school_id', 'school_name'))
+        org_unit_ids = ['TICC', 'TICA', 'TICH', 'TIRS', 'TIRC', 'TIBI',
+                        'TNRC', 'TNSA', 'TNSI', 'TNCI', 'TNRH', 'TNRC',
+                        'TNRR', 'TNAP', 'TNRS', 'TNRB']
         org_units_list = [('', 'Please Select')] + list(RegOrgUnit.objects.filter(
             org_unit_type_id__in=org_unit_ids).values_list('id', 'org_unit_name'))
         discharge_destination = forms.ChoiceField(choices=org_units_list,
@@ -2455,6 +2456,8 @@ class OVCF1AForm(forms.Form):
                #'data-parsley-required': "true",
                #'data-parsley-group': 'group3'
                }))
+    caretaker_id = forms.CharField(widget=forms.HiddenInput(
+        attrs={'id': 'caretaker_id'}))
 
 
 class OVCHHVAForm(forms.Form):

@@ -26,7 +26,7 @@
     <span id="invalid-form-message"></span>
     <span class="validation-errors"></span>
 </div>
-{% if request.session.reg_ovc and chvs == 0 %}
+{% if request.session.reg_ovc and chvs <= 1 %}
 <div class="alert alert-danger fade in" tabindex="1">
     <span class="close" data-dismiss="alert">×</span>
     <i class="fa fa-info fa-2x pull-left"></i>
@@ -50,6 +50,7 @@
                     <div class="panel-body">
                         <form class="form-horizontal form-bordered" action="{% url 'new_person' %}" method="POST" data-parsley-validate="true" name="form-wizard" id="new_person">
                             {% csrf_token %}
+                            <input type="hidden" name="person_uid" id="person_uid" value="{{ person_uid }}">
                         <div class="row">
                         <fieldset>
                             <legend class="pull-left width-full">Personal details</legend>
@@ -810,7 +811,7 @@ jQuery(document).ready(function() {
         enableClickableOptGroups: true,
         buttonClass: 'btn btn-white'
     });
-    $('#working_in_ward').multiselect({
+    $('#working_in_ward, #cbo_unit_id, #chv_unit_id').multiselect({
         selectAllValue: 'multiselect-all',
         includeSelectAllOption: true,
         enableCaseInsensitiveFiltering: true,
@@ -1131,13 +1132,16 @@ jQuery(document).ready(function() {
         $("#log_unit").removeClass( "alert alert-danger fade in" );
         var pri_unt = (primary_unit == 'AYES' ? "Yes" : "No");
         var reg_ass = (reg_assistant == 'AYES' ? "Yes" : "No");
-       $('#org_units tbody').append(
-        '<tr id="unit_tr_'+ org_unit_id +'" unit_name="'+ org_unit_name +'"><td><input id="ou_'+org_unit_id+'_oid" name="ou_'+org_unit_id+'_oid" value="'+org_unit_id+'" type="hidden">'+ org_unit_id_vis +
-        '</td><td>'+ org_unit_name +
-        '</td><td><input id="ou_'+org_unit_id+'_pri" name="ou_'+org_unit_id+'_pri" value="'+primary_unit+'" type="hidden">'+ pri_unt +
-        '</td><td><input id="ou_'+org_unit_id+'_reg" name="ou_'+org_unit_id+'_reg" value="'+reg_assistant+'" type="hidden">'+ reg_ass +
-        '</td><td>'+ btn +
-        '</td></tr>');
+        var bdt = '';
+        bdt += '<tr id="unit_tr_'+ org_unit_id +'" unit_name="'+ org_unit_name +'">';
+        bdt += '<td><input id="ou_'+org_unit_id+'_oid" name="ou_'+org_unit_id+'_oid" value="';
+        bdt += org_unit_id+'" type="hidden">'+ org_unit_id_vis +'</td>';
+        bdt += '<td>'+ org_unit_name +'</td><td><input id="ou_'+org_unit_id+'_pri" name="ou_';
+        bdt += org_unit_id+'_pri" value="'+primary_unit+'" type="hidden">';
+        bdt += pri_unt + '</td><td><input id="ou_'+org_unit_id+'_reg" name="ou_';
+        bdt += org_unit_id+'_reg" value="'+reg_assistant+'" type="hidden">';
+        bdt += reg_ass + '</td><td>'+ btn + '</td></tr>';
+        $('#org_units tbody').append(bdt);
        var sel_orgs = $("#id_orgs_selected").val();
        if (sel_orgs != ''){
            var newText = sel_orgs.split(",");
@@ -1201,6 +1205,8 @@ jQuery(document).ready(function() {
         $("#id_caregiver_firstname").val(ui.item.fname);
         $("#id_caregiver_surname").val(ui.item.sname);
         $("#id_caregiver_othernames").val(ui.item.onames);
+        $("#caregiver_idno").val(ui.item.idno);
+        $("#caregiver_tel").val(ui.item.tel);
       },
       open: function() {
         $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -1692,6 +1698,13 @@ function handle_caregiver(person_text){
     $('#audit_detail_div').show();
     $('#audit_workforce_id').attr('data-parsley-required', 'true');
     $('#audit_date').attr('data-parsley-required', 'true');
+
+    {% if request.session.reg_ovc %}
+    $("#cbo_chv_add").show();
+    $('#add_org_info').html('');
+    $('#chv_id_div').hide();    
+    $('#chv_unit_id').attr('data-parsley-required', 'false');
+    {% endif %}
     $('#parent_org_add').hide();
     $('#add_org_info').html(' - Not required');
     $('#org_unit_id').attr('data-parsley-required', 'false');
@@ -1757,6 +1770,12 @@ function handle_volunteer(person_text){
     $('#religion_id_div').hide();
     $('#nation_id_div').hide();
     $('#des_phone_number').attr('data-parsley-required', 'true');
+    {% if request.session.reg_ovc %}
+    $("#cbo_chv_add").show();
+    $('#add_org_info').html('');
+    $('#chv_id_div').hide();    
+    $('#chv_unit_id').attr('data-parsley-required', 'false');
+    {% endif %}
 }
 
 function handle_government(person_text){

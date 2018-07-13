@@ -7,6 +7,6 @@ urlpatterns = patterns('cpovc_auth.views',
                        url(r'^register/$', 'register'),
                        url(r'^ping/$', 'user_ping', name='user_ping'),
                        url(r'^roles/$', 'roles_home', name='roles_home'),
-                       url(r'^roles/(?P<user_id>\d+)/$', 'roles_edit',
+                       url(r'^roles/edit/(?P<user_id>\d+)/$', 'roles_edit',
                            name='roles_edit'),
                        )

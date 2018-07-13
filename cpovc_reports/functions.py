@@ -24,6 +24,10 @@ from reportlab.lib.pagesizes import A4, letter
 from reportlab.graphics.barcode import qr
 from reportlab.graphics.shapes import Drawing
 from reportlab.graphics import renderPDF
+import openpyxl
+import pandas as pd
+import numpy as np
+from openpyxl.styles import colors, PatternFill
 
 from cpovc_main.functions import (
     get_general_list, get_dict, get_mapped, convert_date)
@@ -42,6 +46,7 @@ from cpovc_forms.models import (
     OVCCaseCategory, OVCCaseGeo, OVCCaseEventServices,
     OVCPlacement, OVCAdverseEventsOtherFollowUp,
     OVCDischargeFollowUp, OVCCaseRecord, OVCAdverseEventsFollowUp)
+from cpovc_auth.models import AppUser
 
 from django.conf import settings
 from django.db.models import Count
@@ -600,6 +605,7 @@ def get_period(report_type='M', month='', year='', period='F'):
     period should be a calculated month range given an end date.
     """
     try:
+        print 'PEPFAR', report_type, period
         days = 30
         reports_qs = {'Q1': 9, 'Q2': 12, 'Q3': 3, 'Q4': 6}
         other_yr = ['Q3', 'Q4', 'Y']
@@ -635,7 +641,11 @@ def get_period(report_type='M', month='', year='', period='F'):
         else:
             sdate = (end_date_obj - timedelta(days=days))
             start_date_obj = sdate.replace(day=1)
+        # DATIM Start
+        datim_date = (end_date_obj - timedelta(days=89))
+        datim_start = datim_date.replace(day=1)
         params = {}
+        params['datim_start_date'] = datim_start
         params['end_date'] = end_date_obj
         params['start_date'] = start_date_obj
         # Period name for the report
@@ -1991,7 +2001,7 @@ def get_variables(request):
         org_type = request.POST.get('org_type')
         cluster = request.POST.get('cluster')
         report_ovc = request.POST.get('report_ovc')
-        report_ovc_id = request.POST.get('report_ovc_id')
+        report_ovc_id = request.POST.get('rpt_ovc_id')
         rpt_ovc = int(report_ovc) if report_ovc else 1
         rpt_ovc_id = int(report_ovc_id) if report_ovc_id else 1
         if rpt_ovc == 6:
@@ -2016,10 +2026,8 @@ def get_variables(request):
         my_county = county if report_region == 2 else False
         if report_region == 1 or report_region == 4:
             sub_county_ids = []
-        print 'n 1'
         sub_counties = get_sub_county_info(
             sub_county_ids, icounty=my_county)
-        print 'n 3'
         variables = {'sub_county_id': [], 'sub_county': []}
         for sub_county in sub_counties:
             rep_var = sub_counties[sub_county]
@@ -2108,6 +2116,7 @@ def get_variables(request):
         check_region = unit_id and report_region != 4
         unit_type = 'for %s' % (inst_cats[unit_id]) if check_region else ''
         report_variables['unit_type'] = unit_type
+        # print 'VARS', report_variables
     except Exception, e:
         print 'error creating variables - %s' % (str(e))
         raise e
@@ -2122,12 +2131,19 @@ def get_pivot_data(request, params={}):
                        "ngo_unit_type_id", "cci_unit_type_id",
                        "si_unit_type_id", "committee_unit_type_id",
                        "adoption_unit_type_id"]
+        print 'PERMS', params
         categories = get_dict(field_name=field_names)
-        datas = OVCCaseCategory.objects.all()
+        start_date = params['start_date']
+        end_date = params['end_date']
+        datas = OVCCaseCategory.objects.filter(
+            case_id__date_case_opened__range=(start_date, end_date))
         gdatas = {}
         cids, cdatas = [], {}
+        case_ids = []
+        for dt in datas:
+            case_ids.append(dt.case_id_id)
         # Get the Geo details
-        geos = OVCCaseGeo.objects.all()
+        geos = OVCCaseGeo.objects.filter(case_id__in=case_ids)
         for geo in geos:
             scname = geo.report_subcounty.area_name
             cname = geo.report_subcounty.parent_area_id
@@ -2156,10 +2172,10 @@ def get_pivot_data(request, params={}):
             org_unit = gdatas[case_id]['oname'] if has_case else 'UK'
             unit_type = categories[tid] if tid in categories else tid
             # county = data.case_id.ovccasegeo.occurrency_county
-            sex = 'Female' if sex_id == 'SMAL' else 'Male'
+            sex = 'Male' if sex_id == 'SMAL' else 'Female'
             record = {'Category': category, 'Age': age, 'Unit Type': unit_type,
                       'Sex': sex, 'County': county, 'Sub County': scounty,
-                      'Organisation Unit': org_unit}
+                      'Organisation Unit': org_unit, 'OVCCount': 1}
             records.append(record)
     except Exception, e:
         print 'error getting pivot data - %s' % (str(e))
@@ -2266,11 +2282,11 @@ def get_domain_data(params):
                        "olmis_health_service_id", "olmis_education_service_id"]
         sub_domains = get_mapped(field_name=field_names)
         dmns = {}
-        txt = ""
+        domain = ""
         for dmn in sub_domains:
             sdid = sub_domains[dmn]['id']
             dmns[str(dmn)] = sdid
-            txt += "WHEN '%s' THEN '%s' " % (str(dmn), domains[sdid])
+            domain += "WHEN '%s' THEN '%s' " % (str(dmn), domains[sdid])
         end_date = params['end_date']
         start_date = params['start_date']
         cbo = params['org_unit']
@@ -2280,11 +2296,9 @@ def get_domain_data(params):
         report_id = int(rpt_id) if rpt_id else 0
         if report_id == 5:
             cbo_id = get_cbo_cluster(cluster)
-        sql = QUERIES['pepfar']
-        cbos = 'and child_cbo_id in (%s)' % (cbo_id)
-        if report_id == 1:
-            cbos = ''
-        sql = sql % (txt, start_date, end_date, cbos)
+        params = {'cbos': cbo_id, 'start_date': start_date,
+                  'end_date': end_date, 'domains': domain}
+        sql = QUERIES['pepfar'].format(**params)
         datas, desc = run_sql_data(None, sql)
     except Exception, e:
         print 'error getting domain data - %s' % str(e)
@@ -2382,18 +2396,17 @@ def get_services_data(servs, params):
     try:
         datas = []
         start = time.clock()
-        end_date = params['end_date']
-        start_date = params['start_date']
         cbo = params['org_unit']
         cbo_id = int(cbo) if cbo else 0
         rpt_id = params['report_region']
         cluster = params['cluster'] if 'cluster' in params else 0
         report_id = int(rpt_id) if rpt_id else 0
-        cbos = [cbo_id]
+        # cbos = [cbo_id]
         if report_id == 5:
             cbo_id = get_cbo_cluster(cluster)
-            cbos = cbo_id.split(',')
+            # cbos = cbo_id.split(',')
         # pids
+        '''
         regs = OVCRegistration.objects.filter(
             is_void=False, registration_date__lt=end_date)
         if cbo_id:
@@ -2403,14 +2416,19 @@ def get_services_data(servs, params):
         cbos = 'and ovc_registration.child_cbo_id in (%s)' % (cbo_id)
         if report_id == 1:
             cbos = ''
+        '''
+        params['cbos'] = cbo_id
         # HIVSTAT
-        sql = QUERIES['datim'] % (cbos)
+        sql = QUERIES['datim'].format(**params)
         rows, desc = run_sql_data(None, sql)
         # Served
-        sql1 = QUERIES['datim_1'] % (start_date, end_date, cbos)
-        rows1, desc1 = run_sql_data(None, sql1)
+        sql1 = QUERIES['datim_1'].format(**params)
+        sql3 = QUERIES['datim_3'].format(**params)
+        sql4 = QUERIES['served'] % (sql1, sql3)
+        rows1, desc1 = run_sql_data(None, sql4.replace(';', ''))
         # ART
-        sql2 = QUERIES['datim_2'] % (cbos)
+        sql2 = QUERIES['datim_2'].format(**params)
+        # print sql2
         rows2, desc2 = run_sql_data(None, sql2)
         #
         # format_data(rows, datas)
@@ -2443,7 +2461,7 @@ def get_pivot_ovc(request, params={}):
         kpis[10] = '3.d %s OVC served with Birth Certificate after enrolment'
         kpis[11] = ('3.e %s OVC 5yrs and below served with Birth Certificate '
                     'within period')
-        kpis[12] = '4.a %s OVC HIV Status not known at enrolment'
+        kpis[12] = '4.a.(iii) %s OVC HIV Status not known at enrolment'
         kpis[13] = '4.a.(i) %s OVC HIV+ at enrolment'
         kpis[14] = '4.a.(ii) %s OVC HIV- at enrolment'
         kpis[15] = '4.b %s OVC Tested within period'
@@ -2459,10 +2477,10 @@ def get_pivot_ovc(request, params={}):
                     'within period')
         kpis[25] = '4.l %s HIV+ OVC Tested within period'
         kpis[26] = '5.a %s ACTIVE HouseHolds/Caregivers within period'
-        kpis[27] = '5.a %s OVC served with 1 or 2 services'
-        kpis[28] = '5.b %s ACTIVE CHVs within period'
-        kpis[29] = '5.b %s OVC served with 3 or more services'
-        kpis[30] = '5.c %s OVC NOT served with any service'
+        kpis[27] = '5.b %s Number of active CHVs within period'
+        kpis[28] = '6.a %s OVC served with 1 or 2 services'
+        kpis[29] = '6.b %s OVC served with 3 or more services'
+        kpis[30] = '6.c %s OVC NOT served with any service'
         # served
         services = {}
         services[1] = 'a.OVC HIVSTAT'
@@ -2475,7 +2493,7 @@ def get_pivot_ovc(request, params={}):
         elif report_id == 1:
             datas = get_services_data(services, params)
         else:
-            datas, titles = get_sql_data(request)
+            datas, titles = get_sql_data(request, params)
     except Exception, e:
         print 'Error getting OVC pivot data - %s' % (str(e))
         return []
@@ -2512,7 +2530,7 @@ def write_xlsm(csv_file, file_name, report_id=1):
         vba_file = '%s/%s/vbaProject.bin' % (DOC_ROOT, s_name)
         writer = pandas.ExcelWriter(excel_file, engine='xlsxwriter')
         data = pandas.read_csv(csv_file_name)
-        data.to_excel(writer, sheet_name='Sheet', index=False)
+        data.to_excel(writer, sheet_name='Sheet1', index=False)
         workbook = writer.book
         xlsm_file = '%s/%s.xlsm' % (MEDIA_ROOT, file_name)
         workbook.filename = xlsm_file
@@ -2524,8 +2542,9 @@ def write_xlsm(csv_file, file_name, report_id=1):
         pass
 
 
-def get_sql_data(request):
+def get_sql_data(request, params):
     """Method to write data."""
+    datas = []
     cbo = request.POST.get('org_unit')
     rpt_id = request.POST.get('report_region')
     report_ovc = request.POST.get('rpt_ovc_id')
@@ -2535,13 +2554,35 @@ def get_sql_data(request):
     cbo_id = int(cbo) if cbo else 0
     if report_id == 5:
         cbo_id = get_cbo_cluster(cluster)
+    params['cbos'] = cbo_id
+    print params
     df_rpt = REPORTS[1]
     qname = REPORTS[rpt_ovc] if rpt_ovc in REPORTS else df_rpt
     sql = QUERIES[qname]
-    sql = sql % (cbo_id)
+    sql = sql.format(**params)
     print 'nnnnn'
     row, desc = run_sql_data(request, sql)
-    return row, desc
+    data = datas + row
+    qblank = '%s_blank' % (qname)
+    if qblank in QUERIES:
+        bsql = QUERIES[qblank]
+        bsql = bsql.format(**params)
+        brow, bdesc = run_sql_data(request, bsql)
+        data = data + brow
+    for i in range(1, 5):
+        qs = '%s_%s' % (qname, str(i))
+        qb = '%s_blank_%s' % (qname, str(i))
+        if qs in QUERIES:
+            sql = QUERIES[qs]
+            sql = sql.format(**params)
+            qrow, desc = run_sql_data(request, sql)
+            data = data + qrow
+        if qb in QUERIES:
+            sql = QUERIES[qb]
+            sql = sql.format(**params)
+            brow, desc = run_sql_data(request, sql)
+            data = data + brow
+    return data, desc
 
 
 def dictfetchall(cursor):
@@ -2580,13 +2621,113 @@ def get_cbo_cluster(cluster_id):
         return cbos
 
 
+def get_cluster(request, id=0):
+    """Method to return clusters."""
+    try:
+        cbo_id = request.session.get('ou_primary', 0)
+        # Get all person ids attached to same org units as this person
+        person_ids = RegPersonsOrgUnits.objects.filter(
+            org_unit_id=cbo_id, is_void=False, date_delinked=None).values_list(
+            'person_id', flat=True)
+        # Find all user ids for this person
+        user_ids = AppUser.objects.filter(
+            reg_person_id__in=person_ids).values_list('id', flat=True)
+        # Query all Clusters attached to this user ids
+        cbos = OVCClusterCBO.objects.select_related().filter(
+            cluster__created_by_id__in=user_ids)
+        cs, clusters = {}, []
+        for cbo in cbos:
+            cbo_cluster = cbo.cluster.cluster_name
+            cbo_name = cbo.cbo.org_unit_name
+            cbo_id = cbo.cbo_id
+            cluster_id = cbo.cluster_id
+            cluster_date = cbo.cluster.created_at
+            cluster_create = cbo.cluster.created_by
+            if cluster_id not in cs:
+                cs[cluster_id] = {'cluster_name': cbo_cluster,
+                                  'created_at': cluster_date,
+                                  'created_by': cluster_create,
+                                  'cbos': [cbo_name], 'id': str(cluster_id),
+                                  'cbo_ids': [cbo_id]}
+            else:
+                cs[cluster_id]['cbos'].append(cbo_name)
+                cs[cluster_id]['cbo_ids'].append(cbo_id)
+        for ci in cs:
+            clusters.append(cs[ci])
+    except Exception, e:
+        error = 'Error getting cluster - %s' % (str(e))
+        print error
+        return []
+    else:
+        return clusters
+
+
+def edit_cluster(request, cluster_id):
+    """Cluster details."""
+    try:
+        status = 0
+        user_id = request.user.id
+        cluster_name = request.POST.get('cluster')
+        cbos = request.POST.getlist('cbo')
+        cboids = [int(cbo) for cbo in cbos]
+        if cluster_id:
+            dcl = OVCCluster.objects.get(id=cluster_id)
+            dcl.delete()
+            return 0
+        if len(cbos) == 1:
+            status = 1
+        else:
+            orgs = RegOrgUnit.objects.filter(
+                is_void=False, id__in=cbos)
+            for org in orgs:
+                if org.parent_org_unit_id == 2:
+                    status = 2
+            if status != 2:
+                # Is not an LIP
+                clusters = get_cluster(request, id=0)
+                for cs in clusters:
+                    cbo_ids = cs['cbo_ids']
+                    cboc = collections.Counter(cbo_ids)
+                    if collections.Counter(cboids) == cboc:
+                        status = 3
+                if status != 3:
+                    # Create Cluster
+                    newc = OVCCluster(cluster_name=cluster_name,
+                                      created_by_id=user_id)
+                    newc.save()
+                    # Attach CBOs to clusters
+                    for cboid in cboids:
+                        OVCClusterCBO(cluster_id=newc.pk,
+                                      cbo_id=cboid).save()
+    except Exception as e:
+        print 'error - %s' % (str(e))
+        return 9
+    else:
+        return status
+
+
 def get_clusters(user, default_txt=False):
     """Method to return clusters."""
     initial_list = {'': default_txt} if default_txt else {}
     all_list = collections.OrderedDict(initial_list)
     try:
-        my_list = OVCCluster.objects.filter(
-            is_void=False).order_by('cluster_name')
+        cbo_ids = RegPersonsOrgUnits.objects.filter(
+            person_id=user.reg_person_id, is_void=False,
+            date_delinked=None).values_list('org_unit_id', flat=True)
+        person_ids = RegPersonsOrgUnits.objects.filter(
+            org_unit_id__in=cbo_ids, is_void=False,
+            date_delinked=None).values_list('person_id', flat=True)
+        # Find all user ids for this person
+        user_ids = AppUser.objects.filter(
+            reg_person_id__in=person_ids).values_list('id', flat=True)
+        # Query all Clusters attached to this user ids
+        if user.is_superuser:
+            my_list = OVCCluster.objects.filter(
+                is_void=False).order_by('cluster_name')
+        else:
+            my_list = OVCCluster.objects.filter(
+                is_void=False,
+                created_by_id__in=user_ids).order_by('cluster_name')
         for a_list in my_list:
             unit_names = a_list.cluster_name
             all_list[a_list.id] = unit_names
@@ -2602,7 +2743,8 @@ def csvxls_data(request, f):
     """Method to convert csv to xlsx."""
     try:
         data = []
-        with open('%s/tmp-%s.csv' % (MEDIA_ROOT, f), 'rb') as csvfile:
+        csv_file = '%s/tmp-%s.csv' % (MEDIA_ROOT, f)
+        with open(csv_file, 'rb') as csvfile:
             rows = csv.reader(csvfile, delimiter=',', quotechar='"')
             for row in rows:
                 data.append(row)
@@ -2611,6 +2753,138 @@ def csvxls_data(request, f):
         return [], []
     else:
         return data, []
+
+
+def create_pivot(df):
+    """create pivot."""
+    try:
+        dt = pd.pivot_table(df, index=['NAME', 'ACTIVE'],
+                            columns=['SERVICES', 'AGERANGE', 'GENDER'],
+                            values=['OVCCOUNT'], margins=False,
+                            aggfunc=[np.sum], fill_value=0)
+    except Exception as e:
+        raise e
+    else:
+        return dt
+
+
+def create_sheet(df, writer, sheet):
+    """Method to write sheets."""
+    try:
+        p_len = len(df.values)
+        ws = writer.sheets[sheet]
+        # writer.sheet = sheet
+        ws.style = 'Normal'
+        ecell = 'AS6:AS%s' % (5 + p_len)
+        ccell = 'BX:ARX'.replace('X', str(6 + p_len))
+        df.to_excel(writer, sheet_name=sheet, startrow=4,
+                    startcol=0, header=False)
+        # Totals
+        mygreen = colors.Color(rgb='32CD32')
+        gfill = PatternFill(start_color=mygreen, fill_type="solid")
+        cnt = 6
+        for cells in ws[ecell]:
+            for cell in cells:
+                cform = '=SUM(CX:ADX)/BX'.replace('X', str(cnt))
+                cell.value = cform
+                cell.fill = gfill
+                cell.number_format = '0.00%'
+                cnt += 1
+        tcell = 'AX'.replace('X', str(6 + p_len))
+        ws[tcell] = 'Grand Totals'
+        ws[tcell].fill = gfill
+        clt = 1
+        for cells in ws[ccell]:
+            for cell in cells:
+                clt += 1
+                clm = openpyxl.utils.get_column_letter(clt)
+                if p_len > 0:
+                    cell.value = '=SUM(%s6:%s%s)' % (clm, clm, str(5 + p_len))
+                # cell.font = Font(color=colors.GREEN)
+                cell.fill = gfill
+        # Totals
+        gcell = 'ASX'.replace('X', str(6 + p_len))
+        cform = '=SUM(CX:ADX)/BX'.replace('X', str(cnt))
+        if p_len > 0:
+            ws[gcell] = cform
+        ws[gcell].fill = gfill
+        ws[gcell].number_format = '0.00%'
+    except Exception as e:
+        raise e
+    else:
+        pass
+
+
+def create_pepfar(request, response, cfile):
+    """Method to create PEPFAR."""
+    try:
+        csv_file = '%s/tmp-%s.csv' % (MEDIA_ROOT, cfile)
+        print csv_file
+        df = pd.read_csv(csv_file, sep=',')
+        df_level = df[['LEVEL', 'NAME', 'ACTIVE', 'SERVICES', 'AGERANGE',
+                       'GENDER', 'OVCCOUNT']]
+        # To writing
+        report_name = 'Pepfar'
+        tmpt_file = '%s/%s.xltm' % (DOC_ROOT, report_name)
+        writer = pd.ExcelWriter(response, engine='openpyxl')
+        wb = openpyxl.load_workbook(tmpt_file)
+        writer.book = wb
+        writer.sheets = dict((ws.title, ws) for ws in wb.worksheets)
+        for sheet in wb.sheetnames:
+            # ws = wb[sheet]
+            if sheet.startswith('CBO'):
+                dfl = df_level[df.LEVEL == 'CBO']
+                dataframe = create_pivot(dfl)
+            elif sheet.startswith('Constituency'):
+                dfl = df_level[df.LEVEL == 'Constituency']
+                dataframe = create_pivot(dfl)
+            else:
+                dfl = df_level[df.LEVEL == 'County']
+                dataframe = create_pivot(dfl)
+            create_sheet(dataframe, writer, sheet)
+        wb.save(response)
+    except Exception as e:
+        raise e
+    else:
+        pass
+
+
+def get_dashboard_summary(request, report_id, category_id=0):
+    """Method to get dashboard data."""
+    try:
+        datas = []
+        cbo_id = request.session.get('ou_primary', 0)
+        if request.user.is_superuser:
+            cbo_id = 2
+        print cbo_id, category_id, report_id
+        if category_id == 1:
+            # This is for USG
+            if report_id == 4:
+                orgs = RegOrgUnit.objects.filter(
+                    parent_org_unit_id=cbo_id).order_by('-created_at')
+                cnt = 0
+                for org in orgs:
+                    cnt += 1
+                    val = {"id": cnt, "name": org.org_unit_name,
+                           "create_date": org.created_at,
+                           "action": org.org_unit_id_vis}
+                    datas.append(val)
+        else:
+            if report_id == 14:
+                orgs = RegOrgUnit.objects.filter(
+                    parent_org_unit_id=cbo_id).order_by('-created_at')
+                cnt = 0
+                for org in orgs:
+                    cnt += 1
+                    val = {"id": cnt, "name": org.org_unit_name,
+                           "create_date": org.created_at,
+                           "action": org.org_unit_id_vis}
+                    datas.append(val)
+    except Exception as e:
+        print 'error getting dashboard data - %s' % str(e)
+        return []
+    else:
+        return datas
 
 
 if __name__ == '__main__':

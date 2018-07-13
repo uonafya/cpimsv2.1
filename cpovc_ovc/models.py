@@ -70,6 +70,7 @@ class OVCRegistration(models.Model):
     has_bcert = models.BooleanField(null=False, default=False)
     is_disabled = models.BooleanField(null=False, default=False)
     hiv_status = models.CharField(max_length=4, null=True)
+    art_status = models.CharField(max_length=4, null=True)
     school_level = models.CharField(max_length=4, null=True)
     immunization_status = models.CharField(max_length=4, null=True)
     org_unique_id = models.CharField(max_length=15, null=True)
@@ -77,6 +78,7 @@ class OVCRegistration(models.Model):
     child_cbo = models.ForeignKey(RegOrgUnit)
     child_chv = models.ForeignKey(RegPerson, related_name='chv')
     exit_reason = models.CharField(max_length=4, null=True)
+    # exit_org_name = models.CharField(max_length=100, null=True)
     exit_date = models.DateField(default=timezone.now, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
@@ -287,7 +289,7 @@ class OVCClusterCBO(models.Model):
 
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
-    cluster = models.ForeignKey(OVCCluster)
+    cluster = models.ForeignKey(OVCCluster, on_delete=models.CASCADE)
     cbo = models.ForeignKey(RegOrgUnit)
     added_at = models.DateTimeField(default=timezone.now)
     is_void = models.BooleanField(default=False)
@@ -302,3 +304,27 @@ class OVCClusterCBO(models.Model):
     def __unicode__(self):
         """To be returned by admin actions."""
         return str(self.cbo)
+
+
+
+class OVCExit(models.Model):
+    """Model for OVC Care exit org unit details."""
+
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    person = models.ForeignKey(RegPerson)
+    org_unit = models.ForeignKey(RegOrgUnit, null=True)
+    org_unit_name = models.CharField(max_length=150, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_void = models.BooleanField(default=False)
+
+    class Meta:
+        """Override table details."""
+
+        db_table = 'ovc_exit_organization'
+        verbose_name = 'OVC Exit Org Unit'
+        verbose_name_plural = 'OVC Exit Org Units'
+
+    def __unicode__(self):
+        """To be returned by admin actions."""
+        return str(self.org_unit_name)

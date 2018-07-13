@@ -150,6 +150,7 @@ class RolesOrgUnits(forms.Form):
 
     org_unit_id = forms.CharField(widget=forms.HiddenInput)
     org_unit_name = forms.CharField(widget=forms.HiddenInput)
+    org_unit_primary = forms.CharField(widget=forms.HiddenInput)
     group_RGU = forms.BooleanField()
     group_DUU = forms.BooleanField()
     group_DSU = forms.BooleanField()

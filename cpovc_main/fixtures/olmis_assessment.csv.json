@@ -105,7 +105,7 @@
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "MSCS",
-            "item_description_short": "",
+            "item_description_short": "HC1a",
             "sms_keyword": "False",
             "item_description": "Child sick",
             "the_order": 1
@@ -255,38 +255,6 @@
             "the_order": 10
         }
     },    
-    {
-        "pk": 30200,
-        "model": "cpovc_main.SetupList",
-        "fields": {
-            "item_category": "Monitor",
-            "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id_8",
-            "item_sub_category": "",
-            "is_void": "False",
-            "item_id": "MSSC",
-            "item_description_short": "",
-            "sms_keyword": "False",
-            "item_description": "Lack of scholastic materials",
-            "the_order": 1
-        }
-    },    
-    {
-        "pk": 30201,
-        "model": "cpovc_main.SetupList",
-        "fields": {
-            "item_category": "Monitor",
-            "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id_8",
-            "item_sub_category": "",
-            "is_void": "False",
-            "item_id": "MSLF",
-            "item_description_short": "",
-            "sms_keyword": "False",
-            "item_description": "Lack of fees",
-            "the_order": 2
-        }
-    },
     {
         "pk": 30016,
         "model": "cpovc_main.SetupList",
@@ -459,7 +427,7 @@
             "item_id": "MSNI",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Not enrolled in school",
+            "item_description": "E1a - Not enrolled in school",
             "the_order": 22
         }
     },
@@ -475,7 +443,7 @@
             "item_id": "MSL5",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Missed school for less than 5 days in past month",
+            "item_description": "E2a - Missed school for less than 5 days in past month",
             "the_order": 23
         }
     },
@@ -491,8 +459,40 @@
             "item_id": "MSM5",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Missed school for more than 5 days in past month",
+            "item_description": "E3a - Missed school for more than 5 days in past month",
             "the_order": 24
+        }
+    },
+    {
+        "pk": 30156,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Monitor",
+            "user_configurable": "False",
+            "field_name": "olmis_education_assessment_id_5",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "MSSC",
+            "item_description_short": "",
+            "sms_keyword": "False",
+            "item_description": "E5a - Lack of scholastic materials",
+            "the_order": 1
+        }
+    },    
+    {
+        "pk": 30157,
+        "model": "cpovc_main.SetupList",
+        "fields": {
+            "item_category": "Monitor",
+            "user_configurable": "False",
+            "field_name": "olmis_education_assessment_id_5",
+            "item_sub_category": "",
+            "is_void": "False",
+            "item_id": "MSLF",
+            "item_description_short": "",
+            "sms_keyword": "False",
+            "item_description": "E6a - Lack of fees",
+            "the_order": 2
         }
     },
     {
@@ -507,7 +507,7 @@
             "item_id": "MSPF",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Progress from one class/form to another",
+            "item_description": "E12a - Progress from one class/form to another",
             "the_order": 25
         }
     },
@@ -523,7 +523,7 @@
             "item_id": "MSVT",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Vocational training",
+            "item_description": "E13a - Vocational training",
             "the_order": 26
         }
     },
@@ -539,7 +539,7 @@
             "item_id": "MSTC",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Taking care of sick household member",
+            "item_description": "E10a - Taking care of sick household member",
             "the_order": 27
         }
     },
@@ -555,7 +555,7 @@
             "item_id": "MSSP",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Sanitary pads",
+            "item_description": "E11a - Lacks Sanitary pads",
             "the_order": 28
         }
     },
@@ -565,7 +565,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id_5",
+            "field_name": "olmis_education_assessment_id_5b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "MSDF",
@@ -587,7 +587,7 @@
             "item_id": "MSSK",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Sickness",
+            "item_description": "E4a - Sickness",
             "the_order": 30
         }
     },
@@ -603,7 +603,7 @@
             "item_id": "MSSL",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "School levies",
+            "item_description": "E7a - School levies",
             "the_order": 31
         }
     },
@@ -619,7 +619,7 @@
             "item_id": "MSDW",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Child does not want to go to school",
+            "item_description": "E8a - Child does not want to go to school",
             "the_order": 32
         }
     },
@@ -635,7 +635,7 @@
             "item_id": "MSNF",
             "item_description_short": "",
             "sms_keyword": "False",
-            "item_description": "Lack of parental follow up",
+            "item_description": "E9a - Lack of parental follow up",
             "the_order": 33
         }
     },
@@ -677,9 +677,9 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id",
+            "field_name": "olmis_education_assessment_idx",
             "item_sub_category": "olmis_education_assessment_id_0",
-            "is_void": "False",
+            "is_void": "True",
             "item_id": "ACEH",
             "item_description_short": "",
             "sms_keyword": "False",
@@ -693,9 +693,9 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id",
+            "field_name": "olmis_education_assessment_idx",
             "item_sub_category": "olmis_education_assessment_id_1",
-            "is_void": "False",
+            "is_void": "True",
             "item_id": "AEAS",
             "item_description_short": "",
             "sms_keyword": "False",
@@ -757,9 +757,9 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id",
+            "field_name": "olmis_education_assessment_idx",
             "item_sub_category": "olmis_education_assessment_id_6",
-            "is_void": "False",
+            "is_void": "True",
             "item_id": "EACP",
             "item_description_short": "",
             "sms_keyword": "False",
@@ -773,9 +773,9 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id",
+            "field_name": "olmis_education_assessment_idx",
             "item_sub_category": "olmis_education_assessment_id_7",
-            "is_void": "False",
+            "is_void": "True",
             "item_id": "EACE",
             "item_description_short": "",
             "sms_keyword": "False",
@@ -789,9 +789,9 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_education_assessment_id",
+            "field_name": "olmis_education_assessment_idx",
             "item_sub_category": "olmis_education_assessment_id_8",
-            "is_void": "False",
+            "is_void": "True",
             "item_id": "EANA",
             "item_description_short": "",
             "sms_keyword": "False",
@@ -805,7 +805,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id",
+            "field_name": "olmis_health_assessment_idx",
             "item_sub_category": "olmis_health_assessment_id_0",
             "is_void": "False",
             "item_id": "HAMD",
@@ -837,7 +837,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id",
+            "field_name": "olmis_health_assessment_idx",
             "item_sub_category": "olmis_health_assessment_id_2",
             "is_void": "False",
             "item_id": "HAHA",
@@ -853,7 +853,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id",
+            "field_name": "olmis_health_assessment_idx",
             "item_sub_category": "olmis_health_assessment_id_3",
             "is_void": "False",
             "item_id": "HAHS",
@@ -869,7 +869,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id",
+            "field_name": "olmis_health_assessment_idx",
             "item_sub_category": "olmis_health_assessment_id_4",
             "is_void": "False",
             "item_id": "HANA",
@@ -955,7 +955,7 @@
             "item_id": "HACS",
             "item_description_short": "Child is sick",
             "sms_keyword": "False",
-            "item_description": "Child is sick",
+            "item_description": "HC1a -Child is sick",
             "the_order": 1
         }
     },
@@ -971,7 +971,7 @@
             "item_id": "HAMN",
             "item_description_short": "Mosquito net",
             "sms_keyword": "False",
-            "item_description": "Mosquito net",
+            "item_description": "HC2a - Mosquito net",
             "the_order": 2
         }
     },
@@ -987,7 +987,7 @@
             "item_id": "HNMN",
             "item_description_short": "No Mosquito net",
             "sms_keyword": "False",
-            "item_description": "Does not sleep under mosquito net",
+            "item_description": "HC3a - Does not sleep under mosquito net",
             "the_order": 3
         }
     },
@@ -1003,7 +1003,7 @@
             "item_id": "HNIM",
             "item_description_short": "Not fully immunized",
             "sms_keyword": "False",
-            "item_description": "Not fully immunized",
+            "item_description": "HC4a - Not fully immunized",
             "the_order": 4
         }
     },
@@ -1019,7 +1019,7 @@
             "item_id": "HHNN",
             "item_description_short": "HIV status unknown",
             "sms_keyword": "False",
-            "item_description": "HIV status not known",
+            "item_description": "HC5a - HIV status not known",
             "the_order": 5
         }
     },
@@ -1035,7 +1035,7 @@
             "item_id": "HHNL",
             "item_description_short": "HIV+ not linked",
             "sms_keyword": "False",
-            "item_description": "HIV+ child not linked to care and treatment",
+            "item_description": "HC6a - HIV+ child not linked to care and treatment",
             "the_order": 6
         }
     },
@@ -1051,7 +1051,7 @@
             "item_id": "HGNM",
             "item_description_short": "Growth unmonitored",
             "sms_keyword": "False",
-            "item_description": "Growth is not monitored",
+            "item_description": "HC7a - Growth is not monitored",
             "the_order": 7
         }
     },
@@ -1061,7 +1061,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HUNS",
@@ -1077,7 +1077,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HNHI",
@@ -1093,7 +1093,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HHTW",
@@ -1109,7 +1109,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HNFL",
@@ -1125,7 +1125,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HNUT",
@@ -1141,7 +1141,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HNHF",
@@ -1157,7 +1157,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HNKG",
@@ -1173,7 +1173,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_health_assessment_id_1",
+            "field_name": "olmis_health_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HSCA",
@@ -1573,7 +1573,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_hes_assessment_id",
+            "field_name": "olmis_hes_assessment_idx",
             "item_sub_category": "olmis_hes_assessment_id_0",
             "is_void": "False",
             "item_id": "HEEA",
@@ -1771,7 +1771,7 @@
             "item_id": "HEFT",
             "item_description_short": "Eligible for Transition",
             "sms_keyword": "False",
-            "item_description": "Child Eligible for Transition",
+            "item_description": "HE1a - Child Eligible for Transition",
             "the_order": 1
         }
     },
@@ -1787,7 +1787,7 @@
             "item_id": "HRSK",
             "item_description_short": "require a start-up kit",
             "sms_keyword": "False",
-            "item_description": "Vocational skills graduate and require a start-up kit",
+            "item_description": "HE2a - Vocational skills graduate and require a start-up kit",
             "the_order": 2
         }
     },
@@ -1797,7 +1797,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_hes_assessment_id_1",
+            "field_name": "olmis_hes_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "HEIE",
@@ -1813,7 +1813,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id",
+            "field_name": "olmis_protection_assessment_idx",
             "item_sub_category": "olmis_protection_assessment_id_0",
             "is_void": "False",
             "item_id": "HAON",
@@ -1861,7 +1861,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id_1",
+            "field_name": "olmis_protection_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "PACS",
@@ -1877,7 +1877,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id_1",
+            "field_name": "olmis_protection_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "PASH",
@@ -1893,7 +1893,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id_1",
+            "field_name": "olmis_protection_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "PABC",
@@ -1909,7 +1909,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id_1",
+            "field_name": "olmis_protection_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "PABC",
@@ -1925,7 +1925,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id_1",
+            "field_name": "olmis_protection_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "PACN",
@@ -1941,7 +1941,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id_1",
+            "field_name": "olmis_protection_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "PANS",
@@ -1957,7 +1957,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_protection_assessment_id_1",
+            "field_name": "olmis_protection_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "PACL",
@@ -1979,7 +1979,7 @@
             "item_id": "PASA",
             "item_description_short": "signs of abuse",
             "sms_keyword": "False",
-            "item_description": "Has signs of abuse",
+            "item_description": "PT1a - Has signs of abuse",
             "the_order": 8
         }
     },
@@ -1995,7 +1995,7 @@
             "item_id": "PARR",
             "item_description_short": "responsibilities",
             "sms_keyword": "False",
-            "item_description": "Not aware of rights and responsibilities",
+            "item_description": "PT2a - Not aware of rights and responsibilities",
             "the_order": 9
         }
     },
@@ -2011,7 +2011,7 @@
             "item_id": "PAAH",
             "item_description_short": "appropriate help",
             "sms_keyword": "False",
-            "item_description": "Not aware of where to get appropriate help",
+            "item_description": "PT3a - Not aware of where to get appropriate help",
             "the_order": 10
         }
     },
@@ -2021,7 +2021,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_pss_assessment_id",
+            "field_name": "olmis_pss_assessment_idx",
             "item_sub_category": "olmis_pss_assessment_id_0",
             "is_void": "False",
             "item_id": "PPSS",
@@ -2037,7 +2037,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_pss_assessment_id",
+            "field_name": "olmis_pss_assessment_idx",
             "item_sub_category": "olmis_pss_assessment_id_1",
             "is_void": "False",
             "item_id": "PPSC",
@@ -2267,7 +2267,7 @@
             "item_id": "PSNI",
             "item_description_short": "Not interacting",
             "sms_keyword": "False",
-            "item_description": "Does not interact freely with others",
+            "item_description": "PS1a - Does not interact freely with others",
             "the_order": 1
         }
     },
@@ -2283,7 +2283,7 @@
             "item_id": "PSSW",
             "item_description_short": "Sad or withdrawn",
             "sms_keyword": "False",
-            "item_description": "Sad or withdrawn",
+            "item_description": "PS2a - Sad or withdrawn",
             "the_order": 2
         }
     },
@@ -2293,7 +2293,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id",
+            "field_name": "olmis_shelter_assessment_idx",
             "item_sub_category": "olmis_shelter_assessment_id_0",
             "is_void": "False",
             "item_id": "SCHC",
@@ -2363,7 +2363,7 @@
             "item_id": "SNAC",
             "item_description_short": "no adult caregiver",
             "sms_keyword": "False",
-            "item_description": "Child has no adult caregiver",
+            "item_description": "SC1a - Child has no adult caregiver",
             "the_order": 1
         }
     },
@@ -2379,8 +2379,8 @@
             "item_id": "SNNB",
             "item_description_short": "no blanket",
             "sms_keyword": "False",
-            "item_description": "Child has no blanket",
-            "the_order": 2
+            "item_description": "SC3a - Child has no blanket",
+            "the_order": 3
         }
     },
     {
@@ -2395,8 +2395,8 @@
             "item_id": "SNHC",
             "item_description_short": "no home clothes",
             "sms_keyword": "False",
-            "item_description": "Child has no home clothes",
-            "the_order": 3
+            "item_description": "SC5a - Child has no home clothes",
+            "the_order": 5
         }
     },
     {
@@ -2411,7 +2411,7 @@
             "item_id": "SCNM",
             "item_description_short": "no matress",
             "sms_keyword": "False",
-            "item_description": "Child has no mattress",
+            "item_description": "SC4a - Child has no mattress",
             "the_order": 4
         }
     },
@@ -2427,8 +2427,8 @@
             "item_id": "SCPR",
             "item_description_short": "place needs repair",
             "sms_keyword": "False",
-            "item_description": "Child lives in place needs repair",
-            "the_order": 5
+            "item_description": "SC2a - Does not sleep in a dry safe place",
+            "the_order": 2
         }
     },
     {
@@ -2437,7 +2437,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id_1",
+            "field_name": "olmis_shelter_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "SCSP",
@@ -2453,7 +2453,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id_1",
+            "field_name": "olmis_shelter_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "SCBR",
@@ -2469,7 +2469,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id_1",
+            "field_name": "olmis_shelter_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "SCNC",
@@ -2485,7 +2485,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id_1",
+            "field_name": "olmis_shelter_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "SNSD",
@@ -2501,7 +2501,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id_1",
+            "field_name": "olmis_shelter_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "SCBB",
@@ -2517,7 +2517,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id_1",
+            "field_name": "olmis_shelter_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "SCMM",
@@ -2533,7 +2533,7 @@
         "fields": {
             "item_category": "Monitor",
             "user_configurable": "False",
-            "field_name": "olmis_shelter_assessment_id_1",
+            "field_name": "olmis_shelter_assessment_id_1b",
             "item_sub_category": "",
             "is_void": "False",
             "item_id": "SNHC",

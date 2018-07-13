@@ -213,7 +213,7 @@ jQuery(document).ready(function() {
         $('#report_vhtml').empty();
         $("#report_html").empty();
         var oname = $("#id_org_unit option:selected").text();
-        var ovc = $("#id_report_ovc").val();
+        var ovc = $("#rpt_ovc_id").val();
         var region = $('input[name=report_region]:checked').val();
         console.log(region);
         $('#case_load_report').parsley().validate();
@@ -227,7 +227,6 @@ jQuery(document).ready(function() {
                 $('#report_vhtml').empty();
                 $("#report_html").empty();
                 var oname = $("#id_org_unit option:selected").text();
-                var ovc = $("#id_report_ovc").val();
                 $.ajax({
                     url : "{% url 'pivot_ovc_rawdata' %}",
                     type : "POST",
@@ -243,25 +242,68 @@ jQuery(document).ready(function() {
                         var numberFormat = $.pivotUtilities.numberFormat;
                         var intFormat = numberFormat({digitsAfterDecimal: 0});
                         $("#rpt_id").val(file_name);
+                        if (status == 0){
+                            $('#map-print, #rpt-download').show();
 
-                        var renderers = $.extend(
-                            $.pivotUtilities.renderers,
-                            $.pivotUtilities.d3_renderers
-                            );
-                        $("#report_html").pivotUI(data, {
-                            //renderers: renderers,
-                            cols: ["AGERANGE"],
-                            rows: ["GENDER"],
-                            aggregators: {
-                                "Number of OVC":  function() { 
-                                    return tpl.count()()
-                                }
-                            },
-                            rendererName: "Table"
-                        }, true);
-                        //
-                        $('#report_results').html("");
-                        $('#map-print, #rpt-download').show();
+                            var renderers = $.extend(
+                                $.pivotUtilities.renderers,
+                                $.pivotUtilities.d3_renderers
+                                );
+                            if (ovc == '9'){
+                                $("#report_html").pivotUI(data, {
+                                    //renderers: renderers,
+                                    cols: ["GENDER", "AGERANGE"],
+                                    rows: ["DOMAIN"],
+                                    aggregators: {
+                                        "Number of OVC":  function() { 
+                                            return tpl.count()()
+                                        },
+                                        "Sum of OVC":  function() { 
+                                            return tpl.sum(intFormat)(["OVCCOUNT"]) 
+                                        }
+                                    },
+                                    rendererName: "Table"
+                                }, true);
+                            }else if (ovc == '11'){
+                                $("#report_html").pivotUI(data, {
+                                    //renderers: renderers,
+                                    cols: ["VISITTYPE"],
+                                    rows: ["COUNTY", "DOMAIN", "SERVICE"],
+                                    aggregators: {
+                                        "Number of Caregivers":  function() { 
+                                            return tpl.count()()
+                                        },
+                                        "Sum of Caregivers":  function() { 
+                                            return tpl.sum(intFormat)(["CGCOUNT"]) 
+                                        }
+                                    },
+                                    rendererName: "Table"
+                                }, true);
+                            }else{
+                                $("#report_html").pivotUI(data, {
+                                    //renderers: renderers,
+                                    cols: ["AGERANGE"],
+                                    rows: ["GENDER"],
+                                    aggregators: {
+                                        "Number of OVC":  function() { 
+                                            return tpl.count()()
+                                        },
+                                        "Sum of OVC":  function() { 
+                                            return tpl.sum(intFormat)(["OVCCOUNT"]) 
+                                        }
+                                    },
+                                    rendererName: "Table"
+                                }, true);
+                            }                            
+                            //
+                            $('#report_results').html(message);
+                            $("#report_results").removeClass( "alert alert-danger fade in" );
+                            $("#report_results").addClass( "alert alert-success fade in" );
+                        }else{
+                            $('#report_results').html(message);
+                            $("#report_results").addClass( "alert alert-danger fade in" );
+                            $('#map-print, #rpt-download').hide();
+                        }
          
                     },
                     // handle a non-successful response
@@ -275,7 +317,6 @@ jQuery(document).ready(function() {
                 $('#report_results').html('Please provide missing details.');
                 return false;
             }
-        $('#report_results').empty();
         });
     // Hide some stuff by default
     $("#report_type_0").prop("checked", true);
@@ -510,7 +551,10 @@ function printReport() {
       var prnt = '<center><img src="{% static 'img/logo_private.png' %}" alt="" /></center>';
       var rname = $("#id_report_type option:selected").text();
       var ryear = $("#id_report_year option:selected").text();
-      var prnt = 'DATIM Report '+ rname + ' ' + ryear;
+      var ous = $("#id_org_unit option:selected").text();
+      var prnt = 'Report: {{ name }}<br/>'
+      prnt += 'Period: '+ rname + ' - ' + ryear;
+      prnt += '<br/>Organization Unit: '+ ous;
       //$("#print_title").val();
 
       printContainer
