@@ -880,11 +880,7 @@ def reports_ovc_rawdata(request):
         # time_now = int(datetime.now().strftime('%H'))
         user_id = request.user.id
         report_variables = get_variables(request)
-        print("report variables here")
-        print(report_variables)
         if request.method == 'POST':
-            print('Post query here')
-            print(request.POST)
             ext = request.POST.get('ext')
         print ext
         report_ovc_id = int(report_variables['report_ovc'])

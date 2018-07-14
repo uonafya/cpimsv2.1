@@ -1977,7 +1977,6 @@ def get_performance_detail(request, user_id=0, params={}):
 def get_variables(request):
     """Method to prepare all the variables for reporting."""
     try:
-        print request.POST
         dates = {v: k for k, v in enumerate(calendar.month_abbr)}
         sub_county_ids = request.POST.getlist('sub_county[]')
         sub_counties = request.POST.get('sub_county')

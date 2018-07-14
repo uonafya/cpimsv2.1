@@ -74,6 +74,7 @@
                         <li><a href="{% url 'reports_ovc' id=8 %}">Beneficiary list</a></li>
                         <li><a href="{% url 'reports_ovc' id=9 %}">Form1a summary</a></li>
                         <li><a href="{% url 'reports_ovc' id=10 %}">Needs vs Served by domain</a></li>
+                        <li><a href="{% url 'reports_ovc' id=15 %}">OVC Overall View</a></li>
                     </ul>
                 </div>                        
                 <h4 class="panel-title">Report details and parameters</h4>
@@ -275,6 +276,21 @@ jQuery(document).ready(function() {
                                         },
                                         "Sum of Caregivers":  function() { 
                                             return tpl.sum(intFormat)(["CGCOUNT"]) 
+                                        }
+                                    },
+                                    rendererName: "Table"
+                                }, true);
+                            }else if (ovc == '15'){
+                                $("#report_html").pivotUI(data, {
+                                    //renderers: renderers,
+                                    cols: ["SERVICE"],
+                                    rows: ["COUNTY","WARD","CBO","OVCID", "OVCNAME"],
+                                    aggregators: {
+                                        "Number of OVC":  function() {
+                                            return tpl.count()()
+                                        },
+                                        "Sum of OVC":  function() {
+                                            return tpl.sum(intFormat)(["OVCCOUNT"])
                                         }
                                     },
                                     rendererName: "Table"
