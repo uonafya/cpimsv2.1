@@ -11,11 +11,12 @@ REPORTS[6] = 'pepfar_detailed'
 REPORTS[7] = 'registration'
 REPORTS[8] = 'ovc_priority_list'
 REPORTS[9] = 'form1a_summary'
-REPORTS[10] = 'registration'
+REPORTS[10] = 'needs_vs_served'
 REPORTS[11] = 'form1b_summary'
 REPORTS[12] = 'ovc_served_list'
 REPORTS[13] = 'master_list'
 REPORTS[14] = 'ovc_assessed_list'
+REPORTS[15] = 'needs_vs_served'
 
 # Master List
 QUERIES['master_list'] = '''
@@ -1618,4 +1619,69 @@ left outer join ovc_facility on ovc_care_health.facility_id=ovc_facility.id
 where ovc_registration.child_cbo_id in ({cbos})
 and ovc_care_events.date_of_event between '{start_date}' and '{end_date}'
 and service != '' and service is not null
+'''
+
+QUERIES['needs_vs_served'] = '''
+SELECT CAST(COUNT(DISTINCT person_id) AS integer) AS OVCCount, CBO, ward, item_description as Service,County,AgeRange,
+CASE sex_id WHEN 'SMAL' THEN 'Female' ELSE 'Male' END AS Gender,
+Indicator
+FROM
+(
+--Needs
+ SELECT ovc_care_events.person_id, reg_org_unit.org_unit_name AS CBO, list_geo.area_name AS ward, list_general.item_description,
+derivedtbl_1.area_name as County,
+reg_person.sex_id,
+CASE
+WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 1 AND 4 THEN 'b.[1-4yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 5 AND 9 THEN 'c.[5-9yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 10 AND 14 THEN 'd.[10-14yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 15 AND 17 THEN 'e.[15-17yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 18 AND 24 THEN 'f.[18-24yrs]'
+ELSE 'g.[25+yrs]' END AS AgeRange, 'Needs ' || ' '  as Indicator
+FROM  (SELECT area_id, area_name, area_code, parent_area_id
+        FROM   list_geo AS list_geo_1) AS derivedtbl_1 INNER JOIN
+         list_geo ON derivedtbl_1.area_id = list_geo.parent_area_id RIGHT OUTER JOIN
+         ovc_care_priority INNER JOIN
+         ovc_care_events ON ovc_care_events.event = ovc_care_priority.event_id INNER JOIN
+         reg_person ON ovc_care_events.person_id = reg_person.id INNER JOIN
+         list_general ON ovc_care_priority.service = list_general.item_id LEFT OUTER JOIN
+         ovc_registration ON ovc_care_events.person_id = ovc_registration.person_id LEFT OUTER JOIN
+         reg_org_unit ON reg_org_unit.id = ovc_registration.child_cbo_id LEFT OUTER JOIN
+         reg_persons_geo ON reg_persons_geo.person_id = ovc_registration.person_id ON list_geo.area_id = reg_persons_geo.area_id
+WHERE reg_org_unit.id in ({cbos})  and (ovc_care_priority.is_void = 'False') AND (ovc_care_events.event_type_id = 'FSAM') AND (ovc_care_events.date_of_event BETWEEN '{start_date}' AND '{end_date}')
+GROUP BY ovc_care_events.person_id,ovc_care_priority.service, reg_person.date_of_birth, reg_person.sex_id, 
+ovc_registration.child_cbo_id, reg_org_unit.org_unit_name, reg_persons_geo.area_id, list_geo.area_name, list_general.item_description,
+derivedtbl_1.area_name,date_part('year', age(reg_person.date_of_birth))
+
+union
+--services
+SELECT ovc_care_events.person_id, reg_org_unit.org_unit_name AS CBO, list_geo.area_name AS ward, list_general.item_description, 
+derivedtbl_1.area_name as County,
+reg_person.sex_id,
+CASE
+WHEN date_part('year', age(reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 1 AND 4 THEN 'b.[1-4yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 5 AND 9 THEN 'c.[5-9yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 10 AND 14 THEN 'd.[10-14yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 15 AND 17 THEN 'e.[15-17yrs]' 
+WHEN  date_part('year', age(reg_person.date_of_birth)) BETWEEN 18 AND 24 THEN 'f.[18-24yrs]'
+ELSE 'g.[25+yrs]' END AS AgeRange, 'Services ' || ' '  as Indicator
+FROM  (SELECT area_id, area_name, area_code, parent_area_id
+        FROM   list_geo AS list_geo_1) AS derivedtbl_1 INNER JOIN
+         list_geo ON derivedtbl_1.area_id = list_geo.parent_area_id RIGHT OUTER JOIN
+         ovc_care_services INNER JOIN
+         ovc_care_events ON ovc_care_events.event = ovc_care_services.event_id INNER JOIN
+         reg_person ON ovc_care_events.person_id = reg_person.id INNER JOIN
+         list_general ON ovc_care_services.service_provided = list_general.item_id LEFT OUTER JOIN
+         ovc_registration ON ovc_care_events.person_id = ovc_registration.person_id LEFT OUTER JOIN
+         reg_org_unit ON reg_org_unit.id = ovc_registration.child_cbo_id LEFT OUTER JOIN
+         reg_persons_geo ON reg_persons_geo.person_id = ovc_registration.person_id ON list_geo.area_id = reg_persons_geo.area_id
+WHERE reg_org_unit.id in ({cbos}) and (ovc_care_services.is_void = 'False') AND (ovc_care_events.event_type_id = 'FSAM') AND (ovc_care_events.date_of_event BETWEEN '{start_date}' AND '{end_date}')
+GROUP BY ovc_care_events.person_id,ovc_care_services.service_provided, reg_person.date_of_birth, reg_person.sex_id, 
+ovc_registration.child_cbo_id, reg_org_unit.org_unit_name, reg_persons_geo.area_id, list_geo.area_name, list_general.item_description,
+derivedtbl_1.area_name,date_part('year', age(reg_person.date_of_birth))
+
+) tbl_pepfar
+group by CBO, ward, item_description,County,AgeRange,Gender,Indicator
 '''
