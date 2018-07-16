@@ -913,11 +913,10 @@ def reports_ovc_rawdata(request):
                       'ELIGIBILITY', 'DATE_LINKED', 'CCC_NUMBER', 'FACILITY',
                       'CAREGIVERHIVSTATUS', 'CPIMS_ID']
         if report_ovc_id == 6 and report_id == 5:
-            titles = ['CHW', 'OVCID', 'FIRST_NAME', 'OTHER_NAMES', 'SURNAME',
-                      'DATE_OF_BIRTH', 'AGE', 'AGE_AT_REG', 'GENDER',
+            titles = ['CBO_ID', 'AGE', 'GENDER',
                       'REGISTRATION_DATE', 'EXIT_STATUS', 'EXIT_DATE',
                       'OVCHIVSTATUS', 'ARTSTATUS', 'BIRTHCERT', 'BCERTNUMBER',
-                      'OVCDISABILITY', 'NCPWDNUMBER', 'PARENT_NAMES',
+                      'OVCDISABILITY', 'NCPWDNUMBER', 'CAREGIVER_NAMES',
                       'CBO', 'WARD', 'CONSTITUENCY', 'COUNTY',
                       'AGERANGE', 'SCHOOLLEVEL', 'IMMUNIZATION']
         if report_ovc_id == 6 and (report_id == 12 or report_id == 8):

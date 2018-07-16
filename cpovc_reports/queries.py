@@ -1752,17 +1752,14 @@ group by CBO, ward, item_description,County,AgeRange,OVCName,tbl_ovc_overall_vie
 
 QUERIES['not_served'] = '''
 SELECT 
-child_cbo_id AS OVCID, reg_org_unit.org_unit_name AS cbo,
+child_cbo_id AS cbo_id, reg_org_unit.org_unit_name AS cbo,
 list_geo.area_id AS ward_id, list_geo.area_name AS ward,
 scc.area_name AS constituency, cc.area_name AS county,
 ovc_registration.person_id AS cpims_id,
-reg_person.first_name, reg_person.surname,
-reg_person.other_names, reg_person.date_of_birth, registration_date,
 concat(reg_person.first_name,' ',reg_person.surname,' ',reg_person.other_names) AS ovc_names,
 CASE reg_person.sex_id WHEN 'SFEM' THEN 'Female' ELSE 'Male' END AS gender,
 reg_person.date_of_birth AS DOB,
 date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) AS age,
-date_part('year', age(ovc_registration.registration_date, reg_person.date_of_birth)) AS age_at_reg,
 CASE
 WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
 WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) BETWEEN 1 AND 4 THEN 'b.[1-4yrs]' 
@@ -1784,9 +1781,9 @@ ovc_care_health.facility_id as facility_id,
 ovc_facility.facility_name as facility,
 ovc_care_health.date_linked as date_of_linkage, ovc_care_health.ccc_number,
 child_chv_id as chv_id,
-concat(chvs.first_name,' ',chvs.other_names,' ',chvs.surname) as CHW,
+concat(chvs.first_name,' ',chvs.other_names,' ',chvs.surname) as CHV_Names,
 caretaker_id as caregiver_id,
-concat(cgs.first_name,' ',cgs.other_names,' ',cgs.surname) as parent_names,
+concat(cgs.first_name,' ',cgs.other_names,' ',cgs.surname) as Caregiver_Names,
 CASE
 WHEN ovc_household_members.hiv_status = 'HSTP' THEN 'POSITIVE'
 WHEN ovc_household_members.hiv_status = 'HSTN' THEN 'NEGATIVE'
