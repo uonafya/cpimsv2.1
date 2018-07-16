@@ -6,6 +6,7 @@ REPORTS[1] = 'registration'
 REPORTS[2] = 'registration'
 REPORTS[3] = 'registration'
 REPORTS[4] = 'registration'
+# REPORTS[5] = 'not_served'
 REPORTS[5] = 'not_served'
 REPORTS[6] = 'pepfar_detailed'
 REPORTS[7] = 'registration'
@@ -429,7 +430,7 @@ group by person_id, domain) as scounts
 group by person_id) as fp where scnts > 0'''
 
 # NOT Served
-QUERIES['not_served'] = '''
+QUERIES['not_served_old'] = '''
 select reg_org_unit.org_unit_name AS CBO,
 reg_person.first_name, reg_person.surname,
 reg_person.other_names, reg_person.date_of_birth, registration_date,
@@ -1747,4 +1748,113 @@ GROUP BY ovc_care_events.person_id,ovc_care_assessment.service, reg_person.date_
 ovc_registration.child_cbo_id, reg_org_unit.org_unit_name, reg_persons_geo.area_id, list_geo.area_name, 
 list_general.item_description,derivedtbl_1.area_name,date_part('year', age(reg_person.date_of_birth)),reg_person.first_name,reg_person.surname,reg_person.other_names) tbl_ovc_overall_view
 group by CBO, ward, item_description,County,AgeRange,OVCName,tbl_ovc_overall_view.person_id
+'''
+
+QUERIES['not_served'] = '''
+SELECT 
+child_cbo_id AS OVCID, reg_org_unit.org_unit_name AS cbo,
+list_geo.area_id AS ward_id, list_geo.area_name AS ward,
+scc.area_name AS constituency, cc.area_name AS county,
+ovc_registration.person_id AS cpims_id,
+reg_person.first_name, reg_person.surname,
+reg_person.other_names, reg_person.date_of_birth, registration_date,
+concat(reg_person.first_name,' ',reg_person.surname,' ',reg_person.other_names) AS ovc_names,
+CASE reg_person.sex_id WHEN 'SFEM' THEN 'Female' ELSE 'Male' END AS gender,
+reg_person.date_of_birth AS DOB,
+date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) AS age,
+date_part('year', age(ovc_registration.registration_date, reg_person.date_of_birth)) AS age_at_reg,
+CASE
+WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) < 1 THEN 'a.[<1yrs]'
+WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) BETWEEN 1 AND 4 THEN 'b.[1-4yrs]' 
+WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) BETWEEN 5 AND 9 THEN 'c.[5-9yrs]' 
+WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) BETWEEN 10 AND 14 THEN 'd.[10-14yrs]' 
+WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) BETWEEN 15 AND 17 THEN 'e.[15-17yrs]' 
+WHEN  date_part('year', age(timestamp '{end_date}', reg_person.date_of_birth)) BETWEEN 18 AND 24 THEN 'f.[18-24yrs]'
+ELSE 'g.[25+yrs]' END AS AgeRange,
+CASE has_bcert WHEN 'True' THEN 'HAS BIRTHCERT' ELSE 'NO BIRTHCERT' END AS BirthCert,
+CASE has_bcert WHEN 'True' THEN exids.identifier ELSE NULL END AS BCertNumber,
+CASE is_disabled WHEN 'True' THEN 'HAS DISABILITY' ELSE 'NO DISABILITY' END AS OVCDisability,
+CASE is_Disabled WHEN 'True' THEN exidd.identifier ELSE NULL END AS NCPWDNumber,
+CASE ovc_registration.hiv_status
+WHEN 'HSTP' THEN 'POSITIVE'
+WHEN 'HSTN' THEN 'NEGATIVE'
+ELSE 'NOT KNOWN' END AS OVCHIVstatus,
+CASE ovc_registration.hiv_status WHEN 'HSTP' THEN 'ART' ELSE NULL END AS ARTStatus,
+ovc_care_health.facility_id as facility_id,
+ovc_facility.facility_name as facility,
+ovc_care_health.date_linked as date_of_linkage, ovc_care_health.ccc_number,
+child_chv_id as chv_id,
+concat(chvs.first_name,' ',chvs.other_names,' ',chvs.surname) as CHW,
+caretaker_id as caregiver_id,
+concat(cgs.first_name,' ',cgs.other_names,' ',cgs.surname) as parent_names,
+CASE
+WHEN ovc_household_members.hiv_status = 'HSTP' THEN 'POSITIVE'
+WHEN ovc_household_members.hiv_status = 'HSTN' THEN 'NEGATIVE'
+ELSE 'NOT KNOWN' END AS CaregiverHIVstatus,
+CASE ovc_registration.school_level
+WHEN 'SLTV' THEN 'Tertiary'
+WHEN 'SLUN' THEN 'University'
+WHEN 'SLSE' THEN 'Secondary'
+WHEN 'SLPR' THEN 'Primary'
+WHEN 'SLEC' THEN 'ECDE'
+ELSE 'Not in School' END AS Schoollevel,
+ovc_care_education.school_id as school_id,
+ovc_school.school_name as school_name,
+ovc_care_education.school_class as class,
+registration_date,
+CASE is_active WHEN 'True' THEN 'ACTIVE' ELSE 'EXITED' END AS Exit_Status,
+exits.item_description as Exit_Reason,
+CASE is_active WHEN 'False' THEN exit_date ELSE NULL END AS Exit_Date,
+CASE immunization_status
+WHEN 'IMFI' THEN 'Fully Immunized'
+WHEN 'IMNI' THEN 'Not Immunized'
+WHEN 'IMNC' THEN 'Not Completed'
+ELSE 'Not Known' END AS immunization
+FROM ovc_registration INNER JOIN reg_person ON reg_person.id=ovc_registration.person_id
+LEFT OUTER JOIN reg_org_unit ON ovc_registration.child_cbo_id=reg_org_unit.id
+LEFT OUTER JOIN reg_persons_geo ON reg_persons_geo.person_id=ovc_registration.person_id AND reg_persons_geo.area_id > 337
+LEFT OUTER JOIN list_geo ON list_geo.area_id=reg_persons_geo.area_id AND reg_persons_geo.area_id > 337
+LEFT OUTER JOIN list_geo AS scc ON scc.area_id=list_geo.parent_area_id
+LEFT OUTER JOIN list_geo AS cc ON cc.area_id=scc.parent_area_id
+LEFT OUTER JOIN list_general AS exits ON exits.item_id=ovc_registration.exit_reason AND exits.field_name='exit_reason_id'
+LEFT OUTER JOIN reg_person cgs ON caretaker_id=cgs.id
+LEFT OUTER JOIN reg_person chvs ON child_chv_id=chvs.id
+LEFT OUTER JOIN ovc_care_health ON ovc_care_health.person_id=ovc_registration.person_id
+LEFT OUTER JOIN ovc_facility ON ovc_care_health.facility_id=ovc_facility.id
+LEFT OUTER JOIN ovc_care_education ON ovc_care_education.person_id=ovc_registration.person_id
+LEFT OUTER JOIN ovc_school ON ovc_care_education.school_id=ovc_school.id
+LEFT OUTER JOIN ovc_household_members ON ovc_registration.caretaker_id=ovc_household_members.person_id
+LEFT OUTER JOIN reg_persons_external_ids as exids on exids.person_id=ovc_registration.person_id and exids.identifier_type_id = 'ISOV'
+LEFT OUTER JOIN reg_persons_external_ids as exidd on exidd.person_id=ovc_registration.person_id and exidd.identifier_type_id = 'IPWD'
+WHERE reg_org_unit.id in ({cbos}) AND ovc_registration.person_id NOT IN
+(
+SELECT DISTINCT ovc_care_events.person_id
+FROM  (SELECT area_id, area_name, area_code, parent_area_id
+        FROM   list_geo AS list_geo_1) AS derivedtbl_1 INNER JOIN
+         list_geo ON derivedtbl_1.area_id = list_geo.parent_area_id RIGHT OUTER JOIN
+         ovc_care_services INNER JOIN
+         ovc_care_events ON ovc_care_events.event = ovc_care_services.event_id INNER JOIN
+         reg_person ON ovc_care_events.person_id = reg_person.id INNER JOIN
+         list_general ON ovc_care_services.service_provided = list_general.item_id LEFT OUTER JOIN
+         ovc_registration ON ovc_care_events.person_id = ovc_registration.person_id LEFT OUTER JOIN
+         reg_org_unit ON reg_org_unit.id = ovc_registration.child_cbo_id LEFT OUTER JOIN
+         reg_persons_geo ON reg_persons_geo.person_id = ovc_registration.person_id ON list_geo.area_id = reg_persons_geo.area_id
+WHERE reg_org_unit.id in ({cbos}) AND (ovc_care_services.is_void = 'False') AND (ovc_care_events.event_type_id = 'FSAM') AND (ovc_care_events.date_of_event BETWEEN '{start_date}' AND '{end_date}')
+
+UNION
+
+SELECT ovc_care_events.person_id
+FROM  (SELECT area_id, area_name, area_code, parent_area_id
+        FROM   list_geo AS list_geo_1) AS derivedtbl_1 INNER JOIN
+         list_geo ON derivedtbl_1.area_id = list_geo.parent_area_id RIGHT OUTER JOIN
+         ovc_care_assessment INNER JOIN
+         ovc_care_events ON ovc_care_events.event = ovc_care_assessment.event_id INNER JOIN
+         reg_person ON ovc_care_events.person_id = reg_person.id INNER JOIN
+         list_general ON ovc_care_assessment.service = list_general.item_id LEFT OUTER JOIN
+         ovc_registration ON ovc_care_events.person_id = ovc_registration.person_id LEFT OUTER JOIN
+         reg_org_unit ON reg_org_unit.id = ovc_registration.child_cbo_id LEFT OUTER JOIN
+         reg_persons_geo ON reg_persons_geo.person_id = ovc_registration.person_id ON list_geo.area_id = reg_persons_geo.area_id
+WHERE reg_org_unit.id in ({cbos}) AND (ovc_care_assessment.domain in ('DHNU','DPSS')) and (ovc_care_assessment.is_void = 'False') 
+AND (ovc_care_events.event_type_id = 'FSAM') AND (ovc_care_events.date_of_event BETWEEN '{start_date}' AND '{end_date}')
+)
 '''
