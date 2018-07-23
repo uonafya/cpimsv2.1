@@ -97,3 +97,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+.envs
+.vscode/launch.json
+.vscode/settings.json
+*.pyc
