@@ -10,21 +10,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = 'h34yo5l8c8!edb%^b@3j-i^gc$e)fcjnw_9jm4a^%jbq&*41+@'
 
-
 ALLOWED_HOSTS = ['*']
 
 cpims_db_host = os.environ.get('CPIMS_HOST') if os.environ.get(
     'CPIMS_HOST') else 'localhost'
 cpims_db_pass = os.environ.get('CPIMS_PASSWORD') if os.environ.get(
     'CPIMS_PASSWORD') else 'postgres'
-cpims_db_instance = os.environ.get(
-    'CPIMS_DB') if os.environ.get('CPIMS_DB') else 'dcs_live'
-cpims_db_port = os.environ.get(
-    'CPIMS_PORT') if os.environ.get('CPIMS_PORT') else '5432'
+cpims_db_instance = os.environ.get('CPIMS_DB') if os.environ.get(
+    'CPIMS_DB') else 'dcs_live'
+cpims_db_port = os.environ.get('CPIMS_PORT') if os.environ.get(
+    'CPIMS_PORT') else '5432'
 cpims_db_user = os.environ.get('CPIMS_DBUSER') if os.environ.get(
     'CPIMS_DBUSER') else 'postgres'
-cpims_debug = eval(os.environ.get('CPIMS_DEBUG')
-                   ) if os.environ.get('CPIMS_DEBUG') else True
+cpims_debug = eval(
+    os.environ.get('CPIMS_DEBUG')) if os.environ.get('CPIMS_DEBUG') else True
 
 DEBUG = cpims_debug
 
@@ -44,6 +43,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'cpovc_ovc',
     'rest_framework',
+    'django_filters',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -66,7 +66,9 @@ ROOT_URLCONF = 'cpims.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [(os.path.join(BASE_DIR, 'templates')), ],
+        'DIRS': [
+            (os.path.join(BASE_DIR, 'templates')),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -88,7 +90,8 @@ DATABASES = {
         'USER': cpims_db_user,
         'PASSWORD': cpims_db_pass,
         'HOST': cpims_db_host,
-        'PORT': cpims_db_port, }
+        'PORT': cpims_db_port,
+    }
 }
 
 LANGUAGE_CODE = 'en-us'
@@ -111,7 +114,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"), )
 
 AUTH_USER_MODEL = 'cpovc_auth.AppUser'
 
-AUTHENTICATION_BACKENDS = ('cpovc_auth.backends.CPOVCAuthenticationBackend',)
+AUTHENTICATION_BACKENDS = ('cpovc_auth.backends.CPOVCAuthenticationBackend', )
 
 ALLOW_NATIONAL_ID_LOGIN = True
 
@@ -149,9 +152,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
-
+    'DEFAULT_PAGINATION_CLASS':
+    'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE':
+    100,
+    'DEFAULT_FILTER_BACKENDS':
+    ('django_filters.rest_framework.DjangoFilterBackend', )
 }
 
 AXES_LOCKOUT_TEMPLATE = 'locked.html'
@@ -189,8 +195,6 @@ CACHES = {
     }
 }
 
-
 JWT_AUTH = {
     'JWT_ALLOW_REFRESH': True,
-
 }
