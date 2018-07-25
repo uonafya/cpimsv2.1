@@ -106,7 +106,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-<<<<<<< HEAD
             name='OVCExit',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, serialize=False, editable=False, primary_key=True)),
@@ -123,8 +122,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-=======
->>>>>>> cb8c638f1d2686b75eaa124d55bee570c61f2064
             name='OVCFacility',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -199,10 +196,7 @@ class Migration(migrations.Migration):
                 ('has_bcert', models.BooleanField(default=False)),
                 ('is_disabled', models.BooleanField(default=False)),
                 ('hiv_status', models.CharField(max_length=4, null=True)),
-<<<<<<< HEAD
                 ('art_status', models.CharField(max_length=4, null=True)),
-=======
->>>>>>> cb8c638f1d2686b75eaa124d55bee570c61f2064
                 ('school_level', models.CharField(max_length=4, null=True)),
                 ('immunization_status', models.CharField(max_length=4, null=True)),
                 ('org_unique_id', models.CharField(max_length=15, null=True)),
