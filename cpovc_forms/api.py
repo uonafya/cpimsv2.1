@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from cpovc_registry.models import RegPerson
 from cpovc_main.functions import (convert_date, new_guid_32)
 
-from .models import OVCCareEvents, OVCCareAssessment, OVCCareEAV, OVCCarePriority
+from .models import OVCCareEvents, OVCCareAssessment, OVCCareEAV, OVCCarePriority, OVCCareServices
 
 
 def validate_filters(required_filters, data):
@@ -31,10 +31,8 @@ class Form1aView(ListAPIView):
                 'args',
                 'person',
             ]
-
             post_payload_validity = validate_filters(minimum_required_filters,
                                                      request.data['payload'])
-
             if not post_payload_validity['validity']:
                 return JsonResponse(
                     {
@@ -50,9 +48,6 @@ class Form1aView(ListAPIView):
             #TODO extract to independent function
             # org_unit = None
             data = request.data.get('payload')
-            # ou_primary = data['ou_primary']
-            # ou_attached = data['ou_attached']
-            # ou_attached = ou_attached.split(',')
 
             event_type_id = 'FSAM'
             args = int(data['args'])
@@ -253,6 +248,78 @@ class Form1aView(ListAPIView):
                     },
                     status=200)
 
+            elif args == 4:
+                # check for minimum payload data needed for all scenarios
+                minimum_required_filters = [
+                    'date_of_service', 'olmis_service_provided_list',
+                    'ou_primary'
+                ]
+                post_payload_validity = validate_filters(
+                    minimum_required_filters, request.data['payload'])
+                if not post_payload_validity['validity']:
+                    return JsonResponse(
+                        {
+                            'status':
+                            'bad request',
+                            'message':
+                            "missing data attribute: " +
+                            post_payload_validity['field']
+                        },
+                        status=400)
+
+
+                data = request.data.get('payload')
+                ou_primary = data['ou_primary']
+                ou_attached = data['ou_attached']
+                ou_attached = ou_attached.split(',')
+                date_of_service = data['date_of_service']
+                if date_of_service:
+                    date_of_service = convert_date(date_of_service)
+
+                # Save F1AEvent
+                event_counter = OVCCareEvents.objects.filter(
+                    event_type_id=event_type_id, person=person,
+                    is_void=False).count()
+                ovccareevent = OVCCareEvents(
+                    event_type_id=event_type_id,
+                    event_counter=event_counter,
+                    event_score=0,
+                    date_of_event=date_of_service,
+                    created_by=request.user.id,
+                    person=RegPerson.objects.get(pk=int(person)))
+                ovccareevent.save()
+                new_pk = ovccareevent.pk
+
+                # Support/Services
+                olmis_service_provided_list = data[
+                    'olmis_service_provided_list']
+                if olmis_service_provided_list:
+                    olmis_service_data = olmis_service_provided_list
+                    org_unit = ou_primary if ou_primary else ou_attached[0]
+
+                    for service_data in olmis_service_data:
+                        service_grouping_id = new_guid_32()
+                        olmis_domain = service_data['olmis_domain']
+                        olmis_service_date = service_data['olmis_service_date']
+                        olmis_service_date = convert_date(
+                            olmis_service_date
+                        ) if olmis_service_date != 'None' else None
+                        olmis_service = service_data['olmis_service']
+                        services = olmis_service.split(',')
+                        for service in services:
+                            OVCCareServices(
+                                service_provided=service,
+                                service_provider=org_unit,
+                                # place_of_service = olmis_place_of_service,
+                                date_of_encounter_event=olmis_service_date,
+                                event=OVCCareEvents.objects.get(pk=new_pk),
+                                service_grouping_id=service_grouping_id).save(
+                                )
+                return JsonResponse(
+                    {
+                        'message': "Services successfuly saved"
+                    },
+                    status=200)
         else:
             return JsonResponse(
                 {
