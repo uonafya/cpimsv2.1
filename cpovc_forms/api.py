@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from cpovc_registry.models import RegPerson
 from cpovc_main.functions import (convert_date, new_guid_32)
 
-from .models import OVCCareEvents, OVCCareAssessment, OVCCareEAV
+from .models import OVCCareEvents, OVCCareAssessment, OVCCareEAV, OVCCarePriority
 
 
 def validate_filters(required_filters, data):
@@ -30,12 +30,14 @@ class Form1aView(ListAPIView):
             minimum_required_filters = [
                 'args',
                 'person',
-                ]
+            ]
 
-            post_payload_validity = validate_filters(minimum_required_filters,request.data['payload'])
+            post_payload_validity = validate_filters(minimum_required_filters,
+                                                     request.data['payload'])
 
             if not post_payload_validity['validity']:
-                return JsonResponse({
+                return JsonResponse(
+                    {
                         'status':
                         'bad request',
                         'message':
@@ -43,7 +45,6 @@ class Form1aView(ListAPIView):
                         post_payload_validity['field']
                     },
                     status=400)
-
 
             #acutal logoc
             #TODO extract to independent function
@@ -61,15 +62,12 @@ class Form1aView(ListAPIView):
             if args == 1:
                 #check for required payload data
                 assessment_required_filters = [
-                    'args',
-                    'person',
-                    'date_of_assessment',
+                    'args', 'person', 'date_of_assessment',
                     'olmis_assessment_provided_list'
                 ]
 
                 post_payload_validity = validate_filters(
-                        assessment_required_filters,
-                        request.data['payload'])
+                    assessment_required_filters, request.data['payload'])
 
                 if not post_payload_validity['validity']:
                     return JsonResponse(
@@ -81,7 +79,6 @@ class Form1aView(ListAPIView):
                             post_payload_validity['field']
                         },
                         status=400)
-
 
                 date_of_assessment = data['date_of_assessment']
                 if date_of_assessment:
@@ -170,8 +167,7 @@ class Form1aView(ListAPIView):
 
                 # Critical Events [CEVT]
                 my_kvals = []
-                olmis_critical_event = data[
-                    'olmis_critical_event']  # DHES
+                olmis_critical_event = data['olmis_critical_event']  # DHES
                 # for i, cevts in enumerate(olmis_critical_event):
                 cevts = olmis_critical_event.split(',')
                 for cevt in cevts:
@@ -189,6 +185,71 @@ class Form1aView(ListAPIView):
                 return JsonResponse(
                     {
                         'message': "Critival event successfuly saved"
+                    },
+                    status=200)
+
+            elif args == 3:
+                minimum_required_filters = [
+                    'date_of_priority', 'olmis_priority_service_provided_list'
+                ]
+
+                post_payload_validity = validate_filters(
+                    minimum_required_filters, request.data['payload'])
+
+                if not post_payload_validity['validity']:
+                    return JsonResponse(
+                        {
+                            'status':
+                            'bad request',
+                            'message':
+                            "missing data attribute: " +
+                            post_payload_validity['field']
+                        },
+                        status=400)
+
+                #data payload is valid, hence get the payload information
+                data = request.data.get('payload')
+
+                date_of_priority = data['date_of_priority']
+                if date_of_priority:
+                    date_of_priority = convert_date(date_of_priority)
+
+                # Save F1AEvent
+                event_counter = OVCCareEvents.objects.filter(
+                    event_type_id=event_type_id, person=person,
+                    is_void=False).count()
+                ovccareevent = OVCCareEvents(
+                    event_type_id=event_type_id,
+                    event_counter=event_counter,
+                    event_score=0,
+                    date_of_event=date_of_priority,
+                    created_by=request.user.id,
+                    person=RegPerson.objects.get(pk=int(person)))
+                ovccareevent.save()
+                new_pk = ovccareevent.pk
+
+                # Priority Needs
+                olmis_priority_service_provided_list = data[
+                    'olmis_priority_service_provided_list']
+                if olmis_priority_service_provided_list:
+                    olmis_priority_data = olmis_priority_service_provided_list
+                    for priority_data in olmis_priority_data:
+                        service_grouping_id = new_guid_32()
+                        olmis_priority_domain = priority_data[
+                            'olmis_priority_domain']
+                        olmis_priority_service = priority_data[
+                            'olmis_priority_service']
+                        services = olmis_priority_service.split(',')
+                        for service in services:
+                            OVCCarePriority(
+                                domain=olmis_priority_domain,
+                                service=service,
+                                event=OVCCareEvents.objects.get(pk=new_pk),
+                                service_grouping_id=service_grouping_id).save(
+                                )
+                return JsonResponse(
+                    {
+                        'message': "Priority Needs successfuly saved"
                     },
                     status=200)
 
