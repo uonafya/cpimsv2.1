@@ -27,6 +27,7 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from cpovc_registry.urls import api_urls as registry_api_urls
 from cpovc_main.urls import api_urls as main_api_urls
 from cpovc_forms.urls import api_urls as forms_api_urls
+from cpovc_ovc.urls import api_urls as ovc_api_urls
 
 
 root_api_urls = [
@@ -34,7 +35,8 @@ root_api_urls = [
     url(r'^token-refresh/', refresh_jwt_token),
     url(r'^registry/', include(registry_api_urls)),
     url(r'^main/',include(main_api_urls)),
-    url(r'^forms/',include(forms_api_urls))
+    url(r'^forms/',include(forms_api_urls)),
+    url(r'^ovc/',include(ovc_api_urls))
 
 ]
 urlpatterns = [
