@@ -1856,7 +1856,7 @@ FROM  (SELECT area_id, area_name, area_code, parent_area_id
          ovc_registration ON ovc_care_events.person_id = ovc_registration.person_id LEFT OUTER JOIN
          reg_org_unit ON reg_org_unit.id = ovc_registration.child_cbo_id LEFT OUTER JOIN
          reg_persons_geo ON reg_persons_geo.person_id = ovc_registration.person_id ON list_geo.area_id = reg_persons_geo.area_id
-WHERE (ovc_care_services.is_void = 'False') AND (ovc_care_events.event_type_id = 'FSAM') AND (ovc_care_events.date_of_event BETWEEN '{start_date}' AND '{end_date}')
+WHERE reg_org_unit.id in ({cbos}) AND (ovc_care_services.is_void = 'False') AND (ovc_care_events.event_type_id = 'FSAM') AND (ovc_care_events.date_of_event BETWEEN '{start_date}' AND '{end_date}')
 GROUP BY ovc_care_events.person_id,ovc_care_services.service_provided, reg_person.date_of_birth, reg_person.sex_id, 
 ovc_registration.child_cbo_id, reg_org_unit.org_unit_name, reg_persons_geo.area_id, list_geo.area_name, list_general.item_description,
 derivedtbl_1.area_name,date_part('year', age(reg_person.date_of_birth)),
@@ -1886,7 +1886,7 @@ FROM  (SELECT area_id, area_name, area_code, parent_area_id
          ovc_registration ON ovc_care_events.person_id = ovc_registration.person_id LEFT OUTER JOIN
          reg_org_unit ON reg_org_unit.id = ovc_registration.child_cbo_id LEFT OUTER JOIN
          reg_persons_geo ON reg_persons_geo.person_id = ovc_registration.person_id ON list_geo.area_id = reg_persons_geo.area_id
-WHERE (ovc_care_assessment.domain in ('DHNU','DPSS')) and (ovc_care_assessment.is_void = 'False')
+WHERE reg_org_unit.id in ({cbos}) AND (ovc_care_assessment.domain in ('DHNU','DPSS')) and (ovc_care_assessment.is_void = 'False')
 AND (ovc_care_events.event_type_id = 'FSAM') AND (ovc_care_events.date_of_event BETWEEN '{start_date}' AND '{end_date}')
 GROUP BY ovc_care_events.person_id,ovc_care_assessment.service, reg_person.date_of_birth, reg_person.sex_id, 
 ovc_registration.child_cbo_id, reg_org_unit.org_unit_name, reg_persons_geo.area_id, list_geo.area_name, 
